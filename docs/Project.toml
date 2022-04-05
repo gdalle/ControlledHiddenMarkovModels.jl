@@ -1,3 +1,4 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 HiddenMarkovModels = "7732c362-7152-4a8d-b9b6-d99facdeb807"
+Literate = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
