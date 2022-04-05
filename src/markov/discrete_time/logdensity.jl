@@ -1,3 +1,8 @@
+"""
+    logdensityof(mc::DiscreteMarkovChain, x::AbstractVector)
+
+Compute the log-likelihood of the sequence `x` of states for the chain `mc`.
+"""
 function DensityInterface.logdensityof(mc::DiscreteMarkovChain, x::AbstractVector)
     T = length(x)
     l = log(mc.π0[x[1]])
@@ -7,6 +12,11 @@ function DensityInterface.logdensityof(mc::DiscreteMarkovChain, x::AbstractVecto
     return l
 end
 
+"""
+    logdensityof(prior::DiscreteMarkovChainPrior, mc::DiscreteMarkovChain)
+
+Compute the log-likelihood of the chain `mc` with respect to a `prior`.
+"""
 function DensityInterface.logdensityof(
     prior::DiscreteMarkovChainPrior, mc::DiscreteMarkovChain
 )

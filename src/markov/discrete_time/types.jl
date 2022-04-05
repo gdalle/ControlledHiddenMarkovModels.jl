@@ -21,7 +21,7 @@ end
 """
     DiscreteMarkovChainPrior
 
-Define a Dirichlet prior on the initial distribution and on the transitions from each state.
+Define a Dirichlet prior on the initial distribution and on the transition matrix of a [`DiscreteMarkovChain`](@ref).
 
 # Fields
 - `π0_α::AbstractVector`: Dirichlet parameter for the initial distribution
@@ -39,7 +39,7 @@ end
 """
     DiscreteMarkovChainStats
 
-Sufficient statistics for the likelihood of a `DiscreteMarkovChain`.
+Store sufficient statistics for the likelihood of a [`DiscreteMarkovChain`](@ref) sample.
 
 # Fields
 - `initialization_count::AbstractVector`: count initializations in each state
@@ -54,10 +54,32 @@ end
 
 ## Access
 
+"""
+    nb_states(mc::DiscreteMarkovChain)
+
+Return the number of states of `mc`.
+"""
 nb_states(mc::DiscreteMarkovChain) = length(mc.π0)
+
+"""
+    initial_distribution(mc::DiscreteMarkovChain)
+
+Return the vector of initial state probabilities of `mc`.
+"""
 initial_distribution(mc::DiscreteMarkovChain) = mc.π0
+
+"""
+    transition_matrix(mc::DiscreteMarkovChain)
+
+Return the matrix of transition probabilities of `mc`.
+"""
 transition_matrix(mc::DiscreteMarkovChain) = mc.P
 
+"""
+    stationary_distribution(mc::DiscreteMarkovChain)
+
+Compute the equilibrium distribution of `mc` using its eigendecomposition.
+"""
 function stationary_distribution(mc::DiscreteMarkovChain)
     π = real.(eigvecs(transition_matrix(mc)')[:, end])
     return π / sum(π)

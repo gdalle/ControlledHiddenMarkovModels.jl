@@ -1,3 +1,8 @@
+"""
+    rand([rng,] mc::DiscreteMarkovChain, T)
+
+Simulate `mc` during `T` time steps.
+"""
 function Base.rand(rng::AbstractRNG, mc::DiscreteMarkovChain, T::Integer)
     states = Vector{Int}(undef, T)
     states[1] = rand(rng, Categorical(mc.π0))
@@ -8,7 +13,12 @@ function Base.rand(rng::AbstractRNG, mc::DiscreteMarkovChain, T::Integer)
     return states
 end
 
-function Base.rand(rng::AbstractRNG, mc::DiscreteMarkovChainPrior)
+"""
+    rand([rng,] prior::DiscreteMarkovChainPrior)
+
+Sample a [`DiscreteMarkovChain`](@ref) from `prior`.
+"""
+function Base.rand(rng::AbstractRNG, prior::DiscreteMarkovChainPrior)
     return error("not implemented")
 end
 

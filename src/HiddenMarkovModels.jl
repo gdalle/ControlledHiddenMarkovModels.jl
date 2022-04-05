@@ -22,7 +22,7 @@ include("hmm/discrete_time/baum_welch.jl")
 include("utils/randvals.jl")
 include("utils/overflow.jl")
 
-export fit, fit_mle
+export fit, fit_mle, fit_map
 
 export DiscreteMarkovChain, DiscreteMarkovChainPrior
 export nb_states, initial_distribution, transition_matrix, stationary_distribution

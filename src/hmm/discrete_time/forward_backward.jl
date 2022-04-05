@@ -43,13 +43,17 @@ function backward!(
     end
     for t in 1:T
         if all_zeros(@view β[t, :])
-            println(β[t, :])
             throw(OverflowError("Log probabilities are too small in backward step."))
         end
     end
     return nothing
 end
 
+"""
+    forward_backward!(α, β, c, γ, ξ, obs_density, hmm)
+
+Apply the forward-backward algorithm in-place to compute sufficient statistics.
+"""
 function forward_backward!(
     α::AbstractMatrix,
     β::AbstractMatrix,
@@ -92,6 +96,11 @@ end
 
 ## Likelihood of observations
 
+"""
+    update_obs_density!(obs_density, observations, hmm)
+
+Set `obs_density[t, s]` to the likelihood of `hmm` emitting `observation[t]` if it were in state `s`.
+"""
 function update_obs_density!(
     obs_density::AbstractMatrix, observations::AbstractVector, hmm::HMM
 )

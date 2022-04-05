@@ -1,6 +1,12 @@
+"""
+    baum_welch_multiple_sequences(hmm_init, observation_sequences; iterations)
+
+Run the Baum-Welch algorithm to estimate a [`HiddenMarkovModel`](@ref) of the same type as `hmm_init`, based on several `observation_sequences`.
+"""
 function baum_welch_multiple_sequences(
-    hmm::HMM{TransitionsType,EmissionsType}, observation_sequences; iterations
-) where {TransitionsType,EmissionsType}
+    hmm_init::HMM{Tr,Em}, observation_sequences; iterations
+) where {Tr,Em}
+    hmm = hmm_init
     S = nb_states(hmm)
     K = length(observation_sequences)
     T = [length(observation_sequences[k]) for k in 1:K]
@@ -23,10 +29,9 @@ function baum_welch_multiple_sequences(
         push!(logL_evolution, logL)
 
         concat_γ = [mapreduce(x -> x[:, s], vcat, γ) for s in 1:nb_states(hmm)]
-        new_transitions = fit_mle(TransitionsType, γ, ξ)
+        new_transitions = fit_mle(Tr, γ, ξ)
         new_emissions = [
-            fit_mle(EmissionsType, concat_observation_sequences, concat_γ[s]) for
-            s in 1:nb_states(hmm)
+            fit_mle(Em, concat_observation_sequences, concat_γ[s]) for s in 1:nb_states(hmm)
         ]
         hmm = HMM(new_transitions, new_emissions)
     end
@@ -34,9 +39,15 @@ function baum_welch_multiple_sequences(
     return hmm, logL_evolution
 end
 
+"""
+    baum_welch_multiple_sequences_log(hmm_init, observation_sequences; iterations)
+
+Same as [`baum_welch_multiple_sequences`](@ref) but with logarithmic computations for numerical stability.
+"""
 function baum_welch_multiple_sequences_log(
-    hmm::HMM{TransitionsType,EmissionsType}, observation_sequences; iterations
-) where {TransitionsType,EmissionsType}
+    hmm_init::HMM{Tr,Em}, observation_sequences; iterations
+) where {Tr,Em}
+    hmm = hmm_init
     S = nb_states(hmm)
     K = length(observation_sequences)
     T = [length(observation_sequences[k]) for k in 1:K]
@@ -61,11 +72,10 @@ function baum_welch_multiple_sequences_log(
 
         γ = map(x -> exp.(x), logγ)
         ξ = map(x -> exp.(x), logξ)
-        new_transitions = fit_mle(TransitionsType, γ, ξ)
+        new_transitions = fit_mle(Tr, γ, ξ)
         concat_γ = [mapreduce(x -> x[:, s], vcat, γ) for s in 1:nb_states(hmm)]
         new_emissions = [
-            fit_mle(EmissionsType, concat_observation_sequences, concat_γ[s]) for
-            s in 1:nb_states(hmm)
+            fit_mle(Em, concat_observation_sequences, concat_γ[s]) for s in 1:nb_states(hmm)
         ]
         hmm = HMM(new_transitions, new_emissions)
     end
@@ -73,7 +83,13 @@ function baum_welch_multiple_sequences_log(
     return hmm, logL_evolution
 end
 
-function baum_welch(hmm, observation_sequence; log=false, plot=false, kwargs...)
+"""
+    baum_welch(hmm_init, observation_sequence; log, plot)
+
+Run the Baum-Welch algorithm to estimate a [`HiddenMarkovModel`](@ref) of the same type as `hmm_init`, based on a single `observation_sequence`.
+"""
+function baum_welch(hmm_init, observation_sequence; log=false, plot=false, kwargs...)
+    hmm = hmm_init
     if log
         hmm, logL_evolution = baum_welch_multiple_sequences_log(
             hmm, [observation_sequence]; kwargs...

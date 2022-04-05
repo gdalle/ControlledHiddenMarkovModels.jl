@@ -37,6 +37,11 @@ function backward_log!(logβ::AbstractMatrix, obs_logdensity::AbstractMatrix, hm
     return nothing
 end
 
+"""
+    forward_backward!(logα, logβ, logγ, logξ, obs_logdensity, hmm)
+
+Apply the logarithmic forward-backward algorithm in-place to compute sufficient statistics.
+"""
 function forward_backward_log!(
     logα::AbstractMatrix,
     logβ::AbstractMatrix,
@@ -79,6 +84,11 @@ end
 
 ## Likelihood of observations
 
+"""
+    update_obs_logdensity!(obs_density, observations, hmm)
+
+Set `obs_logdensity[t, s]` to the log-likelihood of `hmm` emitting `observation[t]` if it were in state `s`.
+"""
 function update_obs_logdensity!(
     obs_logdensity::AbstractMatrix, observations::AbstractVector, hmm::HMM
 )
