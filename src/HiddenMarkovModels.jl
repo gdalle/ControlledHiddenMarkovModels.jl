@@ -4,6 +4,7 @@ using Base.Threads
 using DensityInterface
 using Distributions
 using LinearAlgebra
+using LogarithmicNumbers
 using LogExpFunctions
 using ProgressMeter
 using Random: Random, AbstractRNG, GLOBAL_RNG

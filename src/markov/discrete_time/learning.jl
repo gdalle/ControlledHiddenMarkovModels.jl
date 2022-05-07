@@ -23,15 +23,8 @@ function Distributions.suffstats(
     initialization_count = zeros(R1, S)
     transition_count = zeros(R2, S, S)
     for k in 1:K
-        γₖ = γ[k]
-        ξₖ = ξ[k]
-        Tₖ = size(γₖ, 2)
-        for i in 1:S
-            initialization_count[i] += γₖ[i, 1]
-        end
-        for i in 1:S, j in 1:S, t in 1:(Tₖ - 1)
-            transition_count[i, j] += ξₖ[i, j, t]
-        end
+        initialization_count .+= @view γ[k][:, 1]
+        transition_count .+= dropdims(sum(ξ[k], dims=3), dims=3)
     end
     return DiscreteMarkovChainStats{R1,R2}(; initialization_count, transition_count)
 end
