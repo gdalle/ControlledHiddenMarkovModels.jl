@@ -19,7 +19,9 @@ end
 Sample a [`DiscreteMarkovChain`](@ref) from `prior`.
 """
 function Base.rand(rng::AbstractRNG, prior::DiscreteMarkovChainPrior)
-    return error("not implemented")
+    π0 = rand(rng, Dirichlet(prior.π0_α))
+    P = reduce(vcat, rand(rng, Dirichlet(@view prior.P_α[s, :])) for s = 1:S)
+    return DiscreteMarkovChain(π0, P)
 end
 
 Base.rand(mc::DiscreteMarkovChain, T::Integer) = rand(GLOBAL_RNG, mc, T)

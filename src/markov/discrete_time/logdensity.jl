@@ -20,9 +20,9 @@ Compute the log-likelihood of the chain `mc` with respect to a `prior`.
 function DensityInterface.logdensityof(
     prior::DiscreteMarkovChainPrior, mc::DiscreteMarkovChain
 )
-    l = logdensityof(Dirichlet(prior.π0_α), Categorical(mc.π0))
+    l = logdensityof(Dirichlet(prior.π0_α), mc.π0)
     for s in 1:nb_states(mc)
-        l += logdensityof(Dirichlet(@view prior.P_α[s, :]), Categorical(@view mc.P[s, :]))
+        l += logdensityof(Dirichlet(@view prior.P_α[s, :]), @view mc.P[s, :])
     end
     return l
 end

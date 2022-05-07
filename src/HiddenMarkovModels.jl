@@ -17,7 +17,7 @@ include("utils/plot.jl")
 include("markov/discrete_time/types.jl")
 include("markov/discrete_time/simulation.jl")
 include("markov/discrete_time/logdensity.jl")
-include("markov/discrete_time/inference.jl")
+include("markov/discrete_time/learning.jl")
 
 include("hmm/discrete_time/types.jl")
 include("hmm/discrete_time/simulation.jl")

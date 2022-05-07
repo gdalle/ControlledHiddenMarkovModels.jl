@@ -10,9 +10,7 @@ function Distributions.suffstats(
     for t in 1:(T - 1)
         transition_count[x[t], x[t + 1]] += one(R2)
     end
-    return DiscreteMarkovChainStats(;
-        initialization_count=initialization_count, transition_count=transition_count
-    )
+    return DiscreteMarkovChainStats{R1,R2}(initialization_count, transition_count)
 end
 
 function Distributions.suffstats(
@@ -35,9 +33,7 @@ function Distributions.suffstats(
             transition_count[i, j] += ξₖ[i, j, t]
         end
     end
-    return DiscreteMarkovChainStats(;
-        initialization_count=initialization_count, transition_count=transition_count
-    )
+    return DiscreteMarkovChainStats{R1,R2}(; initialization_count, transition_count)
 end
 
 ## Fit
@@ -51,20 +47,43 @@ function Distributions.fit_mle(
 end
 
 function Distributions.fit_mle(
-    mctype::Type{DiscreteMarkovChain{R1,R2}}, args...; kwargs...
+    mctype::Type{DiscreteMarkovChain{R1,R2}}, x::AbstractVector{<:Integer}; kwargs...
 ) where {R1,R2}
-    ss = suffstats(mctype, args...; kwargs...)
+    ss = suffstats(mctype, x; kwargs...)
+    return fit_mle(mctype, ss)
+end
+
+function Distributions.fit_mle(
+    mctype::Type{DiscreteMarkovChain{R1,R2}},
+    γ::Vector{<:AbstractMatrix{<:Real}},
+    ξ::Vector{<:AbstractArray{<:Real,3}};
+    kwargs...,
+) where {R1,R2}
+    ss = suffstats(mctype, γ, ξ; kwargs...)
     return fit_mle(mctype, ss)
 end
 
 function fit_map(
     mctype::Type{DiscreteMarkovChain{R1,R2}},
     prior::DiscreteMarkovChainPrior,
-    args...;
+    x::AbstractVector{<:Integer};
     kwargs...,
 ) where {R1,R2}
-    ss = suffstats(mctype, args...; kwargs...)
-    ss.initialization .+= (prior.π0α .- 1)
-    ss.transition_count .+= (prior.Pα .- 1)
+    ss = suffstats(mctype, x; kwargs...)
+    ss.initialization_count .+= (prior.π0_α .- 1)
+    ss.transition_count .+= (prior.P_α .- 1)
+    return fit_mle(mctype, ss)
+end
+
+function fit_map(
+    mctype::Type{DiscreteMarkovChain{R1,R2}},
+    prior::DiscreteMarkovChainPrior,
+    γ::Vector{<:AbstractMatrix{<:Real}},
+    ξ::Vector{<:AbstractArray{<:Real,3}};
+    kwargs...,
+) where {R1,R2}
+    ss = suffstats(mctype, γ, ξ; kwargs...)
+    ss.initialization_count .+= (prior.π0_α .- 1)
+    ss.transition_count .+= (prior.P_α .- 1)
     return fit_mle(mctype, ss)
 end

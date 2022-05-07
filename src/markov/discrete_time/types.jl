@@ -104,3 +104,10 @@ function stationary_distribution(mc::DiscreteMarkovChain)
     π = real.(eigvecs(transition_matrix(mc)')[:, end])
     return π / sum(π)
 end
+
+function zero_prior(mc::DiscreteMarkovChain{R1,R2}) where {R1<:Real, R2<:Real}
+    S = nb_states(mc)
+    π0_α = ones(R1, S)
+    P_α = ones(R2, S, S)
+    return DiscreteMarkovChainPrior(π0_α, P_α)
+end

@@ -21,6 +21,7 @@ function baum_welch_multiple_sequences!(
     ξ::AbstractVector{<:AbstractArray{R,3}},
     hmm_init::HMM{Tr,Em},
     obs_sequences::AbstractVector;
+    transitions_prior::DiscreteMarkovChainPrior=zero_prior(hmm_init.transitions),
     max_iterations::Integer=100,
     tol::Real=1e-3,
     show_progress::Bool=true,
@@ -32,19 +33,18 @@ function baum_welch_multiple_sequences!(
     T = [length(obs_sequences[k]) for k in 1:K]
     concat_obs_sequences = reduce(vcat, obs_sequences)
 
-    logL_evolution = Float64[]
-    prog = Progress(
-        max_iterations; desc="Baum-Welch algorithm iterations", enabled=show_progress
-    )
+    logL_evolution = R[]
+    prog = Progress(max_iterations; desc="Baum-Welch algorithm", enabled=show_progress)
     for iteration in 1:max_iterations
-        logL = 0.0
+        logL = zero(R)
         for k in 1:K
             update_obs_density!(obs_densities[k], hmm, obs_sequences[k])
             logL += forward_backward!(α[k], β[k], c[k], γ[k], ξ[k], hmm, obs_densities[k])
         end
+        logL += logdensityof(transitions_prior, hmm.transitions)
         push!(logL_evolution, logL)
 
-        new_transitions = convert(Tr, fit_mle(Tr, γ, ξ))
+        new_transitions = convert(Tr, fit_map(Tr, transitions_prior, γ, ξ))
         new_emissions = Vector{Em}(undef, S)
         for s in 1:S
             concat_γs = mapreduce(x -> view(x, s, :), vcat, γ)
@@ -69,13 +69,13 @@ function baum_welch_multiple_sequences!(
 end
 
 """
-    baum_welch_multiple_sequences(hmm_init, obs_sequences; iterations)
+    baum_welch_multiple_sequences(hmm_init, obs_sequences)
 
 Run the Baum-Welch algorithm to estimate a [`HiddenMarkovModel`](@ref) of the same type as `hmm_init`, based on several observation sequences.
 """
 function baum_welch_multiple_sequences(
-    hmm_init::HMM{Tr,Em}, obs_sequences::AbstractVector; kwargs...
-) where {Tr,Em}
+    hmm_init::HMM, obs_sequences::AbstractVector; kwargs...
+)
     K = length(obs_sequences)
     obs_densities = [compute_obs_density(hmm_init, obs_sequences[k]) for k in 1:K]
     (; α, β, c, γ, ξ) = initialize_baum_welch_multiple_sequences(obs_densities)
@@ -85,10 +85,12 @@ function baum_welch_multiple_sequences(
 end
 
 """
-    baum_welch(hmm_init, obs_sequences; log, plot)
+    baum_welch(hmm_init, obs_sequences)
 
-Run the Baum-Welch algorithm to estimate a [`HiddenMarkovModel`](@ref) of the same type as `hmm_init`, based on a single observation sequence.
+Same as [`baum_welch_multiple_sequences`](@ref) but with a single sequence.
 """
-function baum_welch(hmm_init::HMM, obs_sequences::AbstractVector; kwargs...)
+function baum_welch(
+    hmm_init::HMM, obs_sequences::AbstractVector; kwargs...
+)
     return baum_welch_multiple_sequences(hmm_init, [obs_sequences]; kwargs...)
 end
