@@ -4,8 +4,6 @@ using HiddenMarkovModels
 using Random
 using Test
 
-Random.seed!(63)
-
 DocMeta.setdocmeta!(
     HiddenMarkovModels, :DocTestSetup, :(using HiddenMarkovModels); recursive=true
 )
@@ -17,7 +15,7 @@ DocMeta.setdocmeta!(
     @testset verbose = true "Doctests" begin
         doctest(HiddenMarkovModels)
     end
-    @testset verbose = true "Discrete markov chain" begin
+    @testset verbose = true "Discrete Markov chain" begin
         include("discrete_markov.jl")
     end
     @testset verbose = true "Hidden Markov Model" begin

@@ -26,6 +26,7 @@ Here are the ones that I am aware of:
 
 - [HMMBase.jl](https://github.com/maxmouchet/HMMBase.jl)
 - [MarkovModels.jl](https://github.com/FAST-ASR/MarkovModels.jl)
+- [HiddenMarkovModels.jl](https://github.com/BenConnault/HiddenMarkovModels.jl)
 - [Mitosis.jl](https://github.com/mschauer/Mitosis.jl)
 - [ContinuousTimeMarkov.jl](https://github.com/tpapp/ContinuousTimeMarkov.jl)
 - [PiecewiseDeterministicMarkovProcesses.jl](https://github.com/rveltz/PiecewiseDeterministicMarkovProcesses.jl)

@@ -1,29 +1,29 @@
 """
-    HiddenMarkovModel{T,E}
+    HiddenMarkovModel{Tr,Em}
 
 Hidden Markov Model with arbitrary transition model (must be a discrete Markov chain) and emission distributions.
 
 # Fields
-- `transitions::T`: state evolution process.
-- `emissions::Vector{E}`: one emission distribution per state.
+- `transitions::Tr`: state evolution process.
+- `emissions::Vector{Em}`: one emission distribution per state.
 """
-struct HiddenMarkovModel{T,E}
-    transitions::T
-    emissions::Vector{E}
+struct HiddenMarkovModel{Tr,Em}
+    transitions::Tr
+    emissions::Vector{Em}
 end
 
 """
-    HiddenMarkovModelPrior{TP,EP}
+    HiddenMarkovModelPrior{TrP,EmP}
 
 Prior for a [`HiddenMarkovModel`](@ref).
 
 # Fields
-- `transitions_prior::T`: prior on the transition structure.
-- `emissions_prior::Vector{E}`: one prior per state emission distribution.
+- `transitions_prior::TrP`: prior on the transition structure.
+- `emissions_prior::Vector{EmP}`: one prior per state emission distribution.
 """
-struct HiddenMarkovModelPrior{TP,EP}
-    transitions_prior::TP
-    emissions_prior::Vector{EP}
+struct HiddenMarkovModelPrior{TrP,EmP}
+    transitions_prior::TrP
+    emissions_prior::Vector{EmP}
 end
 
 """

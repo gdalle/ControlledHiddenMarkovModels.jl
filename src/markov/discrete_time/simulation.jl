@@ -5,8 +5,8 @@ Simulate `mc` during `T` time steps.
 """
 function Base.rand(rng::AbstractRNG, mc::DiscreteMarkovChain, T::Integer)
     states = Vector{Int}(undef, T)
-    states[1] = rand(rng, Categorical(mc.π0))
     transitions = [Categorical(mc.P[s, :]) for s in 1:nb_states(mc)]
+    states[1] = rand(rng, Categorical(mc.π0))
     for t in 2:T
         states[t] = rand(rng, transitions[states[t - 1]])
     end

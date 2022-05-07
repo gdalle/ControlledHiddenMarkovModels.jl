@@ -1,9 +1,9 @@
 # # Discrete Markov chain
 
 using HiddenMarkovModels
-#md using Plots
 using Statistics
 using Test  #src
+using UnicodePlots
 
 # ## Construction
 
@@ -21,13 +21,13 @@ dmc = DiscreteMarkovChain(π0, P)
 # To simulate it, we only need to decide how long the sequence should be.
 
 states = rand(dmc, 100);
-#md scatter(states, label=nothing, xlabel="Time", ylabel="Markov chain state")
+scatterplot(states, label=nothing, title="Markov chain evolution", xlabel="Time", ylabel="State")
 
 # ## Learning
 
 # Based on a sequence of states, we can fit a `DiscreteMarkovChain` with Maximum Likelihood.
 
-dmc_est_mle = fit_mle(DiscreteMarkovChain, states)
+dmc_est_mle = fit_mle(DiscreteMarkovChain{Float32,Float32}, states)
 
 # As we can see, the error on the transition matrix is quite small.
 

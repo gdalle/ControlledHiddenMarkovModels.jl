@@ -1,37 +1,55 @@
 # Overflow checks
 
-function all_minus_inf(x)
+function all_minus_inf(x::AbstractArray{R}) where {R <: Real}
     for y in x
-        if y > typemin(y)
+        if y > typemin(R)
             return false
         end
     end
     return true
 end
 
-function all_plus_inf(x)
+function any_minus_inf(x::AbstractArray{R}) where {R <: Real}
     for y in x
-        if y < typemax(y)
+        if y == typemin(R)
+            return true
+        end
+    end
+    return false
+end
+
+function all_plus_inf(x::AbstractArray{R}) where {R <: Real}
+    for y in x
+        if y < typemax(R)
             return false
         end
     end
     return true
 end
 
-function all_zeros(x)
+function any_plus_inf(x::AbstractArray{R}) where {R <: Real}
     for y in x
-        if 1 / abs(y) < typemax(y)
+        if y == typemax(R)
+            return true
+        end
+    end
+    return false
+end
+
+function all_zero(x::AbstractArray{R}) where {R <: Real}
+    for y in x
+        if 1 / abs(y) < typemax(R)
             return false
         end
     end
     return true
 end
 
-function all_nan(x)
+function any_zero(x::AbstractArray{R}) where {R <: Real}
     for y in x
-        if !isnan(y)
-            return false
+        if 1 / abs(y) == typemax(R)
+            return true
         end
     end
-    return true
+    return false
 end
