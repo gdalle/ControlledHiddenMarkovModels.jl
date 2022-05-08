@@ -101,11 +101,16 @@ transition_matrix(mc::DiscreteMarkovChain) = mc.P
 Compute the equilibrium distribution of `mc` using its eigendecomposition.
 """
 function stationary_distribution(mc::DiscreteMarkovChain)
-    π = real.(eigvecs(transition_matrix(mc)')[:, end])
-    return π / sum(π)
+    π_stat = real.(eigvecs(transition_matrix(mc)')[:, end])
+    return π_stat / sum(π_stat)
 end
 
-function zero_prior(mc::DiscreteMarkovChain{R1,R2}) where {R1<:Real, R2<:Real}
+"""
+    zero_prior(mc::DiscreteMarkovChain)
+
+Build a flat prior, for which MAP is equivalent to MLE.
+"""
+function flat_prior(mc::DiscreteMarkovChain{R1,R2}) where {R1<:Real, R2<:Real}
     S = nb_states(mc)
     π0_α = ones(R1, S)
     P_α = ones(R2, S, S)

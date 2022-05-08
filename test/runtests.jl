@@ -15,10 +15,15 @@ DocMeta.setdocmeta!(
     @testset verbose = true "Doctests" begin
         doctest(HiddenMarkovModels)
     end
-    @testset verbose = true "Discrete Markov chain" begin
-        include("discrete_markov.jl")
-    end
-    @testset verbose = true "Hidden Markov Model" begin
-        include("hmm.jl")
+    @testset verbose = true "Examples" begin
+        @testset verbose = true "Discrete Markov chain" begin
+            include("examples/discrete_markov.jl")
+        end
+        @testset verbose = true "Multivariate Poisson process" begin
+            include("examples/multivariate_poisson.jl")
+        end
+        @testset verbose = true "Hidden Markov Model" begin
+            include("examples/hmm.jl")
+        end
     end
 end

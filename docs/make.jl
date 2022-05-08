@@ -6,7 +6,7 @@ DocMeta.setdocmeta!(
     HiddenMarkovModels, :DocTestSetup, :(using HiddenMarkovModels); recursive=true
 )
 
-EXAMPLES_DIR_JL = joinpath(dirname(@__DIR__), "test")
+EXAMPLES_DIR_JL = joinpath(@__DIR__, "..", "test", "examples")
 EXAMPLES_DIR_MD = joinpath(@__DIR__, "src", "examples")
 
 for file in readdir(EXAMPLES_DIR_MD)
@@ -16,16 +16,12 @@ for file in readdir(EXAMPLES_DIR_MD)
 end
 
 for file in readdir(EXAMPLES_DIR_JL)
-    if endswith(file, ".jl") &&
-        !startswith(file, "runtests") &&
-        !startswith(file, "profiling")
-        Literate.markdown(
-            joinpath(EXAMPLES_DIR_JL, file),
-            EXAMPLES_DIR_MD;
-            documenter=true,
-            flavor=Literate.DocumenterFlavor(),
-        )
-    end
+    Literate.markdown(
+        joinpath(EXAMPLES_DIR_JL, file),
+        EXAMPLES_DIR_MD;
+        documenter=true,
+        flavor=Literate.DocumenterFlavor(),
+    )
 end
 
 makedocs(;
@@ -42,6 +38,7 @@ makedocs(;
         "Home" => "index.md",
         "Examples" => [
             "Discrete Markov chain" => "examples/discrete_markov.md",
+            "Multivariate Poisson process" => "examples/multivariate_poisson.md",
             "Hidden Markov Model" => "examples/hmm.md",
         ],
         "API reference" => "api.md",

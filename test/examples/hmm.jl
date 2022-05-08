@@ -65,8 +65,6 @@ hmm_est_log, logL_evolution_log = baum_welch_multiple_sequences(
     hmm_init_log, obs_sequences; max_iterations=1000, tol=1e-5, plot=true
 );
 
-# ## Checking results
-
 # Let us now compute the estimation error on various parameters.
 
 transition_error_init = mean(abs, transition_matrix(hmm_init) - transition_matrix(hmm))
@@ -83,33 +81,27 @@ transition_error = mean(abs, transition_matrix(hmm_est) - transition_matrix(hmm)
 
 # As we can see, all of these errors are much smaller than those of `hmm_init`: mission accomplished! The same goes for the logarithmic version.
 
-transition_error_init_log = mean(
-    float ∘ abs, transition_matrix(hmm_init_log) - transition_matrix(hmm)
-)
-μ_error_init_log = mean(
-    float ∘ abs, [emission(hmm_init_log, s).μ - emission(hmm, s).μ for s in 1:2]
-)
-σ_error_init_log = mean(
-    float ∘ abs, [emission(hmm_init_log, s).σ - emission(hmm, s).σ for s in 1:2]
-)
-
-(transition_error_init_log, μ_error_init_log, σ_error_init_log)
-
-#-
-
-transition_error_log = mean(
-    float ∘ abs, transition_matrix(hmm_est_log) - transition_matrix(hmm)
-)
-μ_error_log = mean(
-    float ∘ abs, [emission(hmm_est_log, s).μ - emission(hmm, s).μ for s in 1:2]
-)
-σ_error_log = mean(
-    float ∘ abs, [emission(hmm_est_log, s).σ - emission(hmm, s).σ for s in 1:2]
-)
-
-(transition_error_log, μ_error_log, σ_error_log)
-
 # Tests (not included in docs) #src
+
+transition_error_init_log = mean( #src
+    float ∘ abs, transition_matrix(hmm_init_log) - transition_matrix(hmm) #src
+) #src
+μ_error_init_log = mean( #src
+    float ∘ abs, [emission(hmm_init_log, s).μ - emission(hmm, s).μ for s in 1:2] #src
+) #src
+σ_error_init_log = mean( #src
+    float ∘ abs, [emission(hmm_init_log, s).σ - emission(hmm, s).σ for s in 1:2] #src
+) #src
+
+transition_error_log = mean( #src
+    float ∘ abs, transition_matrix(hmm_est_log) - transition_matrix(hmm) #src
+) #src
+μ_error_log = mean( #src
+    float ∘ abs, [emission(hmm_est_log, s).μ - emission(hmm, s).μ for s in 1:2] #src
+) #src
+σ_error_log = mean( #src
+    float ∘ abs, [emission(hmm_est_log, s).σ - emission(hmm, s).σ for s in 1:2] #src
+) #src
 
 @test transition_error < transition_error_init / 3  #src
 @test μ_error < μ_error_init / 3  #src

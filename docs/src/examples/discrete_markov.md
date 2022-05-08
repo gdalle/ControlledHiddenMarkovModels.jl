@@ -1,5 +1,5 @@
 ```@meta
-EditURL = "<unknown>/test/discrete_markov.jl"
+EditURL = "<unknown>/test/examples/discrete_markov.jl"
 ```
 
 # Discrete Markov chain
@@ -27,6 +27,12 @@ To simulate it, we only need to decide how long the sequence should be.
 
 ````@example discrete_markov
 state_sequence = rand(mc, 100);
+nothing #hide
+````
+
+Let us visualize the sequence of states.
+
+````@example discrete_markov
 scatterplot(
     state_sequence;
     label=nothing,
@@ -55,8 +61,8 @@ We can also use a Maximum A Posteriori (MAP) approach by specifying a conjugate 
 Let's say we have previously observed 4 trajectories of length 10, with balanced initializations and transitions.
 
 ````@example discrete_markov
-π0_α = 1 .+ 4 * [0.5, 0.5]
-P_α = 1 .+ 4 * 10 * [0.5 0.5; 0.5 0.5]
+π0_α = Float32.(1 .+ 4 * [0.5, 0.5])
+P_α = Float32.(1 .+ 4 * 10 * [0.5 0.5; 0.5 0.5])
 mc_prior = DiscreteMarkovChainPrior(π0_α, P_α)
 
 mc_map = fit_map(DiscreteMarkovChain{Float32,Float32}, mc_prior, state_sequence)

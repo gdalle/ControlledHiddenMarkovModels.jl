@@ -1,4 +1,4 @@
-## Sufficient statistics
+## Compute sufficient stats
 
 function Distributions.suffstats(
     ::Type{DiscreteMarkovChain{R1,R2}}, x::AbstractVector{<:Integer}
@@ -24,12 +24,12 @@ function Distributions.suffstats(
     transition_count = zeros(R2, S, S)
     for k in 1:K
         initialization_count .+= @view γ[k][:, 1]
-        transition_count .+= dropdims(sum(ξ[k], dims=3), dims=3)
+        transition_count .+= dropdims(sum(ξ[k]; dims=3); dims=3)
     end
     return DiscreteMarkovChainStats{R1,R2}(; initialization_count, transition_count)
 end
 
-## Fit
+## Fit from sufficient stats
 
 function Distributions.fit_mle(
     ::Type{DiscreteMarkovChain{R1,R2}}, ss::DiscreteMarkovChainStats
@@ -39,44 +39,35 @@ function Distributions.fit_mle(
     return DiscreteMarkovChain{R1,R2}(π0, P)
 end
 
-function Distributions.fit_mle(
-    mctype::Type{DiscreteMarkovChain{R1,R2}}, x::AbstractVector{<:Integer}; kwargs...
-) where {R1,R2}
-    ss = suffstats(mctype, x; kwargs...)
-    return fit_mle(mctype, ss)
-end
-
-function Distributions.fit_mle(
+function fit_map(
     mctype::Type{DiscreteMarkovChain{R1,R2}},
-    γ::Vector{<:AbstractMatrix{<:Real}},
-    ξ::Vector{<:AbstractArray{<:Real,3}};
+    prior::DiscreteMarkovChainPrior,
+    ss::DiscreteMarkovChainStats;
     kwargs...,
 ) where {R1,R2}
-    ss = suffstats(mctype, γ, ξ; kwargs...)
+    (; π0_α, P_α) = prior
+    ss_posterior = DiscreteMarkovChainStats(;
+        initialization_count=ss.initialization_count .+ π0_α .- one(eltype(π0_α)),
+        transition_count=ss.transition_count .+ P_α .- one(eltype(P_α)),
+    )
+    return fit_mle(mctype, ss_posterior)
+end
+
+## Fit from observations
+
+function Distributions.fit_mle(
+    mctype::Type{DiscreteMarkovChain{R1,R2}}, args...; kwargs...
+) where {R1,R2}
+    ss = suffstats(mctype, args...; kwargs...)
     return fit_mle(mctype, ss)
 end
 
 function fit_map(
     mctype::Type{DiscreteMarkovChain{R1,R2}},
-    prior::DiscreteMarkovChainPrior{S1,S2},
-    x::AbstractVector{<:Integer};
+    prior::DiscreteMarkovChainPrior,
+    args...;
     kwargs...,
-) where {R1,R2,S1,S2}
-    ss = suffstats(mctype, x; kwargs...)
-    ss.initialization_count .+= (prior.π0_α .- one(R1))
-    ss.transition_count .+= (prior.P_α .- one(R2))
-    return fit_mle(mctype, ss)
-end
-
-function fit_map(
-    mctype::Type{DiscreteMarkovChain{R1,R2}},
-    prior::DiscreteMarkovChainPrior{S1,S2},
-    γ::Vector{<:AbstractMatrix{<:Real}},
-    ξ::Vector{<:AbstractArray{<:Real,3}};
-    kwargs...,
-) where {R1,R2,S1,S2}
-    ss = suffstats(mctype, γ, ξ; kwargs...)
-    ss.initialization_count .+= (prior.π0_α .- one(R1))
-    ss.transition_count .+= (prior.P_α .- one(R2))
-    return fit_mle(mctype, ss)
+) where {R1,R2}
+    ss = suffstats(mctype, args...; kwargs...)
+    return fit_map(mctype, prior, ss)
 end

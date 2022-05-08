@@ -14,14 +14,14 @@ using UnicodePlots
 P = [0.9 0.1; 0.2 0.8]
 mc = DiscreteMarkovChain(π0, P)
 
-@test nb_states(mc) == 2  #src
-@test stationary_distribution(mc) ≈ [0.2 / (0.1 + 0.2), 0.1 / (0.1 + 0.2)]  #src
-
 # ## Simulation
 
 # To simulate it, we only need to decide how long the sequence should be.
 
 state_sequence = rand(mc, 100);
+
+# Let us visualize the sequence of states.
+
 scatterplot(
     state_sequence;
     label=nothing,
@@ -48,8 +48,8 @@ We can also use a Maximum A Posteriori (MAP) approach by specifying a conjugate 
 Let's say we have previously observed 4 trajectories of length 10, with balanced initializations and transitions.
 =#
 
-π0_α = 1 .+ 4 * [0.5, 0.5]
-P_α = 1 .+ 4 * 10 * [0.5 0.5; 0.5 0.5]
+π0_α = Float32.(1 .+ 4 * [0.5, 0.5])
+P_α = Float32.(1 .+ 4 * 10 * [0.5 0.5; 0.5 0.5])
 mc_prior = DiscreteMarkovChainPrior(π0_α, P_α)
 
 mc_map = fit_map(DiscreteMarkovChain{Float32,Float32}, mc_prior, state_sequence)
@@ -68,6 +68,10 @@ error_mle_log = mean(abs, transition_matrix(mc_mle_log) - transition_matrix(mc))
 
 # Tests (not included in the docs)  #src
 
+@test nb_states(mc) == 2  #src
+@test stationary_distribution(mc) ≈ [0.2 / (0.1 + 0.2), 0.1 / (0.1 + 0.2)]  #src
+
 @test error_mle < 0.1  #src
 @test error_mle_log < 0.1  #src
+
 @test sign.(transition_matrix(mc_map) - transition_matrix(mc_mle)) == [-1 1; 1 -1]  #src
