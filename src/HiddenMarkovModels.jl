@@ -1,5 +1,7 @@
 module HiddenMarkovModels
 
+const HMMs = HiddenMarkovModels
+
 using Base.Threads
 using DensityInterface
 using Distributions
@@ -23,8 +25,9 @@ include("markov/discrete_time/learning.jl")
 include("hmm/discrete_time/types.jl")
 include("hmm/discrete_time/simulation.jl")
 include("hmm/discrete_time/forward_backward.jl")
-include("hmm/discrete_time/forward_backward_log.jl")
 include("hmm/discrete_time/baum_welch.jl")
+
+export HMMs
 
 export is_prob_vec, rand_prob_vec
 export is_trans_mat, rand_trans_mat
@@ -40,5 +43,6 @@ export emission, emissions
 export baum_welch_multiple_sequences, baum_welch
 
 export fit, fit_mle, fit_map
+export densityof, logdensityof
 
 end

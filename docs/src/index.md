@@ -34,5 +34,6 @@ Here are the ones that I am aware of:
 The reason I implemented my own was because I needed specific features that were not simultaneously available elsewhere (to the best of my knowledge):
 
 - Compatibility with generic emissions that go beyond [Distributions.jl](https://github.com/JuliaStats/Distributions.jl) objects
-- Discrete **and** continuous time versions
-- MAP estimation with priors
+- Numerical stability thanks to log-scale computations
+- Discrete **and** continuous time versions (WIP)
+- MAP estimation with priors (WIP)

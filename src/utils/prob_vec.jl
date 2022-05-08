@@ -1,5 +1,5 @@
-function is_prob_vec(p::AbstractVector{R}) where {R<:Real}
-    return all(>=(zero(R)), p) && sum(p) ≈ one(R)
+function is_prob_vec(p::AbstractVector{R}; atol=1e-5) where {R<:Real}
+    return all(>=(zero(R)), p) && isapprox(sum(p), one(R), atol=atol)
 end
 
 """

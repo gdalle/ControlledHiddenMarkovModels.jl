@@ -58,25 +58,25 @@ end
 
 function fit_map(
     mctype::Type{DiscreteMarkovChain{R1,R2}},
-    prior::DiscreteMarkovChainPrior,
+    prior::DiscreteMarkovChainPrior{S1,S2},
     x::AbstractVector{<:Integer};
     kwargs...,
-) where {R1,R2}
+) where {R1,R2,S1,S2}
     ss = suffstats(mctype, x; kwargs...)
-    ss.initialization_count .+= (prior.π0_α .- 1)
-    ss.transition_count .+= (prior.P_α .- 1)
+    ss.initialization_count .+= (prior.π0_α .- one(R1))
+    ss.transition_count .+= (prior.P_α .- one(R2))
     return fit_mle(mctype, ss)
 end
 
 function fit_map(
     mctype::Type{DiscreteMarkovChain{R1,R2}},
-    prior::DiscreteMarkovChainPrior,
+    prior::DiscreteMarkovChainPrior{S1,S2},
     γ::Vector{<:AbstractMatrix{<:Real}},
     ξ::Vector{<:AbstractArray{<:Real,3}};
     kwargs...,
-) where {R1,R2}
+) where {R1,R2,S1,S2}
     ss = suffstats(mctype, γ, ξ; kwargs...)
-    ss.initialization_count .+= (prior.π0_α .- 1)
-    ss.transition_count .+= (prior.P_α .- 1)
+    ss.initialization_count .+= (prior.π0_α .- one(R1))
+    ss.transition_count .+= (prior.P_α .- one(R2))
     return fit_mle(mctype, ss)
 end

@@ -107,6 +107,7 @@ function forward_backward!(
 
     forward!(α, c, hmm, obs_density)
     backward!(β, c, hmm, obs_density)
+
     for t in 1:T
         for i in 1:S
             γ[i, t] = α[i, t] * β[i, t]

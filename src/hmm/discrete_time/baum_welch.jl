@@ -21,7 +21,6 @@ function baum_welch_multiple_sequences!(
     ξ::AbstractVector{<:AbstractArray{R,3}},
     hmm_init::HMM{Tr,Em},
     obs_sequences::AbstractVector;
-    transitions_prior::DiscreteMarkovChainPrior=zero_prior(hmm_init.transitions),
     max_iterations::Integer=100,
     tol::Real=1e-3,
     show_progress::Bool=true,
@@ -33,18 +32,17 @@ function baum_welch_multiple_sequences!(
     T = [length(obs_sequences[k]) for k in 1:K]
     concat_obs_sequences = reduce(vcat, obs_sequences)
 
-    logL_evolution = R[]
+    logL_evolution = float(R)[]
     prog = Progress(max_iterations; desc="Baum-Welch algorithm", enabled=show_progress)
     for iteration in 1:max_iterations
-        logL = zero(R)
+        logL = zero(float(R))
         for k in 1:K
             update_obs_density!(obs_densities[k], hmm, obs_sequences[k])
             logL += forward_backward!(α[k], β[k], c[k], γ[k], ξ[k], hmm, obs_densities[k])
         end
-        logL += logdensityof(transitions_prior, hmm.transitions)
         push!(logL_evolution, logL)
 
-        new_transitions = convert(Tr, fit_map(Tr, transitions_prior, γ, ξ))
+        new_transitions = convert(Tr, fit_mle(Tr, γ, ξ))
         new_emissions = Vector{Em}(undef, S)
         for s in 1:S
             concat_γs = mapreduce(x -> view(x, s, :), vcat, γ)

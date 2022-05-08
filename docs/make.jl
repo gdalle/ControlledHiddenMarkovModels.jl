@@ -16,7 +16,9 @@ for file in readdir(EXAMPLES_DIR_MD)
 end
 
 for file in readdir(EXAMPLES_DIR_JL)
-    if endswith(file, ".jl") && !startswith(file, "runtests")
+    if endswith(file, ".jl") &&
+        !startswith(file, "runtests") &&
+        !startswith(file, "profiling")
         Literate.markdown(
             joinpath(EXAMPLES_DIR_JL, file),
             EXAMPLES_DIR_MD;

@@ -7,13 +7,13 @@ EditURL = "<unknown>/test/hmm.jl"
 ````@example hmm
 using Distributions
 using HiddenMarkovModels
-using Plots
+using LogarithmicNumbers
 using Statistics
 ````
 
 ## Construction
 
-A [`HiddenMarkovModel`](@ref) object is build by combining a transition structure (typically a [`DiscreteMarkovChain`](@ref)) with a list of emission distributions.
+A [`HiddenMarkovModel`](@ref) object is build by combining a transition structure (of type [`DiscreteMarkovChain`](@ref)) with a list of emission distributions.
 
 ````@example hmm
 π0 = [0.3, 0.7]
@@ -36,77 +36,100 @@ hmm = HiddenMarkovModel(transitions, emissions)
 The simulation utility returns both the sequence of states and the sequence of observations.
 
 ````@example hmm
-states, observations = rand(hmm, 10)
+state_sequence, obs_sequence = rand(hmm, 10)
 ````
 
 With the learning step in mind, we want to generate multiple observations sequences of various lengths.
 
 ````@example hmm
-observation_sequences = [rand(hmm, rand(300:500))[2] for k in 1:5];
+obs_sequences = [rand(hmm, rand(200:1000))[2] for k in 1:5];
 nothing #hide
 ````
 
 ## Learning
 
 The Baum-Welch algorithm for estimating HMM parameters requires an initial guess, which we choose arbitrarily.
+Initial parameters can be created with reduced precision to speed up estimation.
 
 ````@example hmm
-transitions_init = DiscreteMarkovChain(; π0=randprobvec(2), P=randtransmat(2))
-emissions_init = [Normal(1, 1), Normal(-1, 1)]
-hmm_init = HiddenMarkovModel(transitions_init, emissions_init)
+hmm_init = HiddenMarkovModel(
+    DiscreteMarkovChain(rand_prob_vec(Float32, 2), rand_trans_mat(Float32, 2)),
+    [Normal(one(Float32)), Normal(-one(Float32))],
+)
 ````
 
-We can either use the standard version with a scaling trick...
+We can now apply the algorithm by setting a tolerance on the loglikelihood increase, as well as a maximum number of iterations.
 
 ````@example hmm
-hmm_est1, logL_evolution1 = baum_welch_multiple_sequences(
-    hmm_init, observation_sequences; iterations=20
+hmm_est, logL_evolution = baum_welch_multiple_sequences(
+    hmm_init, obs_sequences; max_iterations=1000, tol=1e-5, plot=true
 );
-plot(logL_evolution1, label=nothing, xlabel="Baum-Welch iteration", ylabel="Loglikelihood")
+nothing #hide
 ````
 
-````@example hmm
-hmm_est1
-````
+As we can see on the plot, each iteration increases the loglikelihood of the estimate: it is a fundamental property of the EM algorithm and its variants.
 
-... or the logarithmic version (which is more robust but much slower).
+To improve numerical stability, we can apply the algorithm directly in log scale thanks to [LogarithmicNumbers.jl](https://github.com/cjdoris/LogarithmicNumbers.jl).
 
 ````@example hmm
-hmm_est2, logL_evolution2 = baum_welch_multiple_sequences_log(
-    hmm_init, observation_sequences; iterations=20
+hmm_init_log = HiddenMarkovModel(
+    DiscreteMarkovChain(rand_prob_vec(LogFloat64, 2), rand_trans_mat(LogFloat64, 2)),
+    [Normal(one(LogFloat64)), Normal(-one(LogFloat64))],
+)
+
+hmm_est_log, logL_evolution_log = baum_welch_multiple_sequences(
+    hmm_init_log, obs_sequences; max_iterations=1000, tol=1e-5, plot=true
 );
-plot(logL_evolution2, label=nothing, xlabel="Baum-Welch iteration", ylabel="Loglikelihood")
+nothing #hide
 ````
 
-````@example hmm
-hmm_est2
-````
-
-As we can see on the plots, both procedures increase the loglikelihood of the estimate, as they should.
+## Checking results
 
 Let us now compute the estimation error on various parameters.
 
 ````@example hmm
-transition_error1 = mean(abs, transition_matrix(hmm_est1) - transition_matrix(hmm))
-transition_error2 = mean(abs, transition_matrix(hmm_est2) - transition_matrix(hmm))
-transition_error1, transition_error2
+transition_error_init = mean(abs, transition_matrix(hmm_init) - transition_matrix(hmm))
+μ_error_init = mean(abs, [emission(hmm_init, s).μ - emission(hmm, s).μ for s in 1:2])
+σ_error_init = mean(abs, [emission(hmm_init, s).σ - emission(hmm, s).σ for s in 1:2])
+(transition_error_init, μ_error_init, σ_error_init)
 ````
 
 ````@example hmm
-μ_error1 = mean(abs, [emission(hmm_est1, s).μ - emission(hmm, s).μ for s in 1:2])
-μ_error2 = mean(abs, [emission(hmm_est2, s).μ - emission(hmm, s).μ for s in 1:2])
-μ_error1, μ_error2
+transition_error = mean(abs, transition_matrix(hmm_est) - transition_matrix(hmm))
+μ_error = mean(abs, [emission(hmm_est, s).μ - emission(hmm, s).μ for s in 1:2])
+σ_error = mean(abs, [emission(hmm_est, s).σ - emission(hmm, s).σ for s in 1:2])
+(transition_error, μ_error, σ_error)
+````
+
+As we can see, all of these errors are much smaller than those of `hmm_init`: mission accomplished! The same goes for the logarithmic version.
+
+````@example hmm
+transition_error_init_log = mean(
+    float ∘ abs, transition_matrix(hmm_init_log) - transition_matrix(hmm)
+)
+μ_error_init_log = mean(
+    float ∘ abs, [emission(hmm_init_log, s).μ - emission(hmm, s).μ for s in 1:2]
+)
+σ_error_init_log = mean(
+    float ∘ abs, [emission(hmm_init_log, s).σ - emission(hmm, s).σ for s in 1:2]
+)
+
+(transition_error_init_log, μ_error_init_log, σ_error_init_log)
 ````
 
 ````@example hmm
-σ_error1 = mean(abs, [emission(hmm_est1, s).σ - emission(hmm, s).σ for s in 1:2])
-σ_error2 = mean(abs, [emission(hmm_est2, s).σ - emission(hmm, s).σ for s in 1:2])
-σ_error1, σ_error2
+transition_error_log = mean(
+    float ∘ abs, transition_matrix(hmm_est_log) - transition_matrix(hmm)
+)
+μ_error_log = mean(
+    float ∘ abs, [emission(hmm_est_log, s).μ - emission(hmm, s).μ for s in 1:2]
+)
+σ_error_log = mean(
+    float ∘ abs, [emission(hmm_est_log, s).σ - emission(hmm, s).σ for s in 1:2]
+)
+
+(transition_error_log, μ_error_log, σ_error_log)
 ````
-
-Since both estimators perform the same operations but on a different scale (standard vs. logarithmic), it is not surprising that their errors coincide up to numerical precision.
-
-More importantly, all of these errors are much smaller than those of `hmm_init`: mission accomplished!
 
 ---
 
