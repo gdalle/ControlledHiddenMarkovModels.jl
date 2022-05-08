@@ -1,4 +1,4 @@
-# Multivariate Poisson process
+# # Multivariate Poisson process
 
 using HiddenMarkovModels
 using LogarithmicNumbers
