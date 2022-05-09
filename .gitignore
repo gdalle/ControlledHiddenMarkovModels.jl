@@ -5,4 +5,4 @@
 /docs/build/
 
 profiling.jl
-/docs/src/examples/
+/docs/src/examples/*.md
