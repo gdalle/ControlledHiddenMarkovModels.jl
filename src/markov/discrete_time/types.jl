@@ -6,24 +6,24 @@
 Discrete-time Markov chain with finite state space.
 
 # Fields
-- `π0::AbstractVector`: initial state distribution.
+- `p0::AbstractVector`: initial state distribution.
 - `P::AbstractMatrix`: state transition matrix.
 """
 Base.@kwdef struct DiscreteMarkovChain{R1<:Real,R2<:Real}
-    π0::Vector{R1}
+    p0::Vector{R1}
     P::Matrix{R2}
 
     function DiscreteMarkovChain{R1,R2}(
-        π0::Vector{R1}, P::Matrix{R2}
+        p0::Vector{R1}, P::Matrix{R2}
     ) where {R1<:Real,R2<:Real}
-        @assert is_prob_vec(π0)
+        @assert is_prob_vec(p0)
         @assert is_trans_mat(P)
-        return new{R1,R2}(π0, P)
+        return new{R1,R2}(p0, P)
     end
 end
 
-function DiscreteMarkovChain(π0::Vector{R1}, P::Matrix{R2}) where {R1<:Real,R2<:Real}
-    return DiscreteMarkovChain{R1,R2}(π0, P)
+function DiscreteMarkovChain(p0::Vector{R1}, P::Matrix{R2}) where {R1<:Real,R2<:Real}
+    return DiscreteMarkovChain{R1,R2}(p0, P)
 end
 
 @inline DensityInterface.DensityKind(::DiscreteMarkovChain) = HasDensity()
@@ -34,11 +34,11 @@ end
 Define a Dirichlet prior on the initial distribution and on the transition matrix of a [`DiscreteMarkovChain`](@ref).
 
 # Fields
-- `π0_α::AbstractVector`: Dirichlet parameter for the initial distribution
+- `p0_α::AbstractVector`: Dirichlet parameter for the initial distribution
 - `P_α::AbstractMatrix`: Dirichlet parameters for the transition matrix
 """
 Base.@kwdef struct DiscreteMarkovChainPrior{R1<:Real,R2<:Real}
-    π0_α::Vector{R1}
+    p0_α::Vector{R1}
     P_α::Matrix{R2}
 end
 
@@ -79,14 +79,14 @@ end
 
 Return the number of states of `mc`.
 """
-nb_states(mc::DiscreteMarkovChain) = length(mc.π0)
+nb_states(mc::DiscreteMarkovChain) = length(mc.p0)
 
 """
     initial_distribution(mc::DiscreteMarkovChain)
 
 Return the vector of initial state probabilities of `mc`.
 """
-initial_distribution(mc::DiscreteMarkovChain) = mc.π0
+initial_distribution(mc::DiscreteMarkovChain) = mc.p0
 
 """
     transition_matrix(mc::DiscreteMarkovChain)
@@ -101,8 +101,8 @@ transition_matrix(mc::DiscreteMarkovChain) = mc.P
 Compute the equilibrium distribution of `mc` using its eigendecomposition.
 """
 function stationary_distribution(mc::DiscreteMarkovChain)
-    π_stat = real.(eigvecs(transition_matrix(mc)')[:, end])
-    return π_stat / sum(π_stat)
+    p_stat = real.(eigvecs(transition_matrix(mc)')[:, end])
+    return p_stat / sum(p_stat)
 end
 
 """
@@ -112,7 +112,7 @@ Build a flat prior, for which MAP is equivalent to MLE.
 """
 function flat_prior(mc::DiscreteMarkovChain{R1,R2}) where {R1<:Real, R2<:Real}
     S = nb_states(mc)
-    π0_α = ones(R1, S)
+    p0_α = ones(R1, S)
     P_α = ones(R2, S, S)
-    return DiscreteMarkovChainPrior(π0_α, P_α)
+    return DiscreteMarkovChainPrior(p0_α, P_α)
 end

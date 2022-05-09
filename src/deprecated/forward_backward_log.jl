@@ -43,9 +43,9 @@ function forward_log!(
     logα::AbstractMatrix{R}, hmm::HMM, obs_logdensity::AbstractMatrix{R}
 ) where {R<:Real}
     S, T = size(obs_logdensity)
-    logπ0, logP = log.(initial_distribution(hmm)), log.(transition_matrix(hmm))
+    logp0, logP = log.(initial_distribution(hmm)), log.(transition_matrix(hmm))
     for i in 1:S
-        logα[i, 1] = logπ0[i] + obs_logdensity[i, 1]
+        logα[i, 1] = logp0[i] + obs_logdensity[i, 1]
     end
     for t in 1:(T - 1)
         for j in 1:S

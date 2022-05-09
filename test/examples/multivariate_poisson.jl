@@ -2,6 +2,7 @@
 
 using HiddenMarkovModels
 using LogarithmicNumbers
+#md using Plots
 using Statistics
 using Test  #src
 using UnicodePlots
@@ -21,19 +22,21 @@ history = rand(pp, 3.14, 42.0)
 
 # Each event is defined by a time and an integer mark, which means we can visualize the history in 2 dimensions:
 
-scatterplot(
-    event_times(history),
-    event_marks(history);
-    title="Event history",
-    xlabel="Time",
-    ylabel="Mark",
-)
+#md scatter(
+#md     event_times(history),
+#md     event_marks(history);
+#md     title="Event history",
+#md     xlabel="Time",
+#md     ylabel="Mark",
+#md     label=nothing,
+#md     margin=5Plots.mm
+#md )
 
 # ## Learning
 
 # Parameters can learned with Maximum Likelihood Estimation (MLE):
 
-pp_est = fit_mle(MultivariatePoissonProcess{Float64}, history)
+pp_est = fit_mle(MultivariatePoissonProcess{Float32}, history)
 
 # Let's see how well we did
 

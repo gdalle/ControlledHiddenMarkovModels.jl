@@ -24,7 +24,6 @@ function baum_welch_multiple_sequences!(
     max_iterations::Integer=100,
     tol::Real=1e-3,
     show_progress::Bool=true,
-    plot::Bool=false,
 ) where {Tr,Em,R}
     hmm = hmm_init
     S = nb_states(hmm)
@@ -61,8 +60,6 @@ function baum_welch_multiple_sequences!(
         end
     end
 
-    plot && plot_baum_welch(logL_evolution)
-
     return hmm, logL_evolution
 end
 
@@ -83,12 +80,12 @@ function baum_welch_multiple_sequences(
 end
 
 """
-    baum_welch(hmm_init, obs_sequences)
+    baum_welch(hmm_init, obs_sequence)
 
 Same as [`baum_welch_multiple_sequences`](@ref) but with a single sequence.
 """
 function baum_welch(
-    hmm_init::HMM, obs_sequences::AbstractVector; kwargs...
+    hmm_init::HMM, obs_sequence::AbstractVector; kwargs...
 )
-    return baum_welch_multiple_sequences(hmm_init, [obs_sequences]; kwargs...)
+    return baum_welch_multiple_sequences(hmm_init, [obs_sequence]; kwargs...)
 end

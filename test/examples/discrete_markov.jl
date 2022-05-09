@@ -2,6 +2,7 @@
 
 using HiddenMarkovModels
 using LogarithmicNumbers
+#md using Plots
 using Statistics
 using Test  #src
 using UnicodePlots
@@ -10,9 +11,9 @@ using UnicodePlots
 
 # A [`DiscreteMarkovChain`](@ref) object is built by combining a vector of initial probabilities with a transition matrix.
 
-π0 = [0.3, 0.7]
+p0 = [0.3, 0.7]
 P = [0.9 0.1; 0.2 0.8]
-mc = DiscreteMarkovChain(π0, P)
+mc = DiscreteMarkovChain(p0, P)
 
 # ## Simulation
 
@@ -22,13 +23,14 @@ state_sequence = rand(mc, 100);
 
 # Let us visualize the sequence of states.
 
-scatterplot(
-    state_sequence;
-    label=nothing,
-    title="Markov chain evolution",
-    xlabel="Time",
-    ylabel="State",
-)
+#md scatter(
+#md     state_sequence;
+#md     title="Markov chain evolution",
+#md     xlabel="Time",
+#md     ylabel="State",
+#md     label=nothing,
+#md     margin=5Plots.mm
+#md )
 
 # ## Learning
 
@@ -48,9 +50,9 @@ We can also use a Maximum A Posteriori (MAP) approach by specifying a conjugate 
 Let's say we have previously observed 4 trajectories of length 10, with balanced initializations and transitions.
 =#
 
-π0_α = Float32.(1 .+ 4 * [0.5, 0.5])
+p0_α = Float32.(1 .+ 4 * [0.5, 0.5])
 P_α = Float32.(1 .+ 4 * 10 * [0.5 0.5; 0.5 0.5])
-mc_prior = DiscreteMarkovChainPrior(π0_α, P_α)
+mc_prior = DiscreteMarkovChainPrior(p0_α, P_α)
 
 mc_map = fit_map(DiscreteMarkovChain{Float32,Float32}, mc_prior, state_sequence)
 

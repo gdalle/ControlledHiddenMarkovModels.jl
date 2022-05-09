@@ -69,6 +69,19 @@ Compute the difference `h.tmax - h.tmin`.
 duration(h::History) = max_time(h) - min_time(h)
 
 """
+    max_mark(h::History)
+
+Compute the highest mark, provided they can be ordered.
+"""
+function max_mark(h::History{M}) where {M}
+    if has_events(h)
+        return maximum(event_marks(h))
+    else
+        return zero(M)
+    end
+end
+
+"""
     push!(h::History, t, m)
 
 Add event `(t, m)` at the end of history `h`.

@@ -1,4 +1,6 @@
-function Base.rand(rng::AbstractRNG, pp::MultivariatePoissonProcess, tmin::Real, tmax::Real)
+function Base.rand(
+    rng::AbstractRNG, pp::MultivariatePoissonProcess, tmin::Real=0.0, tmax::Real=1.0
+)
     mark_dist = mark_distribution(pp)
     N = rand(rng, Poisson(ground_intensity(pp) * (tmax - tmin)))
     times = rand(rng, Uniform(tmin, tmax), N)
@@ -6,6 +8,6 @@ function Base.rand(rng::AbstractRNG, pp::MultivariatePoissonProcess, tmin::Real,
     return History(; times=times, marks=marks, tmin=tmin, tmax=tmax)
 end
 
-function Base.rand(pp::MultivariatePoissonProcess, tmin::Real, tmax::Real)
+function Base.rand(pp::MultivariatePoissonProcess, tmin::Real=0.0, tmax::Real=1.0)
     return rand(GLOBAL_RNG, pp, tmin, tmax)
 end

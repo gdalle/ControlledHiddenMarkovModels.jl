@@ -41,9 +41,9 @@ function forward!(
     α::AbstractMatrix{R}, c::AbstractVector{R}, hmm::HMM, obs_density::AbstractMatrix{R},
 ) where {R<:Real}
     S, T = size(obs_density)
-    π0, P = initial_distribution(hmm), transition_matrix(hmm)
+    p0, P = initial_distribution(hmm), transition_matrix(hmm)
     for i in 1:S
-        α[i, 1] = π0[i] * obs_density[i, 1]
+        α[i, 1] = p0[i] * obs_density[i, 1]
     end
     c[1] = sum(@view α[:, 1])  # scaling
     for i in 1:S

@@ -6,7 +6,7 @@ Simulate `mc` during `T` time steps.
 function Base.rand(rng::AbstractRNG, mc::DiscreteMarkovChain, T::Integer; check_args=false)
     states = Vector{Int}(undef, T)
     transitions = [Categorical(mc.P[s, :]; check_args=check_args) for s in 1:nb_states(mc)]
-    states[1] = rand(rng, Categorical(mc.π0; check_args=check_args))
+    states[1] = rand(rng, Categorical(mc.p0; check_args=check_args))
     for t in 2:T
         states[t] = rand(rng, transitions[states[t - 1]])
     end
@@ -19,11 +19,11 @@ end
 Sample a [`DiscreteMarkovChain`](@ref) from `prior`.
 """
 function Base.rand(rng::AbstractRNG, prior::DiscreteMarkovChainPrior; check_args=false)
-    π0 = rand(rng, Dirichlet(prior.π0_α; check_args=check_args))
+    p0 = rand(rng, Dirichlet(prior.p0_α; check_args=check_args))
     P = reduce(
         vcat, rand(rng, Dirichlet(view(prior.P_α, s, :); check_args=check_args)) for s in 1:S
     )
-    return DiscreteMarkovChain(π0, P)
+    return DiscreteMarkovChain(p0, P)
 end
 
 function Base.rand(mc::DiscreteMarkovChain, T::Integer; kwargs...)

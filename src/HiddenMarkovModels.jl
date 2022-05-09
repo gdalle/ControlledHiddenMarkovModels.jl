@@ -7,15 +7,12 @@ using DensityInterface
 using Distributions
 using LinearAlgebra
 using LogarithmicNumbers
-using LogExpFunctions
 using ProgressMeter
 using Random: Random, AbstractRNG, GLOBAL_RNG
-using UnicodePlots
 
 include("utils/prob_vec.jl")
 include("utils/trans_mat.jl")
 include("utils/overflow.jl")
-include("utils/plot.jl")
 
 include("point_processes/history.jl")
 

@@ -1,13 +1,35 @@
 ## Compute sufficient stats
 
 function Distributions.suffstats(
-    ::Type{MultivariatePoissonProcess{R}}, h::History
+    ::Type{MultivariatePoissonProcess{R}}, history::History{<:Integer,<:Real}
 ) where {R<:Real}
-    event_count = zeros(Int, maximum(event_marks(h)))
-    for m in event_marks(h)
+    M = max_mark(history)
+    event_count = zeros(Int, M)
+    for m in event_marks(history)
         event_count[m] += 1
     end
-    return MultivariatePoissonProcessStats(; duration=duration(h), event_count=event_count)
+    return MultivariatePoissonProcessStats(;
+        duration=duration(history), event_count=event_count
+    )
+end
+
+function Distributions.suffstats(
+    ::Type{MultivariatePoissonProcess{R}},
+    histories::AbstractVector{<:History{<:Integer,<:Real}},
+    weights::AbstractVector{W},
+) where {R<:Real,W<:Real}
+    M = mapreduce(max_mark, max, histories)
+    total_event_count = zeros(W, M)
+    total_duration = zero(W)
+    for (history, weight) in zip(histories, weights)
+        total_duration += weight * duration(history)
+        for m in event_marks(history)
+            total_event_count[m] += weight
+        end
+    end
+    return MultivariatePoissonProcessStats(;
+        duration=total_duration, event_count=total_event_count
+    )
 end
 
 ## Fit from sufficient stats
