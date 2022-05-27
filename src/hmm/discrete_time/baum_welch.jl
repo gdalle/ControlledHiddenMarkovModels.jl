@@ -6,19 +6,23 @@ function initialize_baum_welch_multiple_sequences(
     T = [size(obs_densities[k], 2) for k in 1:K]
     α = [Matrix{R}(undef, S, T[k]) for k in 1:K]
     β = [Matrix{R}(undef, S, T[k]) for k in 1:K]
-    c = [Vector{R}(undef, T[k]) for k in 1:K]
     γ = [Matrix{R}(undef, S, T[k]) for k in 1:K]
     ξ = [Array{R,3}(undef, S, S, T[k] - 1) for k in 1:K]
-    return (α=α, β=β, c=c, γ=γ, ξ=ξ)
+    sumα = [Vector{R}(undef, T[k]) for k in 1:K]
+    sumγ = [Vector{R}(undef, T[k]) for k in 1:K]
+    sumξ = [Vector{R}(undef, T[k] - 1) for k in 1:K]
+    return (α=α, β=β, γ=γ, ξ=ξ, sumα=sumα, sumγ=sumγ, sumξ=sumξ)
 end
 
 function baum_welch_multiple_sequences!(
     obs_densities::AbstractVector{<:AbstractMatrix{R}},
     α::AbstractVector{<:AbstractMatrix{R}},
     β::AbstractVector{<:AbstractMatrix{R}},
-    c::AbstractVector{<:AbstractVector{R}},
     γ::AbstractVector{<:AbstractMatrix{R}},
     ξ::AbstractVector{<:AbstractArray{R,3}},
+    sumα::AbstractVector{<:AbstractVector{R}},
+    sumγ::AbstractVector{<:AbstractVector{R}},
+    sumξ::AbstractVector{<:AbstractVector{R}},
     hmm_init::HMM{Tr,Em},
     obs_sequences::AbstractVector;
     max_iterations::Integer=100,
@@ -37,7 +41,9 @@ function baum_welch_multiple_sequences!(
         logL = zero(float(R))
         for k in 1:K
             update_obs_density!(obs_densities[k], hmm, obs_sequences[k])
-            logL += forward_backward!(α[k], β[k], c[k], γ[k], ξ[k], hmm, obs_densities[k])
+            logL += forward_backward!(
+                α[k], β[k], γ[k], ξ[k], sumα[k], sumγ[k], sumξ[k], hmm, obs_densities[k]
+            )
         end
         push!(logL_evolution, logL)
 
@@ -73,9 +79,9 @@ function baum_welch_multiple_sequences(
 )
     K = length(obs_sequences)
     obs_densities = [compute_obs_density(hmm_init, obs_sequences[k]) for k in 1:K]
-    (; α, β, c, γ, ξ) = initialize_baum_welch_multiple_sequences(obs_densities)
+    (; α, β, γ, ξ, sumα, sumγ, sumξ) = initialize_baum_welch_multiple_sequences(obs_densities)
     return baum_welch_multiple_sequences!(
-        obs_densities, α, β, c, γ, ξ, hmm_init, obs_sequences; kwargs...
+        obs_densities, α, β, γ, ξ, sumα, sumγ, sumξ, hmm_init, obs_sequences; kwargs...
     )
 end
 
@@ -84,8 +90,6 @@ end
 
 Same as [`baum_welch_multiple_sequences`](@ref) but with a single sequence.
 """
-function baum_welch(
-    hmm_init::HMM, obs_sequence::AbstractVector; kwargs...
-)
+function baum_welch(hmm_init::HMM, obs_sequence::AbstractVector; kwargs...)
     return baum_welch_multiple_sequences(hmm_init, [obs_sequence]; kwargs...)
 end

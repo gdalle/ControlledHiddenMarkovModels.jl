@@ -7,6 +7,7 @@ using DensityInterface
 using Distributions
 using LinearAlgebra
 using LogarithmicNumbers
+using LoopVectorization
 using ProgressMeter
 using Random: Random, AbstractRNG, GLOBAL_RNG
 
@@ -46,7 +47,6 @@ export nb_states, initial_distribution, transition_matrix, stationary_distributi
 
 export HiddenMarkovModel, HMM
 export HiddenMarkovModelPrior, HMMPrior
-export transitions
 export emission, emissions
 
 export baum_welch_multiple_sequences, baum_welch
