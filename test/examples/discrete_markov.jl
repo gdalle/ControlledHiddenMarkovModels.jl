@@ -19,7 +19,7 @@ mc = DiscreteMarkovChain(p0, P)
 
 # To simulate it, we only need to decide how long the sequence should be.
 
-state_sequence = rand(mc, 100);
+state_sequence = rand(mc, 1000);
 
 # Let us visualize the sequence of states.
 

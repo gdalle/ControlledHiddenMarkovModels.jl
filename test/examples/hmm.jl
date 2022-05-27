@@ -33,7 +33,7 @@ state_sequence, obs_sequence = rand(hmm, 10)
 
 # With the learning step in mind, we want to generate multiple observations sequences of various lengths.
 
-obs_sequences = [rand(hmm, rand(200:1000))[2] for k in 1:5];
+obs_sequences = [rand(hmm, rand(1000:2000))[2] for k in 1:5];
 
 # ## Learning
 
