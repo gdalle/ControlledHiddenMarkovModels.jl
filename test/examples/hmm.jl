@@ -33,7 +33,7 @@ state_sequence, obs_sequence = rand(hmm, 10)
 
 # With the learning step in mind, we want to generate multiple observations sequences of various lengths.
 
-obs_sequences = [rand(hmm, rand(200:1000))[2] for k in 1:5];
+obs_sequences = [rand(hmm, rand(1000:2000))[2] for k in 1:5];
 
 # ## Learning
 
@@ -91,15 +91,15 @@ hmm_est_log, logL_evolution_log = baum_welch_multiple_sequences(
 # Let us now compute the estimation error on various parameters.
 
 transition_error_init = mean(abs, transition_matrix(hmm_init) - transition_matrix(hmm))
-μ_error_init = mean(abs, [emission(hmm_init, s).μ - emission(hmm, s).μ for s in 1:2])
-σ_error_init = mean(abs, [emission(hmm_init, s).σ - emission(hmm, s).σ for s in 1:2])
+μ_error_init = mean(abs, [get_emission(hmm_init, s).μ - get_emission(hmm, s).μ for s in 1:2])
+σ_error_init = mean(abs, [get_emission(hmm_init, s).σ - get_emission(hmm, s).σ for s in 1:2])
 (transition_error_init, μ_error_init, σ_error_init)
 
 #-
 
 transition_error = mean(abs, transition_matrix(hmm_est) - transition_matrix(hmm))
-μ_error = mean(abs, [emission(hmm_est, s).μ - emission(hmm, s).μ for s in 1:2])
-σ_error = mean(abs, [emission(hmm_est, s).σ - emission(hmm, s).σ for s in 1:2])
+μ_error = mean(abs, [get_emission(hmm_est, s).μ - get_emission(hmm, s).μ for s in 1:2])
+σ_error = mean(abs, [get_emission(hmm_est, s).σ - get_emission(hmm, s).σ for s in 1:2])
 (transition_error, μ_error, σ_error)
 
 # As we can see, all of these errors are much smaller than those of `hmm_init`: mission accomplished! The same goes for the logarithmic version.
@@ -151,11 +151,11 @@ transition_error_init_log = mean( #src
 ) #src
 μ_error_init_log = mean( #src
     float ∘ abs,  #src
-    [emission(hmm_init_log, s).μ - emission(hmm, s).μ for s in 1:2], #src
+    [get_emission(hmm_init_log, s).μ - get_emission(hmm, s).μ for s in 1:2], #src
 ) #src
 σ_error_init_log = mean( #src
     float ∘ abs,  #src
-    [emission(hmm_init_log, s).σ - emission(hmm, s).σ for s in 1:2], #src
+    [get_emission(hmm_init_log, s).σ - get_emission(hmm, s).σ for s in 1:2], #src
 ) #src
 
 transition_error_log = mean( #src
@@ -164,11 +164,11 @@ transition_error_log = mean( #src
 ) #src
 μ_error_log = mean( #src
     float ∘ abs,  #src
-    [emission(hmm_est_log, s).μ - emission(hmm, s).μ for s in 1:2], #src
+    [get_emission(hmm_est_log, s).μ - get_emission(hmm, s).μ for s in 1:2], #src
 ) #src
 σ_error_log = mean( #src
     float ∘ abs,  #src
-    [emission(hmm_est_log, s).σ - emission(hmm, s).σ for s in 1:2], #src
+    [get_emission(hmm_est_log, s).σ - get_emission(hmm, s).σ for s in 1:2], #src
 ) #src
 
 # Poisson errors  #src
@@ -180,7 +180,7 @@ transition_error_init_poisson = mean( #src
 λ_error_init_poisson = mean( #src
     abs,  #src
     [ #src
-        emission(hmm_init_poisson, s).λ[m] - emission(hmm_poisson, s).λ[m] #src
+        get_emission(hmm_init_poisson, s).λ[m] - get_emission(hmm_poisson, s).λ[m] #src
         for s in 1:2 for m in 1:3 #src
     ], #src
 ) #src
@@ -192,7 +192,7 @@ transition_error_poisson = mean( #src
 λ_error_poisson = mean( #src
     abs,  #src
     [ #src
-        emission(hmm_est_poisson, s).λ[m] - emission(hmm_poisson, s).λ[m] #src
+        get_emission(hmm_est_poisson, s).λ[m] - get_emission(hmm_poisson, s).λ[m] #src
         for s in 1:2 for m in 1:3 #src
     ], #src
 ) #src

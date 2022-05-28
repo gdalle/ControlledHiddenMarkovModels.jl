@@ -7,6 +7,7 @@ using DensityInterface
 using Distributions
 using LinearAlgebra
 using LogarithmicNumbers
+using LoopVectorization
 using ProgressMeter
 using Random: Random, AbstractRNG, GLOBAL_RNG
 
@@ -28,7 +29,9 @@ include("markov/discrete_time/learning.jl")
 
 include("hmm/discrete_time/types.jl")
 include("hmm/discrete_time/simulation.jl")
-include("hmm/discrete_time/forward_backward.jl")
+include("hmm/discrete_time/obs_density.jl")
+include("hmm/discrete_time/forward_backward_generic.jl")
+include("hmm/discrete_time/forward_backward_turbo.jl")
 include("hmm/discrete_time/baum_welch.jl")
 
 export HMMs
@@ -46,8 +49,7 @@ export nb_states, initial_distribution, transition_matrix, stationary_distributi
 
 export HiddenMarkovModel, HMM
 export HiddenMarkovModelPrior, HMMPrior
-export transitions
-export emission, emissions
+export get_transitions, get_emission, get_emissions
 
 export baum_welch_multiple_sequences, baum_welch
 

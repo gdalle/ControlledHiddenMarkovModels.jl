@@ -22,7 +22,9 @@ function DensityInterface.logdensityof(
 )
     l = logdensityof(Dirichlet(prior.p0_α), mc.p0)
     for s in 1:nb_states(mc)
-        l += logdensityof(Dirichlet(@view prior.P_α[s, :]), @view mc.P[s, :])
+        Pα_s = view(prior.P_α, s, :)
+        P_s = view(mc.P, s, :)
+        l += logdensityof(Dirichlet(Pα_s), P_s)
     end
     return l
 end

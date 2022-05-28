@@ -1,43 +1,35 @@
-# Overflow checks
-
-function all_minus_inf(x::AbstractArray{R}) where {R <: Real}
-    for y in x
-        y > typemin(R) && return false
-    end
-    return true
+function iszero_safe(x::R) where {R<:Real}
+    return 1 / abs(x) == typemax(R)
 end
 
-function any_minus_inf(x::AbstractArray{R}) where {R <: Real}
-    for y in x
-        y == typemin(R) && return true
-    end
-    return false
+function logsumexp(a::AbstractArray{R}) where {R<:Real}
+    m = maximum(a)
+    lse = m + log(sum(exp, x - m for x in a))
+    return lse
 end
 
-function all_plus_inf(x::AbstractArray{R}) where {R <: Real}
-    for y in x
-        y < typemax(R) && return false
+function logsumexpsum(a::AbstractArray{R}, b::AbstractArray{R}) where {R<:Real}
+    m = typemin(R)
+    for (xa, xb) in zip(a, b)
+        s = xa + xb
+        if m < s
+            m = s
+        end
     end
-    return true
+    lse = m + log(sum(exp, xa + xb - m for (xa, xb) in zip(a, b)))
+    return lse
 end
 
-function any_plus_inf(x::AbstractArray{R}) where {R <: Real}
-    for y in x
-        y == typemax(R) && return true
+function logsumexpsum(
+    a::AbstractArray{R}, b::AbstractArray{R}, c::AbstractArray{R}
+) where {R<:Real}
+    m = typemin(R)
+    for (xa, xb, xc) in zip(a, b, c)
+        s = xa + xb + xc
+        if m < s
+            m = s
+        end
     end
-    return false
-end
-
-function all_zero(x::AbstractArray{R}) where {R <: Real}
-    for y in x
-        1 / abs(y) < typemax(R) && return false
-    end
-    return true
-end
-
-function any_zero(x::AbstractArray{R}) where {R <: Real}
-    for y in x
-        1 / abs(y) == typemax(R) && return true
-    end
-    return false
+    lse = m + log(sum(exp, xa + xb + xc - m for (xa, xb, xc) in zip(a, b, c)))
+    return lse
 end
