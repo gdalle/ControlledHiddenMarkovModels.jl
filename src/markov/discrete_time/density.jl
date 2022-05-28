@@ -6,7 +6,7 @@ Compute the log-likelihood of the sequence `x` of states for the chain `mc`.
 function DensityInterface.logdensityof(mc::DiscreteMarkovChain, x::AbstractVector)
     T = length(x)
     l = log(mc.p0[x[1]])
-    @turbo for t in 2:T
+    for t in 2:T
         l += log(mc.P[x[t - 1], x[t]])
     end
     return l

@@ -18,6 +18,7 @@ DensityInterface = "0.4"
 Distributions = "0.25.59"
 FillArrays = "0.13.2"
 LogarithmicNumbers = "1.2"
+LoopVectorization = "0.12.113"
 ProgressMeter = "1.7.2"
 julia = "1.7"
 

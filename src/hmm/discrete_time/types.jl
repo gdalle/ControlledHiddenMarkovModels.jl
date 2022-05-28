@@ -42,10 +42,10 @@ const HMMPrior = HiddenMarkovModelPrior
 
 ## Access
 
-transitions(hmm::HMM) = hmm.transitions
-initial_distribution(hmm::HMM) = initial_distribution(transitions(hmm))
-transition_matrix(hmm::HMM) = transition_matrix(transitions(hmm))
+get_transitions(hmm::HMM) = hmm.transitions
+initial_distribution(hmm::HMM) = initial_distribution(get_transitions(hmm))
+transition_matrix(hmm::HMM) = transition_matrix(get_transitions(hmm))
 
-emissions(hmm::HMM) = hmm.emissions
-emission(hmm::HMM, s::Integer) = hmm.emissions[s]
-nb_states(hmm::HMM) = length(emissions(hmm))
+get_emissions(hmm::HMM) = hmm.emissions
+get_emission(hmm::HMM, s::Integer) = hmm.emissions[s]
+nb_states(hmm::HMM) = length(get_emissions(hmm))

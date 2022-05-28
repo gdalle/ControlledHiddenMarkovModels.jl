@@ -5,7 +5,6 @@ using LogarithmicNumbers
 #md using Plots
 using Statistics
 using Test  #src
-using UnicodePlots
 
 # ## Construction
 
