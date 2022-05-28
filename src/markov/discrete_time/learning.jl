@@ -23,7 +23,7 @@ function Distributions.suffstats(
     for state_sequence in state_sequences
         initialization_count[state_sequence[1]] += one(R1)
         T = length(state_sequence)
-        @turbo for t in 1:(T - 1)
+        for t in 1:(T - 1)
             transition_count[state_sequence[t], state_sequence[t + 1]] += one(R2)
         end
     end

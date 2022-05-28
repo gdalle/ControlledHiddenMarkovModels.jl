@@ -25,7 +25,6 @@ function baum_welch_multiple_sequences!(
     ξ_sum::AbstractVector{<:AbstractVector{R}},
     hmm_init::HMM{Tr,Em},
     obs_sequences::AbstractVector;
-    method=:generic,
     max_iterations::Integer=100,
     tol::Real=1e-3,
     show_progress::Bool=true,
@@ -36,26 +35,14 @@ function baum_welch_multiple_sequences!(
     T = [length(obs_sequences[k]) for k in 1:K]
     concat_obs_sequences = reduce(vcat, obs_sequences)
 
+    logL_by_seq = Vector{float(R)}(undef, K)
     logL_evolution = float(R)[]
     prog = Progress(max_iterations; desc="Baum-Welch algorithm", enabled=show_progress)
     for iteration in 1:max_iterations
-        logL = zero(float(R))
-        for k in 1:K
-            update_obs_density!(obs_densities[k], hmm, obs_sequences[k])
-            if method == :generic
-                logL += forward_backward!(
-                    α[k],
-                    β[k],
-                    γ[k],
-                    ξ[k],
-                    α_sum[k],
-                    γ_sum[k],
-                    ξ_sum[k],
-                    hmm,
-                    obs_densities[k],
-                )
-            elseif method == :turbo
-                logL += forward_backward_turbo!(
+        let hmm = hmm
+            @floop for k in 1:K
+                update_obs_density!(obs_densities[k], hmm, obs_sequences[k])
+                logL_by_seq[k] = forward_backward!(
                     α[k],
                     β[k],
                     γ[k],
@@ -68,11 +55,11 @@ function baum_welch_multiple_sequences!(
                 )
             end
         end
-        push!(logL_evolution, logL)
+        push!(logL_evolution, sum(logL_by_seq))
 
         new_transitions = convert(Tr, fit_mle(Tr, γ, ξ))
         new_emissions = Vector{Em}(undef, S)
-        for s in 1:S
+        @floop for s in 1:S
             concat_γs = mapreduce(x -> view(x, s, :), vcat, γ)
             concat_γs_float64 = convert(Vector{Float64}, concat_γs)
             new_emissions[s] = convert(
