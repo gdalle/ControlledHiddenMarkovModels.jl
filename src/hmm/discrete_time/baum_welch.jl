@@ -30,30 +30,50 @@ function baum_welch_multiple_sequences!(
     S = nb_states(hmm)
     K = length(obs_sequences)
     T = [length(obs_sequences[k]) for k in 1:K]
-    concat_obs_sequences = reduce(vcat, obs_sequences)
 
-    logL_by_seq = Vector{float(R)}(undef, K)
+    # Initialize loglikelihood storage
     logL_evolution = float(R)[]
+    logL_by_seq = Vector{float(R)}(undef, K)
+
+    # Initialize local sufficient statistics for transitions and emissions
+    init_count_by_seq = Vector{Vector{R}}(undef, K)
+    trans_count_by_seq = Vector{Matrix{R}}(undef, K)
+    emissions_stats_by_seq = Matrix{get_onlinestat_type(Em)}(undef, K, S)
+
     prog = Progress(max_iterations; desc="Baum-Welch algorithm", enabled=show_progress)
     for iteration in 1:max_iterations
         let hmm = hmm
-            for k in 1:K
+            @threads for k in 1:K
+                # Local forward-backward
                 update_obs_density!(obs_densities[k], hmm, obs_sequences[k])
                 logL_by_seq[k] = forward_backward!(
                     α[k], β[k], γ[k], ξ[k], α_sum_inv[k], hmm, obs_densities[k]
                 )
+                # Local transition statistics
+                init_count_by_seq[k] = γ[k][:, 1]
+                trans_count_by_seq[k] = dropdims(sum(ξ[k]; dims=3); dims=3)
+                # Local emission statistics
+                for s in 1:S
+                    emstat = get_onlinestat(Em; weight=normalizing_weight(view(γ[k], s, :)))
+                    fit!(emstat, obs_sequences[k])
+                    emissions_stats_by_seq[k, s] = emstat
+                end
             end
         end
         push!(logL_evolution, sum(logL_by_seq))
 
-        new_transitions = convert(Tr, fit_mle(Tr, γ, ξ))
+        # Aggregated transitions
+        init_count_agg = ThreadsX.sum(init_count_by_seq)
+        trans_count_agg = ThreadsX.sum(trans_count_by_seq)
+        new_transitions = fit_mle(Tr, init_count_agg, trans_count_agg)
+        # Aggregated emissions
         new_emissions = Vector{Em}(undef, S)
-        for s in 1:S
-            concat_γs = mapreduce(x -> view(x, s, :), vcat, γ)
-            concat_γs_float64 = convert(Vector{Float64}, concat_γs)
-            new_emissions[s] = convert(
-                Em, fit_mle(Em, concat_obs_sequences, concat_γs_float64)
-            )
+        @threads for s in 1:S
+            emissions_stats_s = emissions_stats_by_seq[1, s]
+            for k in 2:K
+                merge!(emissions_stats_s, emissions_stats_by_seq[k, s])
+            end
+            new_emissions[s] = fit_mle(Em, emissions_stats_s)
         end
 
         hmm = HMM(new_transitions, new_emissions)

@@ -1,6 +1,16 @@
 ## Compute sufficient stats
 
 function Distributions.suffstats(
+    ::Type{DiscreteMarkovChain{R1,R2}},
+    initialization_count::AbstractVector{<:Real},
+    transition_count::AbstractMatrix{<:Real},
+) where {R1,R2}
+    return DiscreteMarkovChainStats{R1,R2}(
+        Vector{R1}(initialization_count), Matrix{R2}(transition_count)
+    )
+end
+
+function Distributions.suffstats(
     ::Type{DiscreteMarkovChain{R1,R2}}, state_sequence::AbstractVector{<:Integer}
 ) where {R1,R2}
     S, T = maximum(state_sequence), length(state_sequence)
@@ -30,26 +40,6 @@ function Distributions.suffstats(
         end
     end
     return DiscreteMarkovChainStats{R1,R2}(initialization_count, transition_count)
-end
-
-function Distributions.suffstats(
-    ::Type{DiscreteMarkovChain{R1,R2}},
-    γ::Vector{<:AbstractMatrix{<:Real}},
-    ξ::Vector{<:AbstractArray{<:Real,3}},
-) where {R1,R2}
-    K = length(γ)
-    S = size(γ[1], 1)
-    initialization_count = zeros(R1, S)
-    transition_count = zeros(R2, S, S)
-    for k in 1:K
-        γₖ = γ[k]
-        sum!(initialization_count, view(γₖ, :, 1); init=false)
-    end
-    for k in 1:K
-        ξₖ = ξ[k]
-        sum!(transition_count, ξₖ; init=false)
-    end
-    return DiscreteMarkovChainStats{R1,R2}(; initialization_count, transition_count)
 end
 
 ## Fit from sufficient stats

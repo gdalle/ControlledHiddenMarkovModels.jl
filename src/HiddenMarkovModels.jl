@@ -5,15 +5,17 @@ const HMMs = HiddenMarkovModels
 using Base.Threads
 using DensityInterface
 using Distributions
-using FLoops
 using LinearAlgebra
 using LogarithmicNumbers
+using OnlineStats
 using ProgressMeter
 using Random: Random, AbstractRNG, GLOBAL_RNG
+using ThreadsX
 
 include("utils/prob_vec.jl")
 include("utils/trans_mat.jl")
 include("utils/overflow.jl")
+include("utils/onlinestats.jl")
 
 include("point_processes/history.jl")
 
