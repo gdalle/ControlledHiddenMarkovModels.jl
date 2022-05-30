@@ -4,6 +4,8 @@ using HiddenMarkovModels
 using Random
 using Test
 
+Random.seed!(1)
+
 DocMeta.setdocmeta!(
     HiddenMarkovModels, :DocTestSetup, :(using HiddenMarkovModels); recursive=true
 )

@@ -45,7 +45,7 @@ Initial parameters can be created with reduced precision to speed up estimation.
 p0_init = rand_prob_vec(Float32, 2)
 P_init = rand_trans_mat(Float32, 2)
 transitions_init = DiscreteMarkovChain(p0_init, P_init)
-emissions_init = [Normal(one(Float32)), Normal(-one(Float32))]
+emissions_init = [Normal(1.), Normal(-1.)]
 
 hmm_init = HiddenMarkovModel(transitions_init, emissions_init)
 
@@ -66,27 +66,6 @@ hmm_est, logL_evolution = baum_welch_multiple_sequences(
 #md     margin=5Plots.mm
 #md )
 
-# To improve numerical stability, we can apply the algorithm directly in log scale thanks to [LogarithmicNumbers.jl](https://github.com/cjdoris/LogarithmicNumbers.jl).
-
-p0_init_log = rand_prob_vec(LogFloat32, 2)
-P_init_log = rand_trans_mat(LogFloat32, 2)
-transitions_init_log = DiscreteMarkovChain(p0_init_log, P_init_log)
-emissions_init_log = [Normal(one(LogFloat32)), Normal(-one(LogFloat32))]
-
-hmm_init_log = HiddenMarkovModel(transitions_init_log, emissions_init_log)
-
-hmm_est_log, logL_evolution_log = baum_welch_multiple_sequences(
-    hmm_init_log, obs_sequences; max_iterations=100, tol=1e-5
-);
-
-#md plot(
-#md     logL_evolution_log;
-#md     title="Log Baum-Welch convergence (Normal emissions)",
-#md     xlabel="Iteration",
-#md     ylabel="Log-likelihood",
-#md     label=nothing,
-#md     margin=5Plots.mm
-#md )
 
 # Let us now compute the estimation error on various parameters.
 
@@ -102,7 +81,7 @@ transition_error = mean(abs, transition_matrix(hmm_est) - transition_matrix(hmm)
 σ_error = mean(abs, [get_emission(hmm_est, s).σ - get_emission(hmm, s).σ for s in 1:2])
 (transition_error, μ_error, σ_error)
 
-# As we can see, all of these errors are much smaller than those of `hmm_init`: mission accomplished! The same goes for the logarithmic version.
+# As we can see, all of these errors are much smaller than those of `hmm_init`: mission accomplished!
 
 # ## Custom emission distributions
 
@@ -143,34 +122,6 @@ hmm_est_poisson, logL_evolution_poisson = baum_welch(
 
 # Tests (not included in docs) #src
 
-# Log errors  #src
-
-transition_error_init_log = mean( #src
-    float ∘ abs,  #src
-    transition_matrix(hmm_init_log) - transition_matrix(hmm), #src
-) #src
-μ_error_init_log = mean( #src
-    float ∘ abs,  #src
-    [get_emission(hmm_init_log, s).μ - get_emission(hmm, s).μ for s in 1:2], #src
-) #src
-σ_error_init_log = mean( #src
-    float ∘ abs,  #src
-    [get_emission(hmm_init_log, s).σ - get_emission(hmm, s).σ for s in 1:2], #src
-) #src
-
-transition_error_log = mean( #src
-    float ∘ abs,  #src
-    transition_matrix(hmm_est_log) - transition_matrix(hmm), #src
-) #src
-μ_error_log = mean( #src
-    float ∘ abs,  #src
-    [get_emission(hmm_est_log, s).μ - get_emission(hmm, s).μ for s in 1:2], #src
-) #src
-σ_error_log = mean( #src
-    float ∘ abs,  #src
-    [get_emission(hmm_est_log, s).σ - get_emission(hmm, s).σ for s in 1:2], #src
-) #src
-
 # Poisson errors  #src
 
 transition_error_init_poisson = mean( #src
@@ -203,9 +154,5 @@ transition_error_poisson = mean( #src
 @test μ_error < μ_error_init / 3  #src
 @test σ_error < σ_error_init / 3  #src
 
-@test transition_error_log < transition_error_init_log / 3  #src
-@test μ_error_log < μ_error_init_log / 3  #src
-@test σ_error_log < σ_error_init_log / 3  #src
-
-@test_broken transition_error_poisson < transition_error_init_poisson / 3  #src
-@test_broken λ_error_poisson < λ_error_init_poisson / 3  #src
+@test transition_error_poisson < transition_error_init_poisson / 3  #src
+@test λ_error_poisson < λ_error_init_poisson / 3  #src

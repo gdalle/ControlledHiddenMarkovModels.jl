@@ -7,15 +7,12 @@ using DensityInterface
 using Distributions
 using LinearAlgebra
 using LogarithmicNumbers
-using OnlineStats
 using ProgressMeter
 using Random: Random, AbstractRNG, GLOBAL_RNG
-using ThreadsX
 
 include("utils/prob_vec.jl")
 include("utils/trans_mat.jl")
 include("utils/overflow.jl")
-include("utils/onlinestats.jl")
 
 include("point_processes/history.jl")
 
@@ -29,6 +26,7 @@ include("markov/discrete_time/simulation.jl")
 include("markov/discrete_time/density.jl")
 include("markov/discrete_time/learning.jl")
 
+include("hmm/suffstats.jl")
 include("hmm/discrete_time/types.jl")
 include("hmm/discrete_time/simulation.jl")
 include("hmm/discrete_time/obs_density.jl")

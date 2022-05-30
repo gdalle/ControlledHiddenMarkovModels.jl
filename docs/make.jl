@@ -33,7 +33,7 @@ makedocs(;
         prettyurls=get(ENV, "CI", "false") == "true",
         canonical="https://gdalle.github.io/HiddenMarkovModels.jl",
         assets=String[],
-        edit_branch="main",
+        edit_link="main",
     ),
     pages=[
         "Home" => "index.md",
