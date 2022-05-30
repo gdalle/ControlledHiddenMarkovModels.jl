@@ -8,7 +8,8 @@ function Distributions.suffstats(
     initialization_count[state_sequence[1]] = one(R1)
     transition_count = zeros(R2, S, S)
     for t in 1:(T - 1)
-        transition_count[state_sequence[t], state_sequence[t + 1]] += one(R2)
+        i, j = state_sequence[t], state_sequence[t + 1]
+        transition_count[i, j] += one(R2)
     end
     return DiscreteMarkovChainStats{R1,R2}(initialization_count, transition_count)
 end
@@ -24,7 +25,8 @@ function Distributions.suffstats(
         initialization_count[state_sequence[1]] += one(R1)
         T = length(state_sequence)
         for t in 1:(T - 1)
-            transition_count[state_sequence[t], state_sequence[t + 1]] += one(R2)
+            i, j = state_sequence[t], state_sequence[t + 1]
+            transition_count[i, j] += one(R2)
         end
     end
     return DiscreteMarkovChainStats{R1,R2}(initialization_count, transition_count)
@@ -41,16 +43,11 @@ function Distributions.suffstats(
     transition_count = zeros(R2, S, S)
     for k in 1:K
         γₖ = γ[k]
-        for i in 1:S
-            initialization_count[i] += γₖ[i, 1]
-        end
+        sum!(initialization_count, view(γₖ, :, 1); init=false)
     end
     for k in 1:K
         ξₖ = ξ[k]
-        T = size(ξₖ, 3)
-        for t in 1:T, j in 1:S, i in 1:S
-            transition_count[i, j] += ξₖ[i, j, t]
-        end
+        sum!(transition_count, ξₖ; init=false)
     end
     return DiscreteMarkovChainStats{R1,R2}(; initialization_count, transition_count)
 end

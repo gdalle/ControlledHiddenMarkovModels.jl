@@ -8,10 +8,9 @@ function initialize_baum_welch_multiple_sequences(
     β = [Matrix{R}(undef, S, T[k]) for k in 1:K]
     γ = [Matrix{R}(undef, S, T[k]) for k in 1:K]
     ξ = [Array{R,3}(undef, S, S, T[k] - 1) for k in 1:K]
-    α_sum = [Vector{R}(undef, T[k]) for k in 1:K]
-    γ_sum = [Vector{R}(undef, T[k]) for k in 1:K]
-    ξ_sum = [Vector{R}(undef, T[k] - 1) for k in 1:K]
-    return (α=α, β=β, γ=γ, ξ=ξ, α_sum=α_sum, γ_sum=γ_sum, ξ_sum=ξ_sum)
+    α_sum_inv = [Vector{R}(undef, T[k]) for k in 1:K]
+    tup = (α=α, β=β, γ=γ, ξ=ξ, α_sum_inv=α_sum_inv)
+    return tup
 end
 
 function baum_welch_multiple_sequences!(
@@ -20,9 +19,7 @@ function baum_welch_multiple_sequences!(
     β::AbstractVector{<:AbstractMatrix{R}},
     γ::AbstractVector{<:AbstractMatrix{R}},
     ξ::AbstractVector{<:AbstractArray{R,3}},
-    α_sum::AbstractVector{<:AbstractVector{R}},
-    γ_sum::AbstractVector{<:AbstractVector{R}},
-    ξ_sum::AbstractVector{<:AbstractVector{R}},
+    α_sum_inv::AbstractVector{<:AbstractVector{R}},
     hmm_init::HMM{Tr,Em},
     obs_sequences::AbstractVector;
     max_iterations::Integer=100,
@@ -40,18 +37,10 @@ function baum_welch_multiple_sequences!(
     prog = Progress(max_iterations; desc="Baum-Welch algorithm", enabled=show_progress)
     for iteration in 1:max_iterations
         let hmm = hmm
-            @floop for k in 1:K
+            for k in 1:K
                 update_obs_density!(obs_densities[k], hmm, obs_sequences[k])
                 logL_by_seq[k] = forward_backward!(
-                    α[k],
-                    β[k],
-                    γ[k],
-                    ξ[k],
-                    α_sum[k],
-                    γ_sum[k],
-                    ξ_sum[k],
-                    hmm,
-                    obs_densities[k],
+                    α[k], β[k], γ[k], ξ[k], α_sum_inv[k], hmm, obs_densities[k]
                 )
             end
         end
@@ -59,7 +48,7 @@ function baum_welch_multiple_sequences!(
 
         new_transitions = convert(Tr, fit_mle(Tr, γ, ξ))
         new_emissions = Vector{Em}(undef, S)
-        @floop for s in 1:S
+        for s in 1:S
             concat_γs = mapreduce(x -> view(x, s, :), vcat, γ)
             concat_γs_float64 = convert(Vector{Float64}, concat_γs)
             new_emissions[s] = convert(
@@ -89,11 +78,9 @@ function baum_welch_multiple_sequences(
 )
     K = length(obs_sequences)
     obs_densities = [compute_obs_density(hmm_init, obs_sequences[k]) for k in 1:K]
-    (; α, β, γ, ξ, α_sum, γ_sum, ξ_sum) = initialize_baum_welch_multiple_sequences(
-        obs_densities
-    )
+    (; α, β, γ, ξ, α_sum_inv) = initialize_baum_welch_multiple_sequences(obs_densities)
     return baum_welch_multiple_sequences!(
-        obs_densities, α, β, γ, ξ, α_sum, γ_sum, ξ_sum, hmm_init, obs_sequences; kwargs...
+        obs_densities, α, β, γ, ξ, α_sum_inv, hmm_init, obs_sequences; kwargs...
     )
 end
 
