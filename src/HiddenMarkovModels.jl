@@ -5,6 +5,7 @@ const HMMs = HiddenMarkovModels
 using Base.Threads
 using DensityInterface
 using Distributions
+using FillArrays
 using LinearAlgebra
 using LogarithmicNumbers
 using ProgressMeter
@@ -44,7 +45,8 @@ include("markov/continuous_time/prior.jl")
 include("markov/continuous_time/fit.jl")
 
 include("hmm/suffstats.jl")
-include("hmm/discrete_time/hmm.jl")
+include("hmm/discrete_time/abstract.jl")
+include("hmm/discrete_time/concrete.jl")
 include("hmm/discrete_time/prior.jl")
 include("hmm/discrete_time/simulation.jl")
 include("hmm/discrete_time/obs_density.jl")

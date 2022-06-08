@@ -63,9 +63,7 @@ function baum_welch_multiple_sequences!(
         push!(logL_evolution, sum(logL_by_seq))
 
         # Aggregated transitions
-        transitions_suffstats_agg = reduce(
-            add_suffstats, transitions_suffstats_by_seq
-        )
+        transitions_suffstats_agg = reduce(add_suffstats, transitions_suffstats_by_seq)
         new_transitions = fit_mle(Tr, transitions_suffstats_agg)
         # Aggregated emissions
         new_emissions = Vector{Em}(undef, S)

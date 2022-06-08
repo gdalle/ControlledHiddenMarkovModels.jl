@@ -6,7 +6,7 @@ Simulate `mc` based on a vector of controls.
 function Base.rand(
     rng::AbstractRNG,
     mc::AbstractControlledDiscreteMarkovChain,
-    controls::AbstractVector;
+    control_sequence::AbstractVector;
     check_args=false,
 )
     T = length(controls)
@@ -14,7 +14,7 @@ function Base.rand(
     state_sequence = Vector{Int}(undef, T)
     state_sequence[1] = rand(rng, Categorical(p0; check_args=check_args))
     for t in 2:T
-        u, s = controls[t - 1], state_sequence[t - 1]
+        u, s = control_sequence[t - 1], state_sequence[t - 1]
         P = transition_matrix(mc, u)
         state_sequence[t] = rand(rng, Categorical(P[s, :]; check_args=check_args))
     end
@@ -22,7 +22,7 @@ function Base.rand(
 end
 
 function Base.rand(
-    mc::AbstractControlledDiscreteMarkovChain, controls::AbstractVector; kwargs...
+    mc::AbstractControlledDiscreteMarkovChain, control_sequence::AbstractVector; kwargs...
 )
-    return rand(GLOBAL_RNG, mc, controls; kwargs...)
+    return rand(GLOBAL_RNG, mc, control_sequence; kwargs...)
 end

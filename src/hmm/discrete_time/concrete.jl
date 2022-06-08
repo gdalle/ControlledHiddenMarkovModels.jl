@@ -7,7 +7,7 @@ Hidden Markov Model with arbitrary transition model (must be a discrete Markov c
 - `transitions::Tr`: state evolution process.
 - `emissions::Vector{Em}`: one emission distribution per state.
 """
-struct HiddenMarkovModel{Tr<:AbstractDiscreteMarkovChain,Em}
+struct HiddenMarkovModel{Tr,Em}
     transitions::Tr
     emissions::Vector{Em}
 end
@@ -22,9 +22,18 @@ const HMM = HiddenMarkovModel
 ## Access
 
 get_transitions(hmm::HMM) = hmm.transitions
-initial_distribution(hmm::HMM) = initial_distribution(get_transitions(hmm))
-transition_matrix(hmm::HMM) = transition_matrix(get_transitions(hmm))
-
 get_emissions(hmm::HMM) = hmm.emissions
 get_emission(hmm::HMM, s::Integer) = hmm.emissions[s]
 nb_states(hmm::HMM) = length(get_emissions(hmm))
+
+initial_distribution(hmm::HMM) = initial_distribution(hmm.transitions)
+
+function transition_matrix(hmm::HMM{Tr}, u=nothing) where {Tr<:AbstractDiscreteMarkovChain}
+    return transition_matrix(hmm.transitions)
+end
+
+function transition_matrix(
+    hmm::HMM{Tr}, u
+) where {Tr<:AbstractControlledDiscreteMarkovChain}
+    return transition_matrix(hmm.transitions, u)
+end
