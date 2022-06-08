@@ -42,7 +42,7 @@ function baum_welch_multiple_sequences!(
     prog = Progress(max_iterations; desc="Baum-Welch algorithm", enabled=show_progress)
     for iteration in 1:max_iterations
         let hmm = hmm
-            @threads for k in 1:K
+            for k in 1:K
                 # Local forward-backward
                 update_obs_density!(obs_densities[k], hmm, obs_sequences[k])
                 logL_by_seq[k] = forward_backward!(

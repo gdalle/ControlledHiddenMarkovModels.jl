@@ -7,23 +7,9 @@ Hidden Markov Model with arbitrary transition model (must be a discrete Markov c
 - `transitions::Tr`: state evolution process.
 - `emissions::Vector{Em}`: one emission distribution per state.
 """
-struct HiddenMarkovModel{Tr<:DiscreteMarkovChain,Em}
+struct HiddenMarkovModel{Tr<:AbstractDiscreteMarkovChain,Em}
     transitions::Tr
     emissions::Vector{Em}
-end
-
-"""
-    HiddenMarkovModelPrior{TrP,EmP}
-
-Prior for a [`HiddenMarkovModel`](@ref).
-
-# Fields
-- `transitions_prior::TrP`: prior on the transition structure.
-- `emissions_prior::Vector{EmP}`: one prior per state emission distribution.
-"""
-struct HiddenMarkovModelPrior{TrP<:DiscreteMarkovChainPrior,EmP}
-    transitions_prior::TrP
-    emissions_prior::Vector{EmP}
 end
 
 """
@@ -32,13 +18,6 @@ end
 Alias for [`HiddenMarkovModel`](@ref).
 """
 const HMM = HiddenMarkovModel
-
-"""
-    HMMPrior
-
-Alias for [`HiddenMarkovModelPrior`](@ref).
-"""
-const HMMPrior = HiddenMarkovModelPrior
 
 ## Access
 

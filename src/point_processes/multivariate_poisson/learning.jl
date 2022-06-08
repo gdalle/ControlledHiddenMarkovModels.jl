@@ -8,9 +8,7 @@ function Distributions.suffstats(
     for m in event_marks(history)
         event_count[m] += 1
     end
-    return MultivariatePoissonProcessStats(;
-        duration=duration(history), event_count=event_count
-    )
+    return MultivariatePoissonProcessStats(event_count, duration(history))
 end
 
 function Distributions.suffstats(
@@ -27,9 +25,7 @@ function Distributions.suffstats(
             total_event_count[m] += weight
         end
     end
-    return MultivariatePoissonProcessStats(;
-        duration=total_duration, event_count=total_event_count
-    )
+    return MultivariatePoissonProcessStats(total_event_count, total_duration)
 end
 
 ## Fit from sufficient stats
@@ -47,8 +43,10 @@ function fit_map(
     ss::MultivariatePoissonProcessStats,
 ) where {R}
     (; λ_α, λ_β) = prior
-    ss_posterior = MultivariatePoissonProcessStats(;
-        event_count=ss.event_count .+ λ_α .- one(eltype(λ_α)), duration=ss.duration + λ_β
+    posterior_event_count = ss.event_count .+ λ_α .- one(eltype(λ_α))
+    posterior_duration = ss.duration + λ_β
+    ss_posterior = MultivariatePoissonProcessStats(
+        posterior_event_count, posterior_duration
     )
     return fit_mle(pptype, ss_posterior)
 end

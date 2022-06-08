@@ -30,6 +30,6 @@ mc_mle = fit_mle(ContinuousMarkovChain{Float32, Float32}, h)
 
 # Tests (not included in the docs)  #src
 
-error_mle = mean(abs, rates_matrix(mc_mle) - rates_matrix(mc))
+error_mle = mean(abs, intensity_matrix(mc_mle) - intensity_matrix(mc))
 
 @test error_mle < 0.1  #src

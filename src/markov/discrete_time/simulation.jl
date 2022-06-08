@@ -1,33 +1,22 @@
 """
-    rand([rng,] mc::DiscreteMarkovChain, T)
+    rand([rng,] mc::AbstractDiscreteMarkovChain, T)
 
 Simulate `mc` during `T` time steps.
 """
-function Base.rand(rng::AbstractRNG, mc::DiscreteMarkovChain, T::Integer; check_args=false)
-    states = Vector{Int}(undef, T)
-    transitions = [Categorical(mc.P[s, :]; check_args=check_args) for s in 1:nb_states(mc)]
-    states[1] = rand(rng, Categorical(mc.p0; check_args=check_args))
+function Base.rand(
+    rng::AbstractRNG, mc::AbstractDiscreteMarkovChain, T::Integer; check_args=false
+)
+    state_sequence = Vector{Int}(undef, T)
+    p0 = initial_distribution(mc)
+    P = transition_matrix(mc)
+    transitions = [Categorical(P[s, :]; check_args=check_args) for s in 1:nb_states(mc)]
+    state_sequence[1] = rand(rng, Categorical(p0; check_args=check_args))
     for t in 2:T
-        states[t] = rand(rng, transitions[states[t - 1]])
+        state_sequence[t] = rand(rng, transitions[state_sequence[t - 1]])
     end
-    return states
+    return state_sequence
 end
 
-"""
-    rand([rng,] prior::DiscreteMarkovChainPrior)
-
-Sample a [`DiscreteMarkovChain`](@ref) from `prior`.
-"""
-function Base.rand(rng::AbstractRNG, prior::DiscreteMarkovChainPrior; check_args=false)
-    p0 = rand(rng, Dirichlet(prior.p0_α; check_args=check_args))
-    P = reduce(
-        vcat, rand(rng, Dirichlet(view(prior.P_α, s, :); check_args=check_args)) for s in 1:S
-    )
-    return DiscreteMarkovChain(p0, P)
-end
-
-function Base.rand(mc::DiscreteMarkovChain, T::Integer; kwargs...)
+function Base.rand(mc::AbstractDiscreteMarkovChain, T::Integer; kwargs...)
     return rand(GLOBAL_RNG, mc, T; kwargs...)
 end
-
-Base.rand(prior::DiscreteMarkovChainPrior; kwargs...) = rand(GLOBAL_RNG, prior; kwargs...)

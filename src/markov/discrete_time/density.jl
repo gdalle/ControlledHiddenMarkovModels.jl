@@ -1,30 +1,16 @@
 """
-    logdensityof(mc::DiscreteMarkovChain, x::AbstractVector)
+    logdensityof(mc::AbstractDiscreteMarkovChain, state_sequence)
 
-Compute the log-likelihood of the sequence `x` of states for the chain `mc`.
-"""
-function DensityInterface.logdensityof(mc::DiscreteMarkovChain, x::AbstractVector)
-    T = length(x)
-    l = log(mc.p0[x[1]])
-    for t in 2:T
-        l += log(mc.P[x[t - 1], x[t]])
-    end
-    return l
-end
-
-"""
-    logdensityof(prior::DiscreteMarkovChainPrior, mc::DiscreteMarkovChain)
-
-Compute the log-likelihood of the chain `mc` with respect to a `prior`.
+Compute the log-likelihood of a sequence of integer states for the chain `mc`.
 """
 function DensityInterface.logdensityof(
-    prior::DiscreteMarkovChainPrior, mc::DiscreteMarkovChain
+    mc::AbstractDiscreteMarkovChain, state_sequence::AbstractVector{<:Integer}
 )
-    l = logdensityof(Dirichlet(prior.p0_α), mc.p0)
-    for s in 1:nb_states(mc)
-        Pα_s = view(prior.P_α, s, :)
-        P_s = view(mc.P, s, :)
-        l += logdensityof(Dirichlet(Pα_s), P_s)
+    T = length(state_sequence)
+    l = log(initial_probability(mc, first(state_sequence)))
+    for t in 2:T
+        i, j = state_sequence[t - 1], state_sequence[t]
+        l += log(transition_probability(mc, i, j))
     end
     return l
 end
