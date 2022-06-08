@@ -12,19 +12,28 @@ using Random: Random, AbstractRNG, GLOBAL_RNG
 
 include("utils/prob_vec.jl")
 include("utils/trans_mat.jl")
+include("utils/rates_mat.jl")
 include("utils/overflow.jl")
 
 include("point_processes/history.jl")
 
 include("point_processes/multivariate_poisson/types.jl")
+include("point_processes/multivariate_poisson/access.jl")
 include("point_processes/multivariate_poisson/simulation.jl")
 include("point_processes/multivariate_poisson/density.jl")
 include("point_processes/multivariate_poisson/learning.jl")
 
 include("markov/discrete_time/types.jl")
+include("markov/discrete_time/access.jl")
 include("markov/discrete_time/simulation.jl")
 include("markov/discrete_time/density.jl")
 include("markov/discrete_time/learning.jl")
+
+include("markov/continuous_time/types.jl")
+include("markov/continuous_time/access.jl")
+include("markov/continuous_time/simulation.jl")
+include("markov/continuous_time/density.jl")
+include("markov/continuous_time/learning.jl")
 
 include("hmm/suffstats.jl")
 include("hmm/discrete_time/types.jl")
@@ -44,7 +53,10 @@ export event_times, event_marks
 export MultivariatePoissonProcess, MultivariatePoissonProcessPrior
 
 export DiscreteMarkovChain, DiscreteMarkovChainPrior
-export nb_states, initial_distribution, transition_matrix, stationary_distribution
+export ContinuousMarkovChain, ContinuousMarkovChainPrior
+export nb_states, initial_distribution, stationary_distribution
+export transition_matrix
+export rates_matrix
 
 export HiddenMarkovModel, HMM
 export HiddenMarkovModelPrior, HMMPrior

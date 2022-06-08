@@ -39,6 +39,7 @@ makedocs(;
         "Home" => "index.md",
         "Examples" => [
             "Discrete Markov chain" => "examples/discrete_markov.md",
+            "Continuous Markov chain" => "examples/continuous_markov.md",
             "Multivariate Poisson process" => "examples/multivariate_poisson.md",
             "Hidden Markov Model" => "examples/hmm.md",
         ],
