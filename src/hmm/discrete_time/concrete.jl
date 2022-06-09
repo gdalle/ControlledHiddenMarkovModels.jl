@@ -27,13 +27,4 @@ get_emission(hmm::HMM, s::Integer) = hmm.emissions[s]
 nb_states(hmm::HMM) = length(get_emissions(hmm))
 
 initial_distribution(hmm::HMM) = initial_distribution(hmm.transitions)
-
-function transition_matrix(hmm::HMM{Tr}, u=nothing) where {Tr<:AbstractDiscreteMarkovChain}
-    return transition_matrix(hmm.transitions)
-end
-
-function transition_matrix(
-    hmm::HMM{Tr}, u
-) where {Tr<:AbstractControlledDiscreteMarkovChain}
-    return transition_matrix(hmm.transitions, u)
-end
+transition_matrix(hmm::HMM, args...) = transition_matrix(hmm.transitions, args...)

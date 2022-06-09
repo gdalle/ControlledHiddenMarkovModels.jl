@@ -19,13 +19,13 @@ end
 uniform_trans_mat(n::Integer) = uniform_trans_mat(Float64, n)
 
 """
-    rand_trans_mat(n)
+    rand_trans_mat(rng, n)
 
 Return a stochastic matrix of size `n` with random transition probability distributions.
 """
-function rand_trans_mat(::Type{R}, n::Integer) where {R<:Real}
-    P = rand(R, n, n)
+function rand_trans_mat(rng::AbstractRNG, ::Type{R}, n::Integer) where {R<:Real}
+    P = rand(rng, R, n, n)
     return P ./ sum(P; dims=2)
 end
 
-rand_trans_mat(n::Integer) = rand_trans_mat(Float64, n)
+rand_trans_mat(rng::AbstractRNG, n::Integer) = rand_trans_mat(rng, Float64, n)

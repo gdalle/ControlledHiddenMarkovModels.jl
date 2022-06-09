@@ -6,10 +6,7 @@
 Set `obs_density[s, t]` to the likelihood of `hmm` emitting `obs_sequence[t]` if it were in state `s`.
 """
 function update_obs_density!(
-    obs_density::AbstractMatrix{R},
-    hmm::HMM{Tr},
-    obs_sequence::AbstractVector,
-    control_sequence::AbstractVector=Fill(nothing, length(obs_sequence)),
+    obs_density::AbstractMatrix{R}, hmm::HMM{Tr}, obs_sequence::AbstractVector
 ) where {R<:Real,Tr<:AbstractDiscreteMarkovChain}
     T, S = length(obs_sequence), nb_states(hmm)
     for t in 1:T
@@ -26,9 +23,7 @@ function update_obs_density!(
 end
 
 function compute_obs_density(
-    hmm::HMM{Tr},
-    obs_sequence::AbstractVector,
-    control_sequence::AbstractVector=Fill(nothing, length(obs_sequence)),
+    hmm::HMM{Tr}, obs_sequence::AbstractVector
 ) where {Tr<:AbstractDiscreteMarkovChain}
     T, S = length(obs_sequence), nb_states(hmm)
     obs_density = [densityof(get_emission(hmm, s), obs_sequence[t]) for s in 1:S, t in 1:T]

@@ -6,6 +6,11 @@ using LogarithmicNumbers
 using Statistics
 using Test  #src
 
+#-
+
+rng = Random.default_rng()
+Random.seed!(rng, 63)
+
 # ## Construction
 
 # A [`DiscreteMarkovChain`](@ref) object is built by combining a vector of initial probabilities with a transition matrix.
@@ -18,7 +23,7 @@ mc = DiscreteMarkovChain(p0, P)
 
 # To simulate it, we only need to decide how long the sequence should be.
 
-state_sequence = rand(mc, 1000);
+state_sequence = rand(rng, mc, 1000);
 
 # Let us visualize the sequence of states.
 

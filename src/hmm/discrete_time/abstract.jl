@@ -1,3 +1,3 @@
-abstract type AbstractHiddenMarkovModel{Tr,Em} end
+abstract type AbstractHiddenMarkovModel{Tr<:AbstractDiscreteMarkovChain,Em} end
 
 const AbstractHMM = AbstractHiddenMarkovModel

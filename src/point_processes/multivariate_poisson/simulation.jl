@@ -7,7 +7,3 @@ function Base.rand(
     marks = [rand(rng, mark_dist) for n in 1:N]
     return History(; times=times, marks=marks, tmin=tmin, tmax=tmax)
 end
-
-function Base.rand(pp::MultivariatePoissonProcess, tmin::Real=0.0, tmax::Real=1.0)
-    return rand(GLOBAL_RNG, pp, tmin, tmax)
-end

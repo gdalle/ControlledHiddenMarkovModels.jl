@@ -6,6 +6,11 @@ using LogarithmicNumbers
 using Statistics
 using Test  #src
 
+#-
+
+rng = Random.default_rng()
+Random.seed!(rng, 63)
+
 # ## Construction
 
 # A [`ContinuousMarkovChain`](@ref) object is built by combining a vector of initial probabilities with a matrix of transition rates.
@@ -18,7 +23,7 @@ mc = ContinuousMarkovChain(p0, Q)
 
 # To simulate it, we only need to decide the time interval.
 
-h = rand(mc, 4.2, 420.)
+h = rand(rng, mc, 4.2, 420.)
 
 # ## Learning
 

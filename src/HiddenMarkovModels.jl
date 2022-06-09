@@ -9,42 +9,44 @@ using FillArrays
 using LinearAlgebra
 using LogarithmicNumbers
 using ProgressMeter
-using Random: Random, AbstractRNG, GLOBAL_RNG
+using Random
 
 include("utils/prob_vec.jl")
 include("utils/trans_mat.jl")
 include("utils/rates_mat.jl")
 include("utils/overflow.jl")
+include("utils/suffstats.jl")
 
 include("point_processes/history.jl")
 
-include("point_processes/multivariate_poisson/types.jl")
+include("point_processes/multivariate_poisson/concrete.jl")
 include("point_processes/multivariate_poisson/simulation.jl")
 include("point_processes/multivariate_poisson/density.jl")
-include("point_processes/multivariate_poisson/learning.jl")
+include("point_processes/multivariate_poisson/suffstats.jl")
+include("point_processes/multivariate_poisson/prior.jl")
+include("point_processes/multivariate_poisson/fit.jl")
 
-include("markov/generic.jl")
+include("markov/abstract.jl")
 
 include("markov/discrete_time/abstract.jl")
-include("markov/discrete_time/concrete.jl")
-include("markov/discrete_time/simulation.jl")
 include("markov/discrete_time/density.jl")
-include("markov/discrete_time/suffstats.jl")
-include("markov/discrete_time/prior.jl")
-include("markov/discrete_time/fit.jl")
+include("markov/discrete_time/simulation.jl")
 
-include("markov/discrete_time_controlled/abstract.jl")
-include("markov/discrete_time_controlled/simulation.jl")
+include("markov/discrete_time/free/concrete.jl")
+include("markov/discrete_time/free/suffstats.jl")
+include("markov/discrete_time/free/prior.jl")
+include("markov/discrete_time/free/fit.jl")
 
-include("markov/continuous_time/abstract.jl")
-include("markov/continuous_time/concrete.jl")
-include("markov/continuous_time/simulation.jl")
-include("markov/continuous_time/density.jl")
-include("markov/continuous_time/suffstats.jl")
-include("markov/continuous_time/prior.jl")
-include("markov/continuous_time/fit.jl")
+include("markov/discrete_time/controlled/abstract.jl")
 
-include("hmm/suffstats.jl")
+include("markov/continuous_time/free/abstract.jl")
+include("markov/continuous_time/free/concrete.jl")
+include("markov/continuous_time/free/simulation.jl")
+include("markov/continuous_time/free/density.jl")
+include("markov/continuous_time/free/suffstats.jl")
+include("markov/continuous_time/free/prior.jl")
+include("markov/continuous_time/free/fit.jl")
+
 include("hmm/discrete_time/abstract.jl")
 include("hmm/discrete_time/concrete.jl")
 include("hmm/discrete_time/prior.jl")

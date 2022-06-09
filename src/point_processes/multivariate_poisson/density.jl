@@ -5,13 +5,3 @@ function DensityInterface.logdensityof(pp::MultivariatePoissonProcess, h::Histor
     end
     return l
 end
-
-function DensityInterface.logdensityof(
-    prior::MultivariatePoissonProcessPrior, pp::MultivariatePoissonProcess
-)
-    l = sum(
-        logdensityof(Gamma(prior.λα[m], inv(prior.λβ[m]); check_args=false), pp.λ[m]) for
-        m in 1:length(pp)
-    )
-    return l
-end

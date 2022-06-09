@@ -20,20 +20,6 @@ function Base.show(io::IO, pp::MultivariatePoissonProcess{R}) where {R<:Real}
     print(io, "MultivariatePoissonProcess{$R}($(pp.λ))")
 end
 
-## Prior
-
-struct MultivariatePoissonProcessPrior{R1<:Real,R2<:Real}
-    λ_α::Vector{R1}
-    λ_β::Vector{R2}
-end
-
-## Sufficient statistics
-
-struct MultivariatePoissonProcessStats{R1<:Real,R2<:Real}
-    event_count::Vector{R1}
-    duration::R2
-end
-
 ## Access
 
 Base.length(pp::MultivariatePoissonProcess) = length(pp.λ)

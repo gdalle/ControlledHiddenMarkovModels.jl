@@ -7,6 +7,11 @@ using LogarithmicNumbers
 using Statistics
 using Test  #src
 
+#-
+
+rng = Random.default_rng()
+Random.seed!(rng, 63)
+
 # ## Construction
 
 # A [`HiddenMarkovModel`](@ref) object is build by combining a transition structure (of type [`DiscreteMarkovChain`](@ref)) with a list of emission distributions.
@@ -29,11 +34,11 @@ hmm = HiddenMarkovModel(transitions, emissions)
 
 # The simulation utility returns both the sequence of states and the sequence of observations.
 
-state_sequence, obs_sequence = rand(hmm, 10)
+state_sequence, obs_sequence = rand(rng, hmm, 10)
 
 # With the learning step in mind, we want to generate multiple observations sequences of various lengths.
 
-obs_sequences = [rand(hmm, rand(1000:2000))[2] for k in 1:5];
+obs_sequences = [rand(rng, hmm, rand(1000:2000))[2] for k in 1:5];
 
 # ## Learning
 
@@ -42,8 +47,8 @@ The Baum-Welch algorithm for estimating HMM parameters requires an initial guess
 Initial parameters can be created with reduced precision to speed up estimation.
 =#
 
-p0_init = rand_prob_vec(Float32, 2)
-P_init = rand_trans_mat(Float32, 2)
+p0_init = rand_prob_vec(rng, Float32, 2)
+P_init = rand_trans_mat(rng, Float32, 2)
 transitions_init = DiscreteMarkovChain(p0_init, P_init)
 emissions_init = [Normal(1.), Normal(-1.)]
 
@@ -98,11 +103,11 @@ hmm_poisson = HMM(transitions, emissions_poisson)
 
 # We can simulate and learn it using the exact same procedure.
 
-state_sequence_poisson, obs_sequence_poisson = rand(hmm_poisson, 1000);
+state_sequence_poisson, obs_sequence_poisson = rand(rng, hmm_poisson, 1000);
 
 emissions_init_poisson = [
-    MultivariatePoissonProcess([rand(), 2rand(), 3rand()]),
-    MultivariatePoissonProcess([3rand(), 2rand(), rand()]),
+    MultivariatePoissonProcess([rand(rng), 2rand(rng), 3rand(rng)]),
+    MultivariatePoissonProcess([3rand(rng), 2rand(rng), rand(rng)]),
 ]
 
 hmm_init_poisson = HMM(transitions_init, emissions_init_poisson)

@@ -14,13 +14,13 @@ end
 uniform_prob_vec(n::Integer) = uniform_prob_vec(Float64, n)
 
 """
-    rand_prob_vec(n)
+    rand_prob_vec(rng, n)
 
 Return a random probability distribution vector of size `n`.
 """
-function rand_prob_vec(::Type{R}, n::Integer) where {R<:Real}
-    p = rand(R, n)
+function rand_prob_vec(rng::AbstractRNG, ::Type{R}, n::Integer) where {R<:Real}
+    p = rand(rng, R, n)
     return p ./ sum(p)
 end
 
-rand_prob_vec(n::Integer) = rand_prob_vec(Float64, n)
+rand_prob_vec(rng::AbstractRNG, n::Integer) = rand_prob_vec(rng, Float64, n)

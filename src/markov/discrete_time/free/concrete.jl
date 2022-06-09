@@ -29,7 +29,7 @@ end
 ## Access
 
 initial_distribution(mc::DiscreteMarkovChain) = mc.p0
-transition_matrix(mc::DiscreteMarkovChain) = mc.P
+transition_matrix(mc::DiscreteMarkovChain, args...) = mc.P
 
 function stationary_distribution(mc::DiscreteMarkovChain)
     p_stat = real.(eigvecs(transition_matrix(mc)')[:, end])

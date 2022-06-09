@@ -1,16 +1,21 @@
 """
-    logdensityof(mc::AbstractDiscreteMarkovChain, state_sequence)
+    logdensityof(mc::AbstractDiscreteMarkovChain, state_sequence[, control_sequence])
 
 Compute the log-likelihood of a sequence of integer states for the chain `mc`.
 """
 function DensityInterface.logdensityof(
-    mc::AbstractDiscreteMarkovChain, state_sequence::AbstractVector{<:Integer}
+    mc::AbstractDiscreteMarkovChain,
+    state_sequence::AbstractVector{<:Integer},
+    control_sequence::AbstractVector=Fill(nothing, length(state_sequence)),
+    ps=nothing,
+    st=nothing,
 )
     T = length(state_sequence)
-    l = log(initial_probability(mc, first(state_sequence)))
-    for t in 2:T
-        i, j = state_sequence[t - 1], state_sequence[t]
-        l += log(transition_probability(mc, i, j))
+    l = log(initial_probability(mc, state_sequence[1], control_sequence[1], ps, st))
+    for t in 1:(T - 1)
+        i, j = state_sequence[t], state_sequence[t + 1]
+        u = control_sequence[t]
+        l += log(transition_probability(mc, i, j, u, ps, st))
     end
     return l
 end

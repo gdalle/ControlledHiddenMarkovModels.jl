@@ -29,6 +29,18 @@ function DiscreteMarkovChainStats(
     return DiscreteMarkovChainStats{R1,R2}(initialization_count, transition_count)
 end
 
+function suffstats_type(::Type{M}) where {R1<:Real,R2<:Real,M<:DiscreteMarkovChain{R1,R2}}
+    return DiscreteMarkovChainStats{R1,R2}
+end
+
+function add_suffstats(
+    ss1::DiscreteMarkovChainStats{R1,R2}, ss2::DiscreteMarkovChainStats{R1,R2}
+) where {R1<:Real,R2<:Real}
+    initialization_count = ss1.initialization_count .+ ss2.initialization_count
+    transition_count = ss1.transition_count .+ ss2.transition_count
+    return DiscreteMarkovChainStats{R1,R2}(initialization_count, transition_count)
+end
+
 ## Compute sufficient stats
 
 function Distributions.suffstats(

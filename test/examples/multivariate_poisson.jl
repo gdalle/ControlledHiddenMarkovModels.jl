@@ -6,6 +6,11 @@ using LogarithmicNumbers
 using Statistics
 using Test  #src
 
+#-
+
+rng = Random.default_rng()
+Random.seed!(rng, 63)
+
 # ## Construction
 
 # A [`MultivariatePoissonProcess`](@ref) object is built from a vector of positive event rates.
@@ -17,7 +22,7 @@ pp = MultivariatePoissonProcess(λ)
 
 # Since it is a temporal point process, we can simulate it on an arbitrary real interval.
 
-history = rand(pp, 3.14, 314.0)
+history = rand(rng, pp, 3.14, 314.0)
 
 # Each event is defined by a time and an integer mark, which means we can visualize the history in 2 dimensions:
 
