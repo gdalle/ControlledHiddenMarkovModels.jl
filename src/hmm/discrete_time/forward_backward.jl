@@ -3,7 +3,7 @@
 function forward!(
     α::AbstractMatrix{R},
     α_sum_inv::AbstractVector{R},
-    hmm::HMM,
+    hmm::AbstractHMM,
     obs_density::AbstractMatrix{R},
     control_sequence::AbstractVector=Fill(nothing, size(obs_density, 2)),
     ps=nothing,
@@ -23,11 +23,12 @@ function forward!(
 
     # Recursion
     @inbounds for t in 1:(T - 1)
-        P = transition_matrix(hmm, control_sequence[t], ps, st)
+        uₜ = control_sequence[t]
+        Pₜ = transition_matrix(hmm, uₜ, ps, st)
         @inbounds for j in 1:S
             tmp = zero(R)
             @inbounds for i in 1:S
-                tmp += α[i, t] * P[i, j]
+                tmp += α[i, t] * Pₜ[i, j]
             end
             α[j, t + 1] = tmp * obs_density[j, t + 1]
         end
@@ -50,7 +51,7 @@ end
 function backward!(
     β::AbstractMatrix{R},
     α_sum_inv::AbstractVector{R},
-    hmm::HMM,
+    hmm::AbstractHMM,
     obs_density::AbstractMatrix{R},
     control_sequence::AbstractVector=Fill(nothing, size(obs_density, 2)),
     ps=nothing,
@@ -65,11 +66,12 @@ function backward!(
 
     # Recursion
     @inbounds for t in (T - 1):-1:1
-        P = transition_matrix(hmm, control_sequence[t], ps, st)
+        uₜ = control_sequence[t]
+        Pₜ = transition_matrix(hmm, uₜ, ps, st)
         @inbounds for i in 1:S
             tmp = zero(R)
             @inbounds for j in 1:S
-                tmp += P[i, j] * obs_density[j, t + 1] * β[j, t + 1]
+                tmp += Pₜ[i, j] * obs_density[j, t + 1] * β[j, t + 1]
             end
             β[i, t] = tmp * α_sum_inv[t]
         end
@@ -99,7 +101,7 @@ function forward_backward!(
     γ::AbstractMatrix{R},
     ξ::AbstractArray{R,3},
     α_sum_inv::AbstractVector{R},
-    hmm::HMM,
+    hmm::AbstractHMM,
     obs_density::AbstractMatrix{R},
     control_sequence::AbstractVector=Fill(nothing, size(obs_density, 2)),
     ps=nothing,
@@ -123,10 +125,11 @@ function forward_backward!(
 
     # Transitions sufficient statistics
     @inbounds for t in 1:(T - 1)
-        P = transition_matrix(hmm, control_sequence[t], ps, st)
+        uₜ = control_sequence[t]
+        Pₜ = transition_matrix(hmm, uₜ, ps, st)
         @inbounds for j in 1:S
             @inbounds for i in 1:S
-                ξ[i, j, t] = α[i, t] * P[i, j] * obs_density[j, t + 1] * β[j, t + 1]
+                ξ[i, j, t] = α[i, t] * Pₜ[i, j] * obs_density[j, t + 1] * β[j, t + 1]
             end
         end
         ξ_sum_inv = inv(sum(view(ξ, :, :, t)))
@@ -143,4 +146,27 @@ function forward_backward!(
     end
 
     return logL
+end
+
+struct ForwardBackwardStorage{R}
+    α::Vector{Matrix{R}}
+    β::Vector{Matrix{R}}
+    γ::Vector{Matrix{R}}
+    ξ::Vector{Array{R,3}}
+    α_sum_inv::Vector{Vector{R}}
+end
+
+function initialize_forward_backward_multiple_sequences(
+    obs_densities::AbstractVector{<:AbstractMatrix{R}}
+) where {R<:Real}
+    K = length(obs_densities)
+    S = size(obs_densities[1], 1)
+    T = [size(obs_densities[k], 2) for k in 1:K]
+    α = [Matrix{R}(undef, S, T[k]) for k in 1:K]
+    β = [Matrix{R}(undef, S, T[k]) for k in 1:K]
+    γ = [Matrix{R}(undef, S, T[k]) for k in 1:K]
+    ξ = [Array{R,3}(undef, S, S, T[k] - 1) for k in 1:K]
+    α_sum_inv = [Vector{R}(undef, T[k]) for k in 1:K]
+    fb_storage = ForwardBackwardStorage{R}(α, β, γ, ξ, α_sum_inv)
+    return fb_storage
 end

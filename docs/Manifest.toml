@@ -78,9 +78,9 @@ version = "0.5.1"
 
 [[deps.ChainRules]]
 deps = ["ChainRulesCore", "Compat", "IrrationalConstants", "LinearAlgebra", "Random", "RealDot", "SparseArrays", "Statistics"]
-git-tree-sha1 = "e9023f88b1655ffc6a4aaef2502878e8116151ef"
+git-tree-sha1 = "34e265b1b0049896430625ce1638b2719c783c6b"
 uuid = "082447d4-558c-5d27-93f4-14fc19e9eca2"
-version = "1.35.1"
+version = "1.35.2"
 
 [[deps.ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra", "SparseArrays"]
@@ -136,9 +136,9 @@ uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
 
 [[deps.ComponentArrays]]
 deps = ["ArrayInterface", "ChainRulesCore", "LinearAlgebra", "Requires"]
-git-tree-sha1 = "a5217364b4f80c9aa26798e79a7dccac65a54375"
+git-tree-sha1 = "f11d593a21f0772af814b836a0266c0be3652cf7"
 uuid = "b0b7db55-cfe3-40fc-9ded-d10e2dbeff66"
-version = "0.11.17"
+version = "0.12.0"
 
 [[deps.ConstructionBase]]
 deps = ["LinearAlgebra"]
@@ -381,7 +381,7 @@ uuid = "2e76f6c2-a576-52d4-95c1-20adfe4de566"
 version = "2.8.1+1"
 
 [[deps.HiddenMarkovModels]]
-deps = ["DensityInterface", "Distributions", "FillArrays", "LinearAlgebra", "LogarithmicNumbers", "ProgressMeter", "Random"]
+deps = ["DensityInterface", "Distributions", "FillArrays", "LinearAlgebra", "LogarithmicNumbers", "Lux", "ProgressMeter", "Random"]
 path = ".."
 uuid = "7732c362-7152-4a8d-b9b6-d99facdeb807"
 version = "0.1.0"
@@ -596,9 +596,9 @@ uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 
 [[deps.Lux]]
 deps = ["Adapt", "CUDA", "ChainRulesCore", "ComponentArrays", "FillArrays", "Functors", "LinearAlgebra", "NNlib", "NNlibCUDA", "Optimisers", "Random", "Requires", "Setfield", "SparseArrays", "Statistics", "Zygote"]
-git-tree-sha1 = "5595c7f77b3bbe6bb91fae024bec42259a19dd61"
+git-tree-sha1 = "08f99c93bb18f02e882908a21b449ec0149edf7a"
 uuid = "b2108857-7c20-44ae-9111-449ecde12c47"
-version = "0.4.3"
+version = "0.4.4"
 
 [[deps.MacroTools]]
 deps = ["Markdown", "Random"]
@@ -854,9 +854,9 @@ uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 
 [[deps.Setfield]]
 deps = ["ConstructionBase", "Future", "MacroTools", "Requires"]
-git-tree-sha1 = "38d88503f695eb0301479bc9b0d4320b378bafe5"
+git-tree-sha1 = "77172cadd2fdfa0c84c87e3a01215a4ca7723310"
 uuid = "efcf1570-3423-57d1-acb7-fd33fddbac46"
-version = "0.8.2"
+version = "1.0.0"
 
 [[deps.SharedArrays]]
 deps = ["Distributed", "Mmap", "Random", "Serialization"]

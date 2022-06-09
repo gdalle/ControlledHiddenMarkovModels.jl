@@ -1,9 +1,10 @@
 # # Hidden Markov Model
 
-using Distributions
 using HiddenMarkovModels
-using LogarithmicNumbers
+using HiddenMarkovModels.Distributions
+using HiddenMarkovModels.LogarithmicNumbers
 #md using Plots
+using Random
 using Statistics
 using Test  #src
 
@@ -50,7 +51,7 @@ Initial parameters can be created with reduced precision to speed up estimation.
 p0_init = rand_prob_vec(rng, Float32, 2)
 P_init = rand_trans_mat(rng, Float32, 2)
 transitions_init = DiscreteMarkovChain(p0_init, P_init)
-emissions_init = [Normal(1.), Normal(-1.)]
+emissions_init = [Normal(1.0), Normal(-1.0)]
 
 hmm_init = HiddenMarkovModel(transitions_init, emissions_init)
 
@@ -71,19 +72,30 @@ hmm_est, logL_evolution = baum_welch_multiple_sequences(
 #md     margin=5Plots.mm
 #md )
 
-
 # Let us now compute the estimation error on various parameters.
 
 transition_error_init = mean(abs, transition_matrix(hmm_init) - transition_matrix(hmm))
-μ_error_init = mean(abs, [get_emission(hmm_init, s).μ - get_emission(hmm, s).μ for s in 1:2])
-σ_error_init = mean(abs, [get_emission(hmm_init, s).σ - get_emission(hmm, s).σ for s in 1:2])
+μ_error_init = mean(
+    abs,
+    [emission_distribution(hmm_init, s).μ - emission_distribution(hmm, s).μ for s in 1:2],
+)
+σ_error_init = mean(
+    abs,
+    [emission_distribution(hmm_init, s).σ - emission_distribution(hmm, s).σ for s in 1:2],
+)
 (transition_error_init, μ_error_init, σ_error_init)
 
 #-
 
 transition_error = mean(abs, transition_matrix(hmm_est) - transition_matrix(hmm))
-μ_error = mean(abs, [get_emission(hmm_est, s).μ - get_emission(hmm, s).μ for s in 1:2])
-σ_error = mean(abs, [get_emission(hmm_est, s).σ - get_emission(hmm, s).σ for s in 1:2])
+μ_error = mean(
+    abs,
+    [emission_distribution(hmm_est, s).μ - emission_distribution(hmm, s).μ for s in 1:2],
+)
+σ_error = mean(
+    abs,
+    [emission_distribution(hmm_est, s).σ - emission_distribution(hmm, s).σ for s in 1:2],
+)
 (transition_error, μ_error, σ_error)
 
 # As we can see, all of these errors are much smaller than those of `hmm_init`: mission accomplished!
@@ -106,8 +118,8 @@ hmm_poisson = HMM(transitions, emissions_poisson)
 state_sequence_poisson, obs_sequence_poisson = rand(rng, hmm_poisson, 1000);
 
 emissions_init_poisson = [
-    MultivariatePoissonProcess([rand(rng), 2rand(rng), 3rand(rng)]),
-    MultivariatePoissonProcess([3rand(rng), 2rand(rng), rand(rng)]),
+    MultivariatePoissonProcess(rand(rng, 3) .* [1, 2, 3]),
+    MultivariatePoissonProcess(rand(rng, 3) .* [3, 2, 1]),
 ]
 
 hmm_init_poisson = HMM(transitions_init, emissions_init_poisson)
@@ -136,7 +148,8 @@ transition_error_init_poisson = mean( #src
 λ_error_init_poisson = mean( #src
     abs,  #src
     [ #src
-        get_emission(hmm_init_poisson, s).λ[m] - get_emission(hmm_poisson, s).λ[m] #src
+        emission_distribution(hmm_init_poisson, s).λ[m] -
+        emission_distribution(hmm_poisson, s).λ[m] #src
         for s in 1:2 for m in 1:3 #src
     ], #src
 ) #src
@@ -148,7 +161,8 @@ transition_error_poisson = mean( #src
 λ_error_poisson = mean( #src
     abs,  #src
     [ #src
-        get_emission(hmm_est_poisson, s).λ[m] - get_emission(hmm_poisson, s).λ[m] #src
+        emission_distribution(hmm_est_poisson, s).λ[m] -
+        emission_distribution(hmm_poisson, s).λ[m] #src
         for s in 1:2 for m in 1:3 #src
     ], #src
 ) #src

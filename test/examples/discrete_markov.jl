@@ -1,8 +1,9 @@
 # # Discrete Markov chain
 
 using HiddenMarkovModels
-using LogarithmicNumbers
+using HiddenMarkovModels.LogarithmicNumbers
 #md using Plots
+using Random
 using Statistics
 using Test  #src
 

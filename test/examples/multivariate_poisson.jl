@@ -1,7 +1,7 @@
 # # Multivariate Poisson process
 
 using HiddenMarkovModels
-using LogarithmicNumbers
+using HiddenMarkovModels.LogarithmicNumbers
 #md using Plots
 using Statistics
 using Test  #src

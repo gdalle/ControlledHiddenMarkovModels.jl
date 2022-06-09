@@ -29,11 +29,12 @@ function DensityInterface.logdensityof(
     prior::DiscreteMarkovChainPrior, mc::AbstractDiscreteMarkovChain
 )
     (; p0_α, P_α) = prior
+    S = length(p0_α)
     p0 = initial_distribution(mc)
     P = transition_matrix(mc)
     l = logdensityof(Dirichlet(p0_α), p0)
-    for s in 1:nb_states(mc)
-        l += logdensityof(Dirichlet(view(P_α, s, :)), view(P, s, :))
+    for i in 1:S
+        l += logdensityof(Dirichlet(view(P_α, i, :)), view(P, i, :))
     end
     return l
 end
@@ -45,9 +46,10 @@ Sample a [`DiscreteMarkovChain`](@ref) from `prior`.
 """
 function Base.rand(rng::AbstractRNG, prior::DiscreteMarkovChainPrior; check_args=false)
     (; p0_α, P_α) = prior
+    S = length(p0_α)
     p0 = rand(rng, Dirichlet(p0_α; check_args=check_args))
     P = reduce(
-        vcat, rand(rng, Dirichlet(view(P_α, s, :); check_args=check_args)) for s in 1:S
+        vcat, rand(rng, Dirichlet(view(P_α, i, :); check_args=check_args)) for i in 1:S
     )
     return DiscreteMarkovChain(p0, P)
 end

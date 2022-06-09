@@ -6,13 +6,20 @@
 Set `obs_density[s, t]` to the likelihood of `hmm` emitting `obs_sequence[t]` if it were in state `s`.
 """
 function update_obs_density!(
-    obs_density::AbstractMatrix{R}, hmm::HMM{Tr}, obs_sequence::AbstractVector
-) where {R<:Real,Tr<:AbstractDiscreteMarkovChain}
+    obs_density::AbstractMatrix{R},
+    hmm::AbstractHMM,
+    obs_sequence::AbstractVector,
+    control_sequence::AbstractVector=Fill(nothing, length(obs_sequence)),
+    ps=nothing,
+    st=nothing,
+) where {R<:Real}
     T, S = length(obs_sequence), nb_states(hmm)
     for t in 1:T
-        oₜ = obs_sequence[t]
-        for s in 1:S
-            obs_density[s, t] = densityof(get_emission(hmm, s), oₜ)
+        uₜ = control_sequence[t]
+        yₜ = obs_sequence[t]
+        for i in 1:S
+            em_dist = emission_distribution(hmm, i, uₜ, ps, st)
+            obs_density[i, t] = densityof(em_dist, yₜ)
         end
     end
     for t in 1:T
@@ -23,10 +30,18 @@ function update_obs_density!(
 end
 
 function compute_obs_density(
-    hmm::HMM{Tr}, obs_sequence::AbstractVector
-) where {Tr<:AbstractDiscreteMarkovChain}
+    hmm::AbstractHMM,
+    obs_sequence::AbstractVector,
+    control_sequence::AbstractVector=Fill(nothing, length(obs_sequence)),
+    ps=nothing,
+    st=nothing,
+)
     T, S = length(obs_sequence), nb_states(hmm)
-    obs_density = [densityof(get_emission(hmm, s), obs_sequence[t]) for s in 1:S, t in 1:T]
+    obs_density = [
+        densityof(
+            emission_distribution(hmm, i, control_sequence[t], ps, st), obs_sequence[t]
+        ) for i in 1:S, t in 1:T
+    ]
     for t in 1:T
         if all(iszero_safe, view(obs_density, :, t))
             throw(OverflowError("Densities are too small for observations."))

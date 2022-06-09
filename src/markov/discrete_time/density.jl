@@ -11,11 +11,11 @@ function DensityInterface.logdensityof(
     st=nothing,
 )
     T = length(state_sequence)
-    l = log(initial_probability(mc, state_sequence[1], control_sequence[1], ps, st))
+    l = log(initial_probability(mc, state_sequence[1]))
     for t in 1:(T - 1)
-        i, j = state_sequence[t], state_sequence[t + 1]
-        u = control_sequence[t]
-        l += log(transition_probability(mc, i, j, u, ps, st))
+        iₜ, iₜ₊₁ = state_sequence[t], state_sequence[t + 1]
+        uₜ = control_sequence[t]
+        l += log(transition_probability(mc, iₜ, iₜ₊₁, uₜ, ps, st))
     end
     return l
 end
