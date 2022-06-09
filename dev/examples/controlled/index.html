@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>- · HiddenMarkovModels.jl</title><script data-outdated-warner src="../../assets/warner.js"></script><link rel="canonical" href="https://gdalle.github.io/HiddenMarkovModels.jl/examples/controlled/"/><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.044/juliamono.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">HiddenMarkovModels.jl</a></span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../discrete_markov/">Discrete Markov chain</a></li><li><a class="tocitem" href="../continuous_markov/">Continuous Markov chain</a></li><li><a class="tocitem" href="../multivariate_poisson/">Multivariate Poisson process</a></li><li><a class="tocitem" href="../hmm/">Hidden Markov Model</a></li></ul></li><li><a class="tocitem" href="../../api/">API reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>-</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>-</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/gdalle/HiddenMarkovModels.jl/blob/main/test/examples/controlled.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><pre><code class="language-julia hljs">using HiddenMarkovModels
+using HiddenMarkovModels.Distributions
+using HiddenMarkovModels.ProgressMeter
+
+using HiddenMarkovModels.Lux
+using HiddenMarkovModels.Lux.Optimisers
+using HiddenMarkovModels.Lux.NNlib
+using HiddenMarkovModels.Lux.Zygote
+
+using Random</code></pre><pre><code class="language-julia hljs">rng = Random.default_rng()
+Random.seed!(rng)
+
+S = 3
+U = 10</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">10</code></pre><pre><code class="language-julia hljs">struct NeuralGaussianControlledHMM{M} &lt;: AbstractHMM
+    p0::Vector{Float64}
+    model::M
+end
+
+HMMs.nb_states(hmm::NeuralGaussianControlledHMM) = length(hmm.p0)
+HMMs.initial_distribution(hmm::NeuralGaussianControlledHMM) = hmm.p0
+
+function HMMs.transition_matrix(hmm::NeuralGaussianControlledHMM, u, ps, st)
+    (P, μ), st = Lux.apply(hmm.model, u, ps, st)
+    return P
+end
+
+function HMMs.emission_distribution(hmm::NeuralGaussianControlledHMM, i::Integer, u, ps, st)
+    (P, μ), st = Lux.apply(hmm.model, u, ps, st)
+    em_dist = Normal(μ[i])
+    return em_dist
+end</code></pre><pre><code class="language-julia hljs">function make_square(x::AbstractVector)
+    S = isqrt(length(x))
+    return reshape(x, S, S)
+end
+
+make_stochastic(x::AbstractMatrix) = softmax(x; dims=2)
+
+p0 = ones(S) / S
+
+model = Chain(
+    Dense(U, 1),
+    BranchLayer(Chain(Dense(1, S^2), make_square, make_stochastic), Dense(1, S)),
+)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Chain(
+    layer_1 = Dense(10 =&gt; 1),           # 11 parameters
+    layer_2 = BranchLayer(
+        layer_1 = Chain(
+            layer_1 = Dense(1 =&gt; 9),    # 18 parameters
+            layer_2 = WrappedFunction(make_square),
+            layer_3 = WrappedFunction(make_stochastic),
+        ),
+        layer_2 = Dense(1 =&gt; 3),        # 6 parameters
+    ),
+)         # Total: 35 parameters,
+          #        plus 0 states, summarysize 48 bytes.</code></pre><pre><code class="language-julia hljs">hmm = NeuralGaussianControlledHMM(p0, model)
+
+ps_real, st_real = Lux.setup(rng, hmm.model)
+ps, st = Lux.setup(rng, hmm.model)
+
+Lux.apply(hmm.model, rand(U), ps, st)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(([0.3309978468748057 0.3367111992094861 0.3322909539157082; 0.33246624037929035 0.3330074138531185 0.33452634576759105; 0.33060619725598245 0.3357007753330126 0.3336930274110049], [-0.015847454532226527, -0.00046193058494196107, 0.002908122907565889]), (layer_1 = NamedTuple(), layer_2 = (layer_1 = (layer_1 = NamedTuple(), layer_2 = NamedTuple(), layer_3 = NamedTuple()), layer_2 = NamedTuple())))</code></pre><pre><code class="language-julia hljs">T = 1000
+control_sequence = [randn(U) for t in 1:T];
+
+state_sequence, obs_sequence = rand(rng, hmm, T, control_sequence, ps_real, st_real)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">([3, 1, 3, 3, 2, 2, 2, 2, 2, 2  …  2, 1, 3, 3, 1, 3, 2, 3, 2, 1], [-1.4715938728377096, -2.0288357039772444, -0.10481835915625909, -2.355395463925405, -3.221195915285346, -0.1699481867628868, -0.6597345290352612, 0.7417453992795278, 0.4623694119385915, -2.780091216600699  …  2.885582701410077, -0.8544279128488138, 0.9155267027082183, -0.670627192218157, 0.70939965468372, 0.7791002634338822, -0.11909991342879978, -2.217105794398281, -0.19151726360296933, 0.8860600396725663])</code></pre><pre><code class="language-julia hljs">baum_welch(hmm, obs_sequence, control_sequence, ps, st)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">((layer_1 = (weight = Float32[0.294859 0.64834356 … -0.17761627 0.059802283], bias = Float32[0.0606079;;]), layer_2 = (layer_1 = (layer_1 = (weight = Float32[-0.56229746; -0.32161567; … ; -0.11395287; 0.17136928;;], bias = Float32[0.060035314; 0.060088906; … ; -0.06005531; -0.06017962;;]), layer_2 = NamedTuple(), layer_3 = NamedTuple()), layer_2 = (weight = Float32[-0.9014385; 0.035651173; 0.21450695;;], bias = Float32[0.05941431; 0.060263153; 0.06026194;;]))), [-1962.563940115001, -1960.7561840095573, -1959.1873213402826, -1957.8830471055385, -1956.87714636014, -1956.204726990676])</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.18 on <span class="colophon-date" title="Thursday 9 June 2022 14:04">Thursday 9 June 2022</span>. Using Julia version 1.7.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
