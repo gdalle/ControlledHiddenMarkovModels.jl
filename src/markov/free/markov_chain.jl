@@ -1,5 +1,5 @@
 """
-    DiscreteMarkovChain
+    MarkovChain
 
 Discrete-time Markov chain with finite state space.
 
@@ -7,11 +7,11 @@ Discrete-time Markov chain with finite state space.
 - `p0::Vector`: initial state distribution.
 - `P::Matrix`: state transition matrix.
 """
-struct DiscreteMarkovChain{R1<:Real,R2<:Real} <: AbstractDiscreteMarkovChain
+struct MarkovChain{R1<:Real,R2<:Real} <: AbstractMarkovChain
     p0::Vector{R1}
     P::Matrix{R2}
 
-    function DiscreteMarkovChain{R1,R2}(
+    function MarkovChain{R1,R2}(
         p0::AbstractVector{<:Real}, P::AbstractMatrix{<:Real}
     ) where {R1<:Real,R2<:Real}
         @assert is_prob_vec(p0)
@@ -20,18 +20,24 @@ struct DiscreteMarkovChain{R1<:Real,R2<:Real} <: AbstractDiscreteMarkovChain
     end
 end
 
-function DiscreteMarkovChain(
+function MarkovChain(
     p0::AbstractVector{R1}, P::AbstractMatrix{R2}
 ) where {R1<:Real,R2<:Real}
-    return DiscreteMarkovChain{R1,R2}(p0, P)
+    return MarkovChain{R1,R2}(p0, P)
 end
 
 ## Access
 
-initial_distribution(mc::DiscreteMarkovChain) = mc.p0
-transition_matrix(mc::DiscreteMarkovChain, args...) = mc.P
+nb_states(mc::MarkovChain) = length(mc.p0)
+initial_distribution(mc::MarkovChain) = mc.p0
+transition_matrix(mc::MarkovChain, u=nothing) = mc.P
 
-function stationary_distribution(mc::DiscreteMarkovChain)
+"""
+    stationary_distribution(mc::MarkovChain)
+
+Compute the equilibrium distribution of a Markov chain using its eigendecomposition.
+"""
+function stationary_distribution(mc::MarkovChain)
     p_stat = real.(eigvecs(transition_matrix(mc)')[:, end])
     return p_stat / sum(p_stat)
 end

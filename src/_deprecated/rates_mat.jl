@@ -23,7 +23,7 @@ Return a rates matrix of size `n` with uniform coefficients.
 """
 function uniform_rates_mat(::Type{R}, n::Integer) where {R<:Real}
     Q = ones(R, n, n) ./ (n - 1)
-    Q[diagind(Q)] .= -one(R)
+    return Q[diagind(Q)] .= -one(R)
 end
 
 uniform_rates_mat(n::Integer) = uniform_rates_mat(Float64, n)

@@ -1,8 +1,8 @@
 # # Hidden Markov Model
 
-using HiddenMarkovModels
-using HiddenMarkovModels.Distributions
-using HiddenMarkovModels.LogarithmicNumbers
+using Distributions
+using ControlledHiddenMarkovModels
+using LogarithmicNumbers
 #md using Plots
 using Random
 using Statistics
@@ -15,11 +15,11 @@ Random.seed!(rng, 63)
 
 # ## Construction
 
-# A [`HiddenMarkovModel`](@ref) object is build by combining a transition structure (of type [`DiscreteMarkovChain`](@ref)) with a list of emission distributions.
+# A [`HiddenMarkovModel`](@ref) object is build by combining a transition structure (of type [`MarkovChain`](@ref)) with a list of emission distributions.
 
 p0 = [0.3, 0.7]
 P = [0.9 0.1; 0.2 0.8]
-transitions = DiscreteMarkovChain(p0, P)
+transitions = MarkovChain(p0, P)
 
 #-
 
@@ -103,7 +103,7 @@ transition_error = mean(abs, transition_matrix(hmm_est) - transition_matrix(hmm)
 # ## Custom emission distributions
 
 #=
-One of the major selling points for HiddenMarkovModels.jl is that the user can define their own emission distributions.
+One of the major selling points for ControlledHiddenMarkovModels.jl is that the user can define their own emission distributions.
 Here we give an example where emissions are of type [`MultivariatePoissonProcess`](@ref) with state-dependent rates.
 =#
 

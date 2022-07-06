@@ -10,12 +10,14 @@ Linear event histories with marks of type `M` and locations of real type `T`.
 - `tmin::T`: start time
 - `tmax::T`: end time
 """
-Base.@kwdef mutable struct History{M,T<:Real}
+mutable struct History{M,T<:Real}
     times::Vector{T}
     marks::Vector{M}
     tmin::T
     tmax::T
 end
+
+History(; times, marks, tmin, tmax) = History(times, marks, tmin, tmax)
 
 function Base.show(io::IO, h::History{M,T}) where {M,T}
     return print(

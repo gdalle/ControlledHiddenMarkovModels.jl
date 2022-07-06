@@ -29,3 +29,12 @@ function Base.rand(
     ]
     return state_sequence, obs_sequence
 end
+
+function Base.rand(
+    hmm::AbstractHMM,
+    T::Integer,
+    control_sequence::AbstractVector=Fill(nothing, T),
+    check_args=false,
+)
+    return rand(GLOBAL_RNG, hmm, T, control_sequence; check_args=check_args)
+end

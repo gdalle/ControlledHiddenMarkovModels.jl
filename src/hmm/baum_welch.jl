@@ -47,10 +47,18 @@ function baum_welch_multiple_sequences!(
 
         st_opt = Optimisers.setup(opt, ps)
         for _ in 1:opt_steps
-            gs_tup = gradient(ps) do p
+            gs_tup = gradient(ps) do ps_local
                 sum(
-                    Q_transitions(hmm, ξ[k], control_sequences[k], p, st) +
-                    Q_emissions(hmm, γ[k], obs_sequences[k], control_sequences[k], p, st) for k in 1:K
+                    forwarddiff(
+                        Q_function,
+                        hmm,
+                        γ[k],
+                        ξ[k],
+                        obs_sequences[k],
+                        control_sequences[k],
+                        ps_local,
+                        st,
+                    ) for k in 1:K
                 )
             end
             st_opt, ps = Optimisers.update(st_opt, ps, gs_tup[1])

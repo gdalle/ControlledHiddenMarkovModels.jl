@@ -1,7 +1,7 @@
 # # Continuous Markov chain
 
-using HiddenMarkovModels
-using HiddenMarkovModels.LogarithmicNumbers
+using LogarithmicNumbers
+using ControlledHiddenMarkovModels
 #md using Plots
 using Random
 using Statistics
@@ -17,14 +17,14 @@ Random.seed!(rng, 63)
 # A [`ContinuousMarkovChain`](@ref) object is built by combining a vector of initial probabilities with a matrix of transition rates.
 
 p0 = [0.3, 0.7]
-Q = [-2. 2.; 1. -1.]
+Q = [-2.0 2.0; 1.0 -1.0]
 mc = ContinuousMarkovChain(p0, Q)
 
 # ## Simulation
 
 # To simulate it, we only need to decide the time interval.
 
-h = rand(rng, mc, 4.2, 420.)
+h = rand(rng, mc, 4.2, 420.0)
 
 # ## Learning
 
@@ -32,7 +32,7 @@ h = rand(rng, mc, 4.2, 420.)
 Based on a history with integer marks, we can fit a `ContinuousMarkovChain` with Maximum Likelihood Estimation (MLE).
 =#
 
-mc_mle = fit_mle(ContinuousMarkovChain{Float32, Float32}, h)
+mc_mle = fit_mle(ContinuousMarkovChain{Float32,Float32}, h)
 
 # Tests (not included in the docs)  #src
 

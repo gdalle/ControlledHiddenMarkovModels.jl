@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - main
-    tags: '*'
+    tags: "*"
   pull_request:
 concurrency:
   # Skip intermediate builds: always.
@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '1.7'
+          - "1.7"
           # - 'nightly'
         os:
           - ubuntu-latest
@@ -44,7 +44,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
         with:
-          version: '1'
+          version: "1"
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-docdeploy@v1
         env:
@@ -53,6 +53,6 @@ jobs:
       - run: |
           julia --project=docs -e '
             using Documenter: DocMeta, doctest
-            using HiddenMarkovModels
-            DocMeta.setdocmeta!(HiddenMarkovModels, :DocTestSetup, :(using HiddenMarkovModels); recursive=true)
-            doctest(HiddenMarkovModels)'
+            using ControlledHiddenMarkovModels
+            DocMeta.setdocmeta!(ControlledHiddenMarkovModels, :DocTestSetup, :(using ControlledHiddenMarkovModels); recursive=true)
+            doctest(ControlledHiddenMarkovModels)'

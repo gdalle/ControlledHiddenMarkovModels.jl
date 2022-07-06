@@ -3,7 +3,7 @@
 
 p0_init_log = rand_prob_vec(LogFloat32, 2)
 P_init_log = rand_trans_mat(LogFloat32, 2)
-transitions_init_log = DiscreteMarkovChain(p0_init_log, P_init_log)
+transitions_init_log = MarkovChain(p0_init_log, P_init_log)
 emissions_init_log = [Normal(one(LogFloat64)), Normal(-one(LogFloat64))]
 
 hmm_init_log = HiddenMarkovModel(transitions_init_log, emissions_init_log)

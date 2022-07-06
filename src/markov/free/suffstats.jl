@@ -1,17 +1,17 @@
 """
-    DiscreteMarkovChainStats
+    MarkovChainStats
 
-Store sufficient statistics for the likelihood of a [`DiscreteMarkovChain`](@ref) sample.
+Store sufficient statistics for the likelihood of a [`MarkovChain`](@ref) sample.
 
 # Fields
 - `initialization_count::Vector`: count initializations in each state
 - `transition_count::Matrix`: count transitions between each pair of states
 """
-struct DiscreteMarkovChainStats{R1<:Real,R2<:Real}
+struct MarkovChainStats{R1<:Real,R2<:Real}
     initialization_count::Vector{R1}
     transition_count::Matrix{R2}
 
-    function DiscreteMarkovChainStats{R1,R2}(
+    function MarkovChainStats{R1,R2}(
         initialization_count::AbstractVector{<:Real},
         transition_count::AbstractMatrix{<:Real},
     ) where {R1<:Real,R2<:Real}
@@ -23,34 +23,34 @@ struct DiscreteMarkovChainStats{R1<:Real,R2<:Real}
     end
 end
 
-function DiscreteMarkovChainStats(
+function MarkovChainStats(
     initialization_count::Vector{R1}, transition_count::Matrix{R2}
 ) where {R1<:Real,R2<:Real}
-    return DiscreteMarkovChainStats{R1,R2}(initialization_count, transition_count)
+    return MarkovChainStats{R1,R2}(initialization_count, transition_count)
 end
 
-function suffstats_type(::Type{M}) where {R1<:Real,R2<:Real,M<:DiscreteMarkovChain{R1,R2}}
-    return DiscreteMarkovChainStats{R1,R2}
+function suffstats_type(::Type{M}) where {R1<:Real,R2<:Real,M<:MarkovChain{R1,R2}}
+    return MarkovChainStats{R1,R2}
 end
 
 function add_suffstats(
-    ss1::DiscreteMarkovChainStats{R1,R2}, ss2::DiscreteMarkovChainStats{R1,R2}
+    ss1::MarkovChainStats{R1,R2}, ss2::MarkovChainStats{R1,R2}
 ) where {R1<:Real,R2<:Real}
     initialization_count = ss1.initialization_count .+ ss2.initialization_count
     transition_count = ss1.transition_count .+ ss2.transition_count
-    return DiscreteMarkovChainStats{R1,R2}(initialization_count, transition_count)
+    return MarkovChainStats{R1,R2}(initialization_count, transition_count)
 end
 
 ## Compute sufficient stats
 
 function Distributions.suffstats(
-    ::Type{DiscreteMarkovChain{R1,R2}}, initialization_count, transition_count
+    ::Type{MarkovChain{R1,R2}}, initialization_count, transition_count
 ) where {R1,R2}
-    return DiscreteMarkovChainStats{R1,R2}(initialization_count, transition_count)
+    return MarkovChainStats{R1,R2}(initialization_count, transition_count)
 end
 
 function Distributions.suffstats(
-    ::Type{DiscreteMarkovChain{R1,R2}}, state_sequence::AbstractVector{<:Integer}
+    ::Type{MarkovChain{R1,R2}}, state_sequence::AbstractVector{<:Integer}
 ) where {R1,R2}
     S, T = maximum(state_sequence), length(state_sequence)
     initialization_count = zeros(R1, S)
@@ -60,11 +60,11 @@ function Distributions.suffstats(
         iₜ, iₜ₊₁ = state_sequence[t], state_sequence[t + 1]
         transition_count[iₜ, iₜ₊₁] += one(R2)
     end
-    return DiscreteMarkovChainStats{R1,R2}(initialization_count, transition_count)
+    return MarkovChainStats{R1,R2}(initialization_count, transition_count)
 end
 
 function Distributions.suffstats(
-    ::Type{DiscreteMarkovChain{R1,R2}},
+    ::Type{MarkovChain{R1,R2}},
     state_sequences::AbstractVector{<:AbstractVector{<:Integer}},
 ) where {R1,R2}
     S = mapreduce(maximum, max, state_sequences)
@@ -78,5 +78,5 @@ function Distributions.suffstats(
             transition_count[iₜ, iₜ₊₁] += one(R2)
         end
     end
-    return DiscreteMarkovChainStats{R1,R2}(initialization_count, transition_count)
+    return MarkovChainStats{R1,R2}(initialization_count, transition_count)
 end

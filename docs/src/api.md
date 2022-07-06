@@ -3,11 +3,11 @@
 ## Index
 
 ```@index
-Modules = [HiddenMarkovModels]
+Modules = [ControlledHiddenMarkovModels]
 ```
 
 ## Full docs
 
 ```@autodocs
-Modules = [HiddenMarkovModels]
+Modules = [ControlledHiddenMarkovModels]
 ```

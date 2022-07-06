@@ -1,5 +1,5 @@
 function is_prob_vec(p::AbstractVector{R}; atol=1e-5) where {R<:Real}
-    return all(>=(zero(R)), p) && isapprox(sum(p), one(R), atol=atol)
+    return all(>=(zero(R)), p) && isapprox(sum(p), one(R); atol=atol)
 end
 
 """
@@ -24,3 +24,6 @@ function rand_prob_vec(rng::AbstractRNG, ::Type{R}, n::Integer) where {R<:Real}
 end
 
 rand_prob_vec(rng::AbstractRNG, n::Integer) = rand_prob_vec(rng, Float64, n)
+
+rand_prob_vec(::Type{R}, n::Integer) where {R} = rand_prob_vec(GLOBAL_RNG, R, n)
+rand_prob_vec(n::Integer) = rand_prob_vec(GLOBAL_RNG, n)

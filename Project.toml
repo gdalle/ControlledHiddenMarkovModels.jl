@@ -1,6 +1,6 @@
-name = "HiddenMarkovModels"
+name = "ControlledHiddenMarkovModels"
 uuid = "7732c362-7152-4a8d-b9b6-d99facdeb807"
-authors = ["Guillaume Dalle <22795598+gdalle@users.noreply.github.com> and contributors"]
+authors = ["Guillaume Dalle <22795598+gdalle@users.noreply.github.com>"]
 version = "0.1.0"
 
 [deps]
@@ -8,8 +8,6 @@ DensityInterface = "b429d917-457f-4dbc-8f4c-0cc954292b1d"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 FillArrays = "1a297f60-69ca-5386-bcde-b61e274b549b"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
-LogarithmicNumbers = "aa2f6b4e-9042-5d33-9679-40d3a6b85899"
-Lux = "b2108857-7c20-44ae-9111-449ecde12c47"
 ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
@@ -17,8 +15,6 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 DensityInterface = "0.4"
 Distributions = "0.25.59"
 FillArrays = "0.13.2"
-LogarithmicNumbers = "1.2"
-Lux = "0.4.4"
 ProgressMeter = "1.7.2"
 julia = "1.7"
 
