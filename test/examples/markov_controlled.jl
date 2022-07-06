@@ -1,49 +1,58 @@
+using AbstractDifferentiation
 using ControlledHiddenMarkovModels
-using Flux
 using ForwardDiff
-using Optimization
-using OptimizationOptimisers: Adam
+using Lux
+using NNlib
+using Optimisers
 using ProgressMeter
 using Random
 using Test
 using Zygote
 
-Random.seed!(63)
+rng = Random.default_rng()
+Random.seed!(rng, 0)
 
-U = 3
-S = 5
-T = 100
+backend = AD.ZygoteBackend()
+
+make_stochastic(x) = x ./ sum(x; dims=2)
+
+S = 3
+T = 1000
 
 p0 = rand_prob_vec(S)
-P_model_true = Chain(Dense(U, 1), Dense(1, S^2), make_square, make_stochastic)
+
+P_model_true = Chain(Dense(1, S^2, softplus), ReshapeLayer((S, S)), make_stochastic)
+ps_true, st_true = Lux.setup(rng, P_model_true)
 mc_true = ControlledMarkovChain(p0, P_model_true)
 
-control_sequence = [rand(U) for t in 1:T];
-state_sequence = rand(mc_true, T, control_sequence);
+P_model = Chain(Dense(1, S^2, softplus), ReshapeLayer((S, S)), make_stochastic)
+ps, st = Lux.setup(rng, P_model)
+mc = ControlledMarkovChain(p0, P_model)
 
-P_model_init = Chain(Dense(U, 1), Dense(1, S^2), make_square, make_stochastic)
-mc_init = ControlledMarkovChain(p0, P_model_init)
+control_sequence = ones(1, T);
+state_sequence = rand(mc_true, control_sequence, ps_true, st_true);
 
-@test logdensityof(mc_true, state_sequence, control_sequence) >
-    logdensityof(mc_init, state_sequence, control_sequence)
+@test logdensityof(mc_true, state_sequence, control_sequence, ps_true, st_true) >
+    logdensityof(mc, state_sequence, control_sequence, ps, st)
 
-u0, restructure = Flux.destructure(P_model_init)
-data = (state_sequence, control_sequence)
+data = (mc, state_sequence, control_sequence, st)
 
-function loss(u, data)
-    (state_sequence, control_sequence) = data
-    P_model = restructure(u)
-    mc = ControlledMarkovChain(p0, P_model)
-    l = logdensityof(mc, state_sequence, control_sequence)
-    return -l
+function loss(ps, data)
+    (mc, state_sequence, control_sequence, st) = data
+    return -logdensityof(mc, state_sequence, control_sequence, ps, st)
 end
 
-optf = OptimizationFunction(loss, Optimization.AutoForwardDiff())
-prob = OptimizationProblem(optf, u0, data)
-@time res = solve(prob, Adam(), maxiters = 100);
+opt = Adam()
+opt_st = Optimisers.setup(opt, ps)
 
-P_model_est = restructure(res.u)
-mc_est = ControlledMarkovChain(p0, P_model_est)
+@showprogress for i in 1:500
+    global ps, st, data, opt_st
+    gs = Zygote.gradient(loss, ps, data)[1]
+    opt_st, ps = Optimisers.update(opt_st, ps, gs)
+end
 
-@test logdensityof(mc_true, state_sequence, control_sequence) <
-    logdensityof(mc_est, state_sequence, control_sequence)
+@test isapprox(
+    transition_matrix(mc, ones(1, 1), ps, st),
+    transition_matrix(mc_true, ones(1, 1), ps_true, st_true);
+    atol=1e-1
+)

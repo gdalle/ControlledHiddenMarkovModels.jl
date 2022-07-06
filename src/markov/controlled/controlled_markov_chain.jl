@@ -7,4 +7,4 @@ end
 
 nb_states(mc::ControlledMarkovChain) = length(mc.p0)
 initial_distribution(mc::ControlledMarkovChain) = mc.p0
-transition_matrix(mc::ControlledMarkovChain, u) = mc.P_model(u)
+transition_matrix(mc::ControlledMarkovChain, u, args...) = first(mc.P_model(u, args...))

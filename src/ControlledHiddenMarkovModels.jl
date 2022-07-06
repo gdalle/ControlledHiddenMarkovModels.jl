@@ -15,7 +15,6 @@ using Random: AbstractRNG, GLOBAL_RNG, rand
 include("utils/prob_vec.jl")
 include("utils/trans_mat.jl")
 include("utils/overflow.jl")
-include("utils/reshaping.jl")
 include("utils/suffstats.jl")
 
 ## Point processes
@@ -33,15 +32,17 @@ include("poisson/multivariate/fit.jl")
 ## Markov chains
 
 include("markov/abstract_markov_chain.jl")
-include("markov/density.jl")
-include("markov/simulation.jl")
 
 include("markov/free/markov_chain.jl")
+include("markov/free/simulation.jl")
+include("markov/free/density.jl")
 include("markov/free/suffstats.jl")
 include("markov/free/prior.jl")
 include("markov/free/fit.jl")
 
 include("markov/controlled/controlled_markov_chain.jl")
+include("markov/controlled/simulation.jl")
+include("markov/controlled/density.jl")
 
 ## Hidden Markov Models
 
@@ -59,7 +60,6 @@ export CHMMs
 
 export is_prob_vec, rand_prob_vec
 export is_trans_mat, rand_trans_mat
-export make_square, make_stochastic
 
 export History
 export event_times, event_marks

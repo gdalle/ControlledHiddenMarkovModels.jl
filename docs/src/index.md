@@ -36,6 +36,6 @@ Here are the ones that I am aware of:
 The reason I implemented my own was because I needed specific features that were not simultaneously available elsewhere (to the best of my knowledge):
 
 - Control variables
-- Compatibility with generic emissions (that go beyond [Distributions.jl](https://github.com/JuliaStats/Distributions.jl))
+- Compatibility with generic emissions (beyond [Distributions.jl](https://github.com/JuliaStats/Distributions.jl))
 - Numerical stability thanks to log-scale computations
 - MAP estimation with priors (WIP)
