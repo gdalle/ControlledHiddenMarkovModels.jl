@@ -30,8 +30,8 @@ CHMMs.transition_matrix(nmc::NeuralMarkovChain, u, ps, st) = first(nmc.P_model(u
 
 make_stochastic(x) = x ./ sum(x; dims=2)
 
-S = 4
-T = 100
+S = 3
+T = 1000
 
 p0 = rand_prob_vec(S)
 
@@ -52,24 +52,30 @@ function loss(ps, data)
     return -logdensityof(mc, state_sequence, control_sequence, ps, st)
 end
 
-loss(ps) = loss(ps, data)
-
-ForwardDiff.gradient(loss, ps_init);
-Zygote.gradient(loss, ps_init);
-
 f = OptimizationFunction(loss, Optimization.AutoForwardDiff());
 prob = OptimizationProblem(f, ps_init, data);
-@time res1 = solve(prob, OptimizationOptimJL.BFGS());
-@time res2 = solve(prob, OptimizationFlux.Adam(), maxiters=1000);
-
+res1 = solve(prob, OptimizationOptimJL.BFGS());
+res2 = solve(prob, OptimizationFlux.Adam(), maxiters=1000);
 ps_est1 = res1.u
 ps_est2 = res2.u
 
-ld_true = logdensityof(mc, state_sequence, control_sequence, ps_true, st_true)
-ld_init = logdensityof(mc, state_sequence, control_sequence, ps_init, st_init)
-ld_est1 = logdensityof(mc, state_sequence, control_sequence, ps_est1, st_init)
-ld_est2 = logdensityof(mc, state_sequence, control_sequence, ps_est2, st_init)
+logL_true = logdensityof(mc, state_sequence, control_sequence, ps_true, st_true)
+logL_init = logdensityof(mc, state_sequence, control_sequence, ps_init, st_init)
+logL_est1 = logdensityof(mc, state_sequence, control_sequence, ps_est1, st_init)
+logL_est2 = logdensityof(mc, state_sequence, control_sequence, ps_est2, st_init)
 
-@test ld_true > ld_init
-@test ld_est1 > ld_true
-@test ld_est2 > ld_true
+@test logL_true > logL_init
+@test logL_est1 > logL_true
+@test logL_est2 > logL_true
+
+P_true = transition_matrix(mc, ones(1, 1), ps_true, st_true)
+P_init = transition_matrix(mc, ones(1, 1), ps_init, st_init)
+P_est1 = transition_matrix(mc, ones(1, 1), ps_est1, st_init)
+P_est2 = transition_matrix(mc, ones(1, 1), ps_est2, st_init)
+
+err_init = mean(abs, P_true - P_init)
+err_est1 = mean(abs, P_true - P_est1)
+err_est2 = mean(abs, P_true - P_est2)
+
+@test err_est1 < err_init / 3
+@test err_est2 < err_init / 3

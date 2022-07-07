@@ -52,7 +52,7 @@ function baum_welch_multiple_sequences!(
         # Aggregated emissions
         em = Vector{Em}(undef, S)
         for i in 1:S
-            em_suffstats_i = reduce(add_suffstats, view(em_suffstats_by_seq, :, i))
+            em_suffstats_i = @views reduce(add_suffstats, em_suffstats_by_seq[:, i])
             em[i] = fit_mle(Em, em_suffstats_i)
         end
 

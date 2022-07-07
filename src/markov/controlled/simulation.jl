@@ -12,8 +12,8 @@ function Base.rand(
     state_sequence[1] = rand(rng, Categorical(p0; check_args=check_args))
     for t in 1:(T - 1)
         iₜ = state_sequence[t]
-        Pₜ = view(P_all, :, :, t)
-        iₜ₊₁ = rand(rng, Categorical(view(Pₜ, iₜ, :); check_args=check_args))
+        Pₜ_row = view(P_all, iₜ, :, t)
+        iₜ₊₁ = rand(rng, Categorical(Pₜ_row; check_args=check_args))
         state_sequence[t + 1] = iₜ₊₁
     end
     return state_sequence

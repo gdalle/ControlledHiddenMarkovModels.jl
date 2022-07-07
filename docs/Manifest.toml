@@ -174,7 +174,7 @@ uuid = "d38c429a-6771-53c6-b99e-75d170b6e991"
 version = "0.6.1"
 
 [[deps.ControlledHiddenMarkovModels]]
-deps = ["DensityInterface", "Distributions", "FillArrays", "LinearAlgebra", "ProgressMeter", "Random"]
+deps = ["DensityInterface", "Distributions", "LinearAlgebra", "ProgressMeter", "Random"]
 path = ".."
 uuid = "7732c362-7152-4a8d-b9b6-d99facdeb807"
 version = "0.1.0"

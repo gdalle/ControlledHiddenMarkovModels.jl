@@ -8,11 +8,10 @@ function DensityInterface.logdensityof(
     P_all = transition_matrix(mc, control_sequence, args...)
     T = length(state_sequence)
     i₁ = state_sequence[1]
-    l = log(p0[i₁])
+    logL = log(p0[i₁])
     for t in 1:(T - 1)
         iₜ, iₜ₊₁ = state_sequence[t], state_sequence[t + 1]
-        Pₜ = view(P_all, :, :, t)
-        l += log(Pₜ[iₜ, iₜ₊₁])
+        logL += log(P_all[iₜ, iₜ₊₁, t])
     end
-    return l
+    return logL
 end

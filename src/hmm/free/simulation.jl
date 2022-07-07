@@ -3,7 +3,7 @@
 
 Sample a sequence of states of length `T` and the associated sequence of observations.
 """
-function Base.rand(rng::AbstractRNG, hmm::AbstractHMM, T::Integer; check_args=false)
+function Base.rand(rng::AbstractRNG, hmm::HMM, T::Integer; check_args=false)
     p0 = initial_distribution(hmm)
     P = transition_matrix(hmm)
     em = emissions(hmm)
@@ -12,6 +12,6 @@ function Base.rand(rng::AbstractRNG, hmm::AbstractHMM, T::Integer; check_args=fa
     return state_sequence, obs_sequence
 end
 
-function Base.rand(hmm::AbstractHMM, T::Integer, check_args=false)
+function Base.rand(hmm::HMM, T::Integer, check_args=false)
     return rand(GLOBAL_RNG, hmm, T; check_args=check_args)
 end

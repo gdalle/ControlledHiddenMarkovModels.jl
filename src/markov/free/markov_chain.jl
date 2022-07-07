@@ -7,7 +7,7 @@ Discrete-time Markov chain with finite state space.
 - `p0::Vector{R1}`: initial state distribution.
 - `P::Matrix{R2}`: state transition matrix.
 """
-struct MarkovChain{R1<:Real,R2<:Real} <: AbstractMarkovChain
+struct MarkovChain{R1<:Real,R2<:Real}
     p0::Vector{R1}
     P::Matrix{R2}
 
@@ -25,6 +25,8 @@ function MarkovChain(
 ) where {R1<:Real,R2<:Real}
     return MarkovChain{R1,R2}(p0, P)
 end
+
+@inline DensityInterface.DensityKind(::MarkovChain) = HasDensity()
 
 ## Access
 

@@ -5,10 +5,10 @@ function DensityInterface.logdensityof(
     P = transition_matrix(mc)
     T = length(state_sequence)
     i₁ = state_sequence[1]
-    l = log(p0[i₁])
+    logL = log(p0[i₁])
     for t in 1:(T - 1)
         iₜ, iₜ₊₁ = state_sequence[t], state_sequence[t + 1]
-        l += log(P[iₜ, iₜ₊₁])
+        logL += log(P[iₜ, iₜ₊₁])
     end
-    return l
+    return logL
 end

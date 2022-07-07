@@ -11,15 +11,15 @@ function Base.rand(
     state_sequence = Vector{Int}(undef, T)
     state_sequence[1] = rand(rng, Categorical(p0; check_args=check_args))
     for t in 1:(T - 1)
-        Pₜ = view(P_all, :, :, t)
         iₜ = state_sequence[t]
-        iₜ₊₁ = rand(rng, Categorical(view(Pₜ, iₜ, :); check_args=check_args))
+        Pₜ_row = @view P_all[iₜ, :, t]
+        iₜ₊₁ = rand(rng, Categorical(Pₜ_row; check_args=check_args))
         state_sequence[t + 1] = iₜ₊₁
     end
 
     θ_all = emission_parameters(hmm, control_sequence, args...)
-    obs_sequence = [
-        rand(rng, emission_from_parameters(hmm, view(θ_all, :, state_sequence[t], t))) for
+    obs_sequence = @views [
+        rand(rng, emission_from_parameters(hmm, θ_all[:, state_sequence[t], t])) for
         t in 1:T
     ]
 

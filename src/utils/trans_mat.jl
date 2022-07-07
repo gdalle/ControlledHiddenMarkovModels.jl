@@ -2,7 +2,7 @@ function is_trans_mat(P::AbstractMatrix{R}; atol=1e-5) where {R<:Real}
     n, m = size(P)
     n == m || return false
     for i in 1:n
-        is_prob_vec(view(P, i, :); atol=atol) || return false
+        @views is_prob_vec(P[i, :]; atol=atol) || return false
     end
     return true
 end

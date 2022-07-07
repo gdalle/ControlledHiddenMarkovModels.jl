@@ -12,20 +12,20 @@ DocMeta.setdocmeta!(
 EXAMPLES_DIR_JL = joinpath(@__DIR__, "..", "test", "examples")
 EXAMPLES_DIR_MD = joinpath(@__DIR__, "src", "examples")
 
-for file in readdir(EXAMPLES_DIR_MD)
-    if endswith(file, ".md")
-        rm(joinpath(EXAMPLES_DIR_MD, file))
-    end
-end
+# for file in readdir(EXAMPLES_DIR_MD)
+#     if endswith(file, ".md")
+#         rm(joinpath(EXAMPLES_DIR_MD, file))
+#     end
+# end
 
-for file in readdir(EXAMPLES_DIR_JL)
-    Literate.markdown(
-        joinpath(EXAMPLES_DIR_JL, file),
-        EXAMPLES_DIR_MD;
-        documenter=true,
-        flavor=Literate.DocumenterFlavor(),
-    )
-end
+# for file in readdir(EXAMPLES_DIR_JL)
+#     Literate.markdown(
+#         joinpath(EXAMPLES_DIR_JL, file),
+#         EXAMPLES_DIR_MD;
+#         documenter=true,
+#         flavor=Literate.DocumenterFlavor(),
+#     )
+# end
 
 makedocs(;
     modules=[ControlledHiddenMarkovModels],
@@ -40,19 +40,19 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
-        "Examples" => [
-            "Discrete Markov chain" => "examples/discrete_markov.md",
-            "Multivariate Poisson process" => "examples/multivariate_poisson.md",
-            "Hidden Markov Model" => "examples/hmm.md",
-        ],
+        # "Examples" => [
+        #     "Discrete Markov chain" => "examples/discrete_markov.md",
+        #     "Multivariate Poisson process" => "examples/multivariate_poisson.md",
+        #     "Hidden Markov Model" => "examples/hmm.md",
+        # ],
         "API reference" => "api.md",
     ],
 )
 
-for file in readdir(EXAMPLES_DIR_MD)
-    if endswith(file, ".md")
-        rm(joinpath(EXAMPLES_DIR_MD, file))
-    end
-end
+# for file in readdir(EXAMPLES_DIR_MD)
+#     if endswith(file, ".md")
+#         rm(joinpath(EXAMPLES_DIR_MD, file))
+#     end
+# end
 
 deploydocs(; repo="github.com/gdalle/ControlledHiddenMarkovModels.jl", devbranch="main")

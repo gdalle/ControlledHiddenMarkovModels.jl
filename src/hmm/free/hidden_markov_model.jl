@@ -6,7 +6,7 @@ Hidden Markov Model with arbitrary emissions.
 # Fields
 - `emissions::Vector{Em}`: one emission distribution per state.
 """
-struct HiddenMarkovModel{R1,R2,Em} <: AbstractHMM
+struct HiddenMarkovModel{R1,R2,Em}
     p0::Vector{R1}
     P::Matrix{R2}
     emissions::Vector{Em}
@@ -18,6 +18,8 @@ end
 Alias for [`HiddenMarkovModel`](@ref).
 """
 const HMM = HiddenMarkovModel
+
+@inline DensityInterface.DensityKind(::HMM) = HasDensity()
 
 ## Access
 

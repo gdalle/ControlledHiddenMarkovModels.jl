@@ -1,19 +1,14 @@
-abstract type AbstractHiddenMarkovModel end
-abstract type AbstractControlledHiddenMarkovModel <: AbstractHiddenMarkovModel end
+abstract type AbstractControlledHiddenMarkovModel end
 
-const AbstractHMM = AbstractHiddenMarkovModel
 const AbstractControlledHMM = AbstractControlledHiddenMarkovModel
 
-@inline DensityInterface.DensityKind(::AbstractHMM) = HasDensity()
+@inline DensityInterface.DensityKind(::AbstractControlledHMM) = HasDensity()
 
-nb_states(::AbstractHMM) = error("not implemented")
+nb_states(::AbstractControlledHMM) = error("not implemented")
 
-initial_distribution(::AbstractHMM) = error("not implemented")
+initial_distribution(::AbstractControlledHMM) = error("not implemented")
 
-transition_matrix(::AbstractHMM) = error("not implemented")
 transition_matrix(::AbstractControlledHMM, u, args...) = error("not implemented")
-
-emissions(::AbstractHMM) = error("not implemented")
 
 emission_parameters(::AbstractControlledHMM, u, args...) = error("not implemented")
 emission_from_parameters(::AbstractControlledHMM, θ) = error("not implemented")

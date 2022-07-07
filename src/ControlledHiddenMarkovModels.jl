@@ -33,8 +33,6 @@ include("poisson/multivariate/fit.jl")
 
 ## Markov chains
 
-include("markov/abstract_markov_chain.jl")
-
 include("markov/free/markov_chain.jl")
 include("markov/free/simulation.jl")
 include("markov/free/density.jl")
@@ -42,12 +40,12 @@ include("markov/free/suffstats.jl")
 include("markov/free/prior.jl")
 include("markov/free/fit.jl")
 
+include("markov/controlled/abstract_controlled_mc.jl")
 include("markov/controlled/simulation.jl")
 include("markov/controlled/density.jl")
+include("markov/controlled/predict.jl")
 
 ## Hidden Markov Models
-
-include("hmm/abstract_hidden_markov_model.jl")
 
 include("hmm/free/hidden_markov_model.jl")
 include("hmm/free/simulation.jl")
@@ -55,6 +53,7 @@ include("hmm/free/obs_density.jl")
 include("hmm/free/forward_backward.jl")
 include("hmm/free/baum_welch.jl")
 
+include("hmm/controlled/abstract_controlled_hmm.jl")
 include("hmm/controlled/simulation.jl")
 include("hmm/controlled/density.jl")
 
@@ -70,16 +69,17 @@ export AbstractPoissonProcess
 export log_intensity, ground_intensity, mark_distribution
 export MultivariatePoissonProcess, MultivariatePoissonProcessPrior
 
-export AbstractMarkovChain
-export AbstractControlledMarkovChain
-export nb_states, initial_distribution, transition_matrix
 export MarkovChain, MarkovChainPrior, stationary_distribution
+export nb_states, initial_distribution, transition_matrix
+export sample_hitting_times
+export AbstractControlledMarkovChain
 
-export AbstractHiddenMarkovModel, AbstractHMM
-export AbstractControlledHiddenMarkovModel, AbstractControlledHMM
-export emissions, emission_parameters, emission_from_parameters
 export HiddenMarkovModel, HMM
+export emissions
 export baum_welch_multiple_sequences, baum_welch
+export AbstractControlledHiddenMarkovModel, AbstractControlledHMM
+export emission_parameters, emission_from_parameters
+export transition_matrix_and_emission_parameters
 
 export fit, fit_mle, fit_map
 export suffstats

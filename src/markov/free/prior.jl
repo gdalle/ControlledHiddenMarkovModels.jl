@@ -32,7 +32,7 @@ end
 
 Compute the log-likelihood of the chain `mc` with respect to a `prior`.
 """
-function DensityInterface.logdensityof(prior::MarkovChainPrior, mc::AbstractMarkovChain)
+function DensityInterface.logdensityof(prior::MarkovChainPrior, mc::MarkovChain)
     (; p0_α, P_α) = prior
     S = length(p0_α)
     p0 = initial_distribution(mc)
