@@ -1,5 +1,5 @@
 function DensityInterface.logdensityof(
-    mc::ControlledMarkovChain,
+    mc::AbstractControlledMarkovChain,
     state_sequence::AbstractVector{<:Integer},
     control_sequence::AbstractMatrix{<:Real},
     args...,

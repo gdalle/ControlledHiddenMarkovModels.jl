@@ -1,12 +1,12 @@
 function baum_welch_multiple_sequences!(
     obs_densities::AbstractVector{<:AbstractMatrix{R}},
     fb_storage::ForwardBackwardStorage{R},
-    hmm_init::HMM{Tr,Em},
+    hmm_init::HMM{R1,R2,Em},
     obs_sequences::AbstractVector;
     max_iterations::Integer=100,
     tol::Real=1e-3,
     show_progress::Bool=true,
-) where {Tr,Em,R}
+) where {R,R1,R2,Em}
     hmm = hmm_init
     S = nb_states(hmm)
     K = length(obs_sequences)
@@ -18,8 +18,9 @@ function baum_welch_multiple_sequences!(
     logL_by_seq = Vector{float(R)}(undef, K)
 
     # Initialize local sufficient statistics for transitions and emissions
-    transitions_suffstats_by_seq = Vector{suffstats_type(Tr)}(undef, K)
-    emissions_suffstats_by_seq = Matrix{suffstats_type(Em)}(undef, K, S)
+    init_count_by_seq = Vector{Vector{R}}(undef, K)
+    trans_count_by_seq = Vector{Matrix{R}}(undef, K)
+    em_suffstats_by_seq = Matrix{suffstats_type(Em)}(undef, K, S)
 
     prog = Progress(max_iterations; desc="Baum-Welch algorithm", enabled=show_progress)
     for iteration in 1:max_iterations
@@ -31,32 +32,31 @@ function baum_welch_multiple_sequences!(
                     α[k], β[k], γ[k], ξ[k], α_sum_inv[k], hmm, obs_densities[k]
                 )
                 # Local transition statistics
-                init_count = γ[k][:, 1]
-                trans_count = dropdims(sum(ξ[k]; dims=3); dims=3)
-                transitions_suffstats_by_seq[k] = suffstats(Tr, init_count, trans_count)
+                init_count_by_seq[k] = γ[k][:, 1]
+                trans_count_by_seq[k] = dropdims(sum(ξ[k]; dims=3); dims=3)
                 # Local emission statistics
                 for i in 1:S
                     x = obs_sequences[k]
                     w = view(γ[k], i, :)  # Distributions.jl doesn't allow this for type of weights, see #1560
-                    emissions_suffstats_by_seq[k, i] = suffstats(Em, x, w)
+                    em_suffstats_by_seq[k, i] = suffstats(Em, x, w)
                 end
             end
         end
         push!(logL_evolution, sum(logL_by_seq))
 
         # Aggregated transitions
-        transitions_suffstats_agg = reduce(add_suffstats, transitions_suffstats_by_seq)
-        new_transitions = fit_mle(Tr, transitions_suffstats_agg)
+        p0 = reduce(+, init_count_by_seq)
+        p0 ./= sum(p0)
+        P = reduce(+, trans_count_by_seq)
+        P ./= sum(P; dims=2)
         # Aggregated emissions
-        new_emissions = Vector{Em}(undef, S)
+        em = Vector{Em}(undef, S)
         for i in 1:S
-            emissions_suffstats_agg_i = reduce(
-                add_suffstats, view(emissions_suffstats_by_seq, :, i)
-            )
-            new_emissions[i] = fit_mle(Em, emissions_suffstats_agg_i)
+            em_suffstats_i = reduce(add_suffstats, view(em_suffstats_by_seq, :, i))
+            em[i] = fit_mle(Em, em_suffstats_i)
         end
 
-        hmm = HMM(new_transitions, new_emissions)
+        hmm = HMM(p0, P, em)
 
         if iteration > 1 && (logL_evolution[end] - logL_evolution[end - 1]) / sum(T) < tol
             break

@@ -1,21 +1,23 @@
 abstract type AbstractHiddenMarkovModel end
+abstract type AbstractControlledHiddenMarkovModel <: AbstractHiddenMarkovModel end
 
 const AbstractHMM = AbstractHiddenMarkovModel
+const AbstractControlledHMM = AbstractControlledHiddenMarkovModel
+
+@inline DensityInterface.DensityKind(::AbstractHMM) = HasDensity()
 
 nb_states(::AbstractHMM) = error("not implemented")
-transitions(::AbstractHMM, args...) = error("not implemented")
-emissions(::AbstractHMM, args...) = error("not implemented")
 
-function initial_distribution(ahmm::AbstractHMM, args...)
-    return initial_distribution(transitions(ahmm, args...))
-end
+initial_distribution(::AbstractHMM) = error("not implemented")
 
-function transition_matrix(ahmm::AbstractHMM, args...)
-    return transition_matrix(transitions(ahmm, args...))
-end
+transition_matrix(::AbstractHMM) = error("not implemented")
+transition_matrix(::AbstractControlledHMM, u, args...) = error("not implemented")
 
-emissions(hmm::AbstractHMM, i::Integer, args...) = emissions(hmm, args...)[i]
+emissions(::AbstractHMM) = error("not implemented")
 
-function transitions_and_emissions(hmm::AbstractHMM, args...)
-    return (transitions(hmm, args...), emissions(hmm, args...))
+emission_parameters(::AbstractControlledHMM, u, args...) = error("not implemented")
+emission_from_parameters(::AbstractControlledHMM, θ) = error("not implemented")
+
+function transition_matrix_and_emission_parameters(hmm::AbstractControlledHMM, u, args...)
+    return (transition_matrix(hmm, u, args...), emission_parameters(hmm, u, args...))
 end

@@ -4,11 +4,11 @@
 Hidden Markov Model with arbitrary emissions.
 
 # Fields
-- `transitions::TR`: underlying Markov chain
 - `emissions::Vector{Em}`: one emission distribution per state.
 """
-struct HiddenMarkovModel{Tr,Em} <: AbstractHMM
-    transitions::Tr
+struct HiddenMarkovModel{R1,R2,Em} <: AbstractHMM
+    p0::Vector{R1}
+    P::Matrix{R2}
     emissions::Vector{Em}
 end
 
@@ -21,6 +21,7 @@ const HMM = HiddenMarkovModel
 
 ## Access
 
-nb_states(hmm::HMM) = length(hmm.emissions)
-transitions(hmm::HMM) = hmm.transitions
+nb_states(hmm::HMM) = length(hmm.p0)
+initial_distribution(hmm::HMM) = hmm.p0
+transition_matrix(hmm::HMM) = hmm.P
 emissions(hmm::HMM) = hmm.emissions

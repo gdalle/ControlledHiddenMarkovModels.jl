@@ -1,67 +1,62 @@
-using Distributions
+using ComponentArrays
 using ControlledHiddenMarkovModels
+using Distributions
 using Lux
+using Optimization
 using NNlib
-using Optimisers
 using ProgressMeter
 using Random
-using Zygote
+using Test
 
-#-
+using ForwardDiff: ForwardDiff
+using OptimizationFlux: OptimizationFlux
+using OptimizationOptimJL: OptimizationOptimJL
+using Zygote: Zygote
 
 rng = Random.default_rng()
-Random.seed!(rng, 63)
+Random.seed!(rng, 0)
 
+U = 1
 S = 3
-U = 10
+E = 2
+T = 100
 
-#-
+make_stochastic(x) = x ./ sum(x; dims=2)
 
-struct NeuralGaussianControlledHMM{M} <: AbstractHMM
-    p0::Vector{Float64}
-    model::M
+p0 = rand_prob_vec(S)
+
+## Struct
+
+struct NeuralHMM{R,M} <: AbstractControlledHMM
+    p0::Vector{R}
+    P_μ_model::M
 end
 
-HMMs.nb_states(hmm::NeuralGaussianControlledHMM) = length(hmm.p0)
-HMMs.initial_distribution(hmm::NeuralGaussianControlledHMM) = hmm.p0
+CHMMs.nb_states(nhmm::NeuralHMM) = length(nhmm.p0)
+CHMMs.initial_distribution(nhmm::NeuralHMM) = nhmm.p0
+CHMMs.transition_matrix(nhmm::NeuralHMM, u, ps, st) = nhmm.P_μ_model(u, ps, st)[1][1]
+CHMMs.emission_parameters(nhmm::NeuralHMM, u, ps, st) = nhmm.P_μ_model(u, ps, st)[1][2]
 
-function HMMs.transition_matrix_and_emission_distributions(
-    hmm::NeuralGaussianControlledHMM, u, ps, st
+function CHMMs.emission_from_parameters(nhmm::NeuralHMM, μ::AbstractVector)
+    return MvNormal(μ, 1)
+end
+
+function CHMMs.transition_matrix_and_emission_parameters(nhmm::NeuralHMM, u, ps, st)
+    return nhmm.P_μ_model(u, ps, st)[1]
+end
+
+P_μ_model = Chain(
+    Dense(U, 1),
+    BranchLayer(
+        Chain(Dense(1, S^2, softplus), ReshapeLayer((S, S)), make_stochastic),
+        Chain(Dense(1, S * E), ReshapeLayer((E, S))),
+    ),
 )
-    (P, μ), st = Lux.apply(hmm.model, u, ps, st)
-    return P, [Normal(μ[i]) for i in eachindex(μ)]
-end
+ps, st = Lux.setup(rng, P_μ_model);
 
-#-
+nhmm = NeuralHMM(p0, P_μ_model);
 
-make_square(x::AbstractVector) = reshape(x, isqrt(length(x)), isqrt(length(x)))
-make_stochastic(x::AbstractMatrix) = softmax(x; dims=2)
+control_sequence = ones(U, T);
+state_sequence, obs_sequence = rand(nhmm, control_sequence, ps, st);
 
-p0 = ones(S) / S
-
-transition_model = Chain(Dense(1, S^2), make_square, make_stochastic)
-emission_model = Dense(1, S)
-model = Chain(Dense(U, 1), BranchLayer(transition_model, emission_model))
-
-#-
-
-hmm = NeuralGaussianControlledHMM(p0, model)
-
-ps_real, st_real = Lux.setup(rng, hmm.model)
-ps, st = Lux.setup(rng, hmm.model)
-
-Lux.apply(hmm.model, rand(U), ps, st)
-
-#-
-
-T = 1000
-control_sequence = [randn(U) for t in 1:T];
-
-state_sequence, obs_sequence = rand(rng, hmm, T, control_sequence, ps_real, st_real)
-
-#-
-
-ps_est, logL_evolution = baum_welch(hmm, obs_sequence, control_sequence, ps, st)
-
-@time baum_welch(hmm, obs_sequence, control_sequence, ps, st)
-@profview baum_welch(hmm, obs_sequence, control_sequence, ps, st)
+logdensityof(nhmm, obs_sequence, control_sequence, ps, st)

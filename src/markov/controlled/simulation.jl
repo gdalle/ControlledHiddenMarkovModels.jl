@@ -1,6 +1,6 @@
 function Base.rand(
     rng::AbstractRNG,
-    mc::ControlledMarkovChain,
+    mc::AbstractControlledMarkovChain,
     control_sequence::AbstractMatrix{<:Real},
     args...;
     check_args=false,
@@ -20,7 +20,7 @@ function Base.rand(
 end
 
 function Base.rand(
-    mc::ControlledMarkovChain,
+    mc::AbstractControlledMarkovChain,
     control_sequence::AbstractMatrix{<:Real},
     args...;
     check_args=false,

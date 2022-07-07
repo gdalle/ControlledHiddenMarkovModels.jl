@@ -17,6 +17,7 @@ include("utils/prob_vec.jl")
 include("utils/trans_mat.jl")
 include("utils/overflow.jl")
 include("utils/suffstats.jl")
+include("utils/storage.jl")
 
 ## Point processes
 
@@ -41,7 +42,6 @@ include("markov/free/suffstats.jl")
 include("markov/free/prior.jl")
 include("markov/free/fit.jl")
 
-include("markov/controlled/controlled_markov_chain.jl")
 include("markov/controlled/simulation.jl")
 include("markov/controlled/density.jl")
 
@@ -53,8 +53,10 @@ include("hmm/free/hidden_markov_model.jl")
 include("hmm/free/simulation.jl")
 include("hmm/free/obs_density.jl")
 include("hmm/free/forward_backward.jl")
-include("hmm/free/q_function.jl")
 include("hmm/free/baum_welch.jl")
+
+include("hmm/controlled/simulation.jl")
+include("hmm/controlled/density.jl")
 
 export CHMMs
 
@@ -69,13 +71,14 @@ export log_intensity, ground_intensity, mark_distribution
 export MultivariatePoissonProcess, MultivariatePoissonProcessPrior
 
 export AbstractMarkovChain
+export AbstractControlledMarkovChain
 export nb_states, initial_distribution, transition_matrix
 export MarkovChain, MarkovChainPrior, stationary_distribution
-export ControlledMarkovChain
 
 export AbstractHiddenMarkovModel, AbstractHMM
+export AbstractControlledHiddenMarkovModel, AbstractControlledHMM
+export emissions, emission_parameters, emission_from_parameters
 export HiddenMarkovModel, HMM
-export emissions, transitions_and_emissions
 export baum_welch_multiple_sequences, baum_welch
 
 export fit, fit_mle, fit_map
