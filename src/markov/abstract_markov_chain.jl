@@ -7,6 +7,6 @@ abstract type AbstractMarkovChain end
 
 @inline DensityInterface.DensityKind(::AbstractMarkovChain) = HasDensity()
 
-function nb_states end
-function initial_distribution end
-function transition_matrix end
+nb_states(::AbstractMarkovChain) = error("not implemented")
+initial_distribution(::AbstractMarkovChain) = error("not implemented")
+transition_matrix(::AbstractMarkovChain) = error("not implemented")

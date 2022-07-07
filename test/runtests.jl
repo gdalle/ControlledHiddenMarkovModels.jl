@@ -30,8 +30,8 @@ DocMeta.setdocmeta!(
         @testset verbose = true "Multivariate Poisson process" begin
             include("examples/multivariate_poisson.jl")
         end
-        # @testset verbose = true "Hidden Markov Model" begin
-        #     include("examples/hmm.jl")
-        # end
+        @testset verbose = true "Hidden Markov Model" begin
+            include("examples/hmm.jl")
+        end
     end
 end

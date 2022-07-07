@@ -2,10 +2,7 @@ function baum_welch_multiple_sequences!(
     obs_densities::AbstractVector{<:AbstractMatrix{R}},
     fb_storage::ForwardBackwardStorage{R},
     hmm_init::HMM{Tr,Em},
-    obs_sequences::AbstractVector,
-    control_sequences::AbstractVector=[Fill(nothing, length(seq)) for seq in obs_sequences],
-    ps=nothing,
-    st=nothing;
+    obs_sequences::AbstractVector;
     max_iterations::Integer=100,
     tol::Real=1e-3,
     show_progress::Bool=true,
@@ -69,4 +66,30 @@ function baum_welch_multiple_sequences!(
     end
 
     return hmm, logL_evolution
+end
+
+"""
+    baum_welch_multiple_sequences(hmm_init, obs_sequences)
+
+Run the Baum-Welch algorithm to estimate an [`AbstractHiddenMarkovModel`](@ref) of the same type as `hmm_init`, based on several observation sequences.
+"""
+function baum_welch_multiple_sequences(
+    hmm_init::HMM, obs_sequences::AbstractVector, args...; kwargs...
+)
+    K = length(obs_sequences)
+    obs_densities = [compute_obs_density(hmm_init, obs_sequences[k]) for k in 1:K]
+    fb_storage = initialize_forward_backward_multiple_sequences(obs_densities)
+    result = baum_welch_multiple_sequences!(
+        obs_densities, fb_storage, hmm_init, obs_sequences, args...; kwargs...
+    )
+    return result
+end
+
+"""
+    baum_welch(hmm_init, obs_sequence)
+
+Same as [`baum_welch_multiple_sequences`](@ref) but with a single sequence.
+"""
+function baum_welch(hmm_init::HMM, obs_sequence::AbstractVector, args...; kwargs...)
+    return baum_welch_multiple_sequences(hmm_init, [obs_sequence], args...; kwargs...)
 end

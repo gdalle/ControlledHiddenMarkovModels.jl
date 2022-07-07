@@ -1,11 +1,11 @@
 """
-    MarkovChain
+    MarkovChain{R1,R2}
 
 Discrete-time Markov chain with finite state space.
 
 # Fields
-- `p0::Vector`: initial state distribution.
-- `P::Matrix`: state transition matrix.
+- `p0::Vector{R1}`: initial state distribution.
+- `P::Matrix{R2}`: state transition matrix.
 """
 struct MarkovChain{R1<:Real,R2<:Real} <: AbstractMarkovChain
     p0::Vector{R1}

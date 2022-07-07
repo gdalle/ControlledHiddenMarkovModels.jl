@@ -47,15 +47,14 @@ include("markov/controlled/density.jl")
 
 ## Hidden Markov Models
 
-# include("hmm/abstract.jl")
-# include("hmm/simulation.jl")
-# include("hmm/obs_density.jl")
-# include("hmm/forward_backward.jl")
-# include("hmm/q_function.jl")
-# include("hmm/baum_welch.jl")
-# include("hmm/free/concrete.jl")
-# include("hmm/free/prior.jl")
-# include("hmm/free/baum_welch.jl")
+include("hmm/abstract_hidden_markov_model.jl")
+
+include("hmm/free/hidden_markov_model.jl")
+include("hmm/free/simulation.jl")
+include("hmm/free/obs_density.jl")
+include("hmm/free/forward_backward.jl")
+include("hmm/free/q_function.jl")
+include("hmm/free/baum_welch.jl")
 
 export CHMMs
 
@@ -74,11 +73,10 @@ export nb_states, initial_distribution, transition_matrix
 export MarkovChain, MarkovChainPrior, stationary_distribution
 export ControlledMarkovChain
 
-# export AbstractHiddenMarkovModel, AbstractHMM
-# export HiddenMarkovModel, HMM
-# export HiddenMarkovModelPrior, HMMPrior
-# export emission_distribution
-# export baum_welch_multiple_sequences, baum_welch
+export AbstractHiddenMarkovModel, AbstractHMM
+export HiddenMarkovModel, HMM
+export emissions, transitions_and_emissions
+export baum_welch_multiple_sequences, baum_welch
 
 export fit, fit_mle, fit_map
 export suffstats

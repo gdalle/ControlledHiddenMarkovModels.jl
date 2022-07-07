@@ -19,17 +19,15 @@ Random.seed!(rng, 63)
 
 p0 = [0.3, 0.7]
 P = [0.9 0.1; 0.2 0.8]
-transitions = MarkovChain(p0, P)
+tr = MarkovChain(p0, P)
 
 #-
 
-emission1 = Normal(0.4, 0.7)
-emission2 = Normal(-0.8, 0.3)
-emissions = [emission1, emission2]
+em = [Normal(0.4, 0.7), Normal(-0.8, 0.3)]
 
 #-
 
-hmm = HiddenMarkovModel(transitions, emissions)
+hmm = HiddenMarkovModel(tr, em)
 
 # ## Simulation
 
@@ -50,10 +48,10 @@ Initial parameters can be created with reduced precision to speed up estimation.
 
 p0_init = rand_prob_vec(rng, Float32, 2)
 P_init = rand_trans_mat(rng, Float32, 2)
-transitions_init = DiscreteMarkovChain(p0_init, P_init)
-emissions_init = [Normal(1.0), Normal(-1.0)]
+tr_init = MarkovChain(p0_init, P_init)
+em_init = [Normal(1.0), Normal(-1.0)]
 
-hmm_init = HiddenMarkovModel(transitions_init, emissions_init)
+hmm_init = HiddenMarkovModel(tr_init, em_init)
 
 # We can now apply the algorithm by setting a tolerance on the loglikelihood increase, as well as a maximum number of iterations.
 
@@ -75,27 +73,15 @@ hmm_est, logL_evolution = baum_welch_multiple_sequences(
 # Let us now compute the estimation error on various parameters.
 
 transition_error_init = mean(abs, transition_matrix(hmm_init) - transition_matrix(hmm))
-μ_error_init = mean(
-    abs,
-    [emission_distribution(hmm_init, s).μ - emission_distribution(hmm, s).μ for s in 1:2],
-)
-σ_error_init = mean(
-    abs,
-    [emission_distribution(hmm_init, s).σ - emission_distribution(hmm, s).σ for s in 1:2],
-)
+μ_error_init = mean(abs, [emissions(hmm_init, s).μ - emissions(hmm, s).μ for s in 1:2])
+σ_error_init = mean(abs, [emissions(hmm_init, s).σ - emissions(hmm, s).σ for s in 1:2])
 (transition_error_init, μ_error_init, σ_error_init)
 
 #-
 
 transition_error = mean(abs, transition_matrix(hmm_est) - transition_matrix(hmm))
-μ_error = mean(
-    abs,
-    [emission_distribution(hmm_est, s).μ - emission_distribution(hmm, s).μ for s in 1:2],
-)
-σ_error = mean(
-    abs,
-    [emission_distribution(hmm_est, s).σ - emission_distribution(hmm, s).σ for s in 1:2],
-)
+μ_error = mean(abs, [emissions(hmm_est, s).μ - emissions(hmm, s).μ for s in 1:2])
+σ_error = mean(abs, [emissions(hmm_est, s).σ - emissions(hmm, s).σ for s in 1:2])
 (transition_error, μ_error, σ_error)
 
 # As we can see, all of these errors are much smaller than those of `hmm_init`: mission accomplished!
@@ -107,22 +93,22 @@ One of the major selling points for ControlledHiddenMarkovModels.jl is that the 
 Here we give an example where emissions are of type [`MultivariatePoissonProcess`](@ref) with state-dependent rates.
 =#
 
-emissions_poisson = [
+em_poisson = [
     MultivariatePoissonProcess([1.0, 2.0, 3.0]), MultivariatePoissonProcess([3.0, 2.0, 1.0])
 ]
 
-hmm_poisson = HMM(transitions, emissions_poisson)
+hmm_poisson = HMM(tr, em_poisson)
 
 # We can simulate and learn it using the exact same procedure.
 
 state_sequence_poisson, obs_sequence_poisson = rand(rng, hmm_poisson, 1000);
 
-emissions_init_poisson = [
+em_init_poisson = [
     MultivariatePoissonProcess(rand(rng, 3) .* [1, 2, 3]),
     MultivariatePoissonProcess(rand(rng, 3) .* [3, 2, 1]),
 ]
 
-hmm_init_poisson = HMM(transitions_init, emissions_init_poisson)
+hmm_init_poisson = HMM(tr_init, em_init_poisson)
 
 hmm_est_poisson, logL_evolution_poisson = baum_welch(
     hmm_init_poisson, obs_sequence_poisson; max_iterations=100, tol=1e-5
@@ -148,8 +134,7 @@ transition_error_init_poisson = mean( #src
 λ_error_init_poisson = mean( #src
     abs,  #src
     [ #src
-        emission_distribution(hmm_init_poisson, s).λ[m] -
-        emission_distribution(hmm_poisson, s).λ[m] #src
+        emissions(hmm_init_poisson, s).λ[m] - emissions(hmm_poisson, s).λ[m] #src
         for s in 1:2 for m in 1:3 #src
     ], #src
 ) #src
@@ -161,8 +146,7 @@ transition_error_poisson = mean( #src
 λ_error_poisson = mean( #src
     abs,  #src
     [ #src
-        emission_distribution(hmm_est_poisson, s).λ[m] -
-        emission_distribution(hmm_poisson, s).λ[m] #src
+        emissions(hmm_est_poisson, s).λ[m] - emissions(hmm_poisson, s).λ[m] #src
         for s in 1:2 for m in 1:3 #src
     ], #src
 ) #src

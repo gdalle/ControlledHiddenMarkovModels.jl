@@ -5,12 +5,10 @@ function forward!(
     α_sum_inv::AbstractVector{R},
     hmm::AbstractHMM,
     obs_density::AbstractMatrix{R},
-    control_sequence::AbstractVector=Fill(nothing, size(obs_density, 2)),
-    ps=nothing,
-    st=nothing,
 ) where {R<:Real}
     S, T = size(obs_density)
     p0 = initial_distribution(hmm)
+    P = transition_matrix(hmm)
 
     # Initialization
     for i in 1:S
@@ -23,12 +21,10 @@ function forward!(
 
     # Recursion
     @inbounds for t in 1:(T - 1)
-        uₜ = control_sequence[t]
-        Pₜ = transition_matrix(hmm, uₜ, ps, st)
         @inbounds for j in 1:S
             tmp = zero(R)
             @inbounds for i in 1:S
-                tmp += α[i, t] * Pₜ[i, j]
+                tmp += α[i, t] * P[i, j]
             end
             α[j, t + 1] = tmp * obs_density[j, t + 1]
         end
@@ -53,11 +49,9 @@ function backward!(
     α_sum_inv::AbstractVector{R},
     hmm::AbstractHMM,
     obs_density::AbstractMatrix{R},
-    control_sequence::AbstractVector=Fill(nothing, size(obs_density, 2)),
-    ps=nothing,
-    st=nothing,
 ) where {R<:Real}
     S, T = size(obs_density)
+    P = transition_matrix(hmm)
 
     # Initialization
     for i in 1:S
@@ -66,12 +60,10 @@ function backward!(
 
     # Recursion
     @inbounds for t in (T - 1):-1:1
-        uₜ = control_sequence[t]
-        Pₜ = transition_matrix(hmm, uₜ, ps, st)
         @inbounds for i in 1:S
             tmp = zero(R)
             @inbounds for j in 1:S
-                tmp += Pₜ[i, j] * obs_density[j, t + 1] * β[j, t + 1]
+                tmp += P[i, j] * obs_density[j, t + 1] * β[j, t + 1]
             end
             β[i, t] = tmp * α_sum_inv[t]
         end
@@ -88,10 +80,7 @@ function backward!(
 end
 
 """
-    forward_backward!(
-        α, β, γ, ξ, α_sum_inv, γ_sum_inv, ξ_sum_inv, hmm, obs_density,
-        [control_sequence, ps, st]
-    )
+    forward_backward!(α, β, γ, ξ, α_sum_inv, γ_sum_inv, ξ_sum_inv, hmm, obs_density)
 
 Apply the forward-backward algorithm in-place to update sufficient statistics.
 """
@@ -103,14 +92,12 @@ function forward_backward!(
     α_sum_inv::AbstractVector{R},
     hmm::AbstractHMM,
     obs_density::AbstractMatrix{R},
-    control_sequence::AbstractVector=Fill(nothing, size(obs_density, 2)),
-    ps=nothing,
-    st=nothing,
 ) where {R<:Real}
     S, T = size(obs_density)
+    P = transition_matrix(hmm)
 
-    forward!(α, α_sum_inv, hmm, obs_density, control_sequence, ps, st)
-    backward!(β, α_sum_inv, hmm, obs_density, control_sequence, ps, st)
+    forward!(α, α_sum_inv, hmm, obs_density)
+    backward!(β, α_sum_inv, hmm, obs_density)
 
     # State sufficient statistics
     @inbounds for t in 1:T
@@ -125,11 +112,9 @@ function forward_backward!(
 
     # Transitions sufficient statistics
     @inbounds for t in 1:(T - 1)
-        uₜ = control_sequence[t]
-        Pₜ = transition_matrix(hmm, uₜ, ps, st)
         @inbounds for j in 1:S
             @inbounds for i in 1:S
-                ξ[i, j, t] = α[i, t] * Pₜ[i, j] * obs_density[j, t + 1] * β[j, t + 1]
+                ξ[i, j, t] = α[i, t] * P[i, j] * obs_density[j, t + 1] * β[j, t + 1]
             end
         end
         ξ_sum_inv = inv(sum(view(ξ, :, :, t)))
