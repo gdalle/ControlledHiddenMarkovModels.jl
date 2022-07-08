@@ -21,13 +21,11 @@ initial_distribution(hmm::AbstractHMM) = hmm.p0
 transition_matrix(hmm::AbstractHMM) = hmm.P
 emissions(hmm::AbstractHMM) = hmm.emissions
 
-emission_type(::AbstractHMM) = error("Not implemented.")
+emission_type(::Type{<:AbstractHMM}) = error("Not implemented.")
 
-function fit_emission_from_multiple_sequences(
-    hmm::H, i::Integer, xs, ws
-) where {H<:AbstractHMM}
+function fit_emission_from_multiple_sequences(hmm::Type{H}, xs, ws) where {H<:AbstractHMM}
     return error(
-        "The method `fit_emission_from_multiple_sequences(hmm, i, xs, ws)` is not implemented for type $H.
+        "The method `fit_emission_from_multiple_sequences(H, xs, ws)` is not implemented for type $H.
         It is required for the Baum-Welch algorithm",
     )
 end

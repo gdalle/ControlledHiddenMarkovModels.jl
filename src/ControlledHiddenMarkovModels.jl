@@ -89,7 +89,7 @@ export sample_hitting_times
 export AbstractControlledMarkovChain
 
 export AbstractHiddenMarkovModel, AbstractHMM
-export emissions, fit_emission_from_multiple_sequences
+export emissions, emission_type, fit_emission_from_multiple_sequences
 export baum_welch_multiple_sequences, baum_welch
 export infer_current_state
 

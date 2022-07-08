@@ -6,6 +6,7 @@ using LogarithmicNumbers
 using Random
 using Statistics
 using Test  #src
+using ThreadsX
 
 rng = Random.default_rng()
 Random.seed!(rng, 63)
@@ -18,10 +19,10 @@ struct GaussianHMM{R1,R2,R3} <: AbstractHMM
     emissions::Vector{Normal{R3}}
 end
 
-CHMMs.emission_type(::GaussianHMM{R1,R2,R3}) where {R1,R2,R3} = Normal{R3}
+CHMMs.emission_type(::Type{GaussianHMM{R1,R2,R3}}) where {R1,R2,R3} = Normal{R3}
 
 function CHMMs.fit_emission_from_multiple_sequences(
-    hmm::GaussianHMM{R1,R2,R3}, i::Integer, xs, ws
+    ::Type{GaussianHMM{R1,R2,R3}}, xs, ws
 ) where {R1,R2,R3}
     μ = zero(R3)
     w_tot = zero(R3)
@@ -74,25 +75,16 @@ struct PoissonHMM{R1,R2,R3} <: AbstractHMM
     emissions::Vector{MultivariatePoissonProcess{R3}}
 end
 
-function CHMMs.emission_type(::PoissonHMM{R1,R2,R3}) where {R1,R2,R3}
+function CHMMs.emission_type(::Type{PoissonHMM{R1,R2,R3}}) where {R1,R2,R3}
     return MultivariatePoissonProcess{R3}
 end
 
 function CHMMs.fit_emission_from_multiple_sequences(
-    hmm::PoissonHMM{R1,R2,R3}, i::Integer, xs, ws
-) where {R1,R2,R3}
-    event_count = zeros(R3, length(hmm.emissions[i]))
-    duration = zero(R3)
-    for (x, w) in zip(xs, ws)
-        for (xₜ, wₜ) in zip(x, w)
-            for m in event_marks(xₜ)
-                event_count[m] += wₜ
-            end
-            duration += wₜ
-        end
-    end
-    λ = event_count ./ duration
-    return MultivariatePoissonProcess(λ)
+    ::Type{H}, xs, ws
+) where {R1,R2,R3,H<:PoissonHMM{R1,R2,R3}}
+    E = emission_type(H)
+    ss = reduce(CHMMs.add_suffstats, suffstats(E, x, w) for (x, w) in zip(xs, ws);)
+    return fit_mle(E, ss)
 end
 
 ## Simulation
