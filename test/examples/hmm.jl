@@ -6,7 +6,6 @@ using LogarithmicNumbers
 using Random
 using Statistics
 using Test  #src
-using ThreadsX
 
 rng = Random.default_rng()
 Random.seed!(rng, 63)

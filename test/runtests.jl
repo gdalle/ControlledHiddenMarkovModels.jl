@@ -23,6 +23,9 @@ DocMeta.setdocmeta!(
     @testset verbose = true "Multivariate Poisson process" begin
         include("examples/multivariate_poisson.jl")
     end
+    @testset verbose = true "Marked Poisson process" begin
+        include("examples/marked_poisson.jl")
+    end
     @testset verbose = true "Markov chain" begin
         include("examples/markov.jl")
     end

@@ -6,7 +6,7 @@ using Base.Threads: @threads
 using DensityInterface: DensityInterface, densityof, logdensityof
 using Distributions: Distributions
 using Distributions: Categorical, Exponential, Normal, Poisson, Uniform
-using Distributions: suffstats, fit, fit_mle
+using Distributions: fit, fit_mle, product_distribution, suffstats
 using FLoops: @floop
 using LinearAlgebra
 using ProgressMeter: Progress, next!
@@ -81,6 +81,7 @@ export event_times, event_marks
 export AbstractPoissonProcess
 export log_intensity, ground_intensity, mark_distribution
 export MultivariatePoissonProcess, MultivariatePoissonProcessPrior
+export MarkedPoissonProcess
 
 export MarkovChain, MarkovChainPrior, stationary_distribution
 export nb_states, initial_distribution, transition_matrix

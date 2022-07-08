@@ -18,16 +18,20 @@ end
 
 ## Access
 
-Base.length(pp::MarkedPoissonProcess) = length(pp.proddist)
+Base.length(pp::MarkedPoissonProcess) = size(pp.mark_probs, 2)
 
 ground_intensity(pp::MarkedPoissonProcess) = pp.λ
 
 function log_intensity(pp::MarkedPoissonProcess, m::AbstractVector{<:Integer})
-    return log(pp.λ) + sum(log, pp.mark_probs[m[d], d] for d in 1:length(pp))
+    logI = log(pp.λ)
+    for d in 1:length(pp)
+        logI += log(pp.mark_probs[m[d], d])
+    end
+    return logI
 end
 
 function mark_distribution(pp::MarkedPoissonProcess)
     return @views product_distribution([
-        Categorical(pp.mark_probs[:, d]; check_args=false) for d in 1:size(pp.mark_probs, 2)
+        Categorical(pp.mark_probs[:, d]; check_args=false) for d in 1:length(pp)
     ])
 end
