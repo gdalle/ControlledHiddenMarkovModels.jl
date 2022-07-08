@@ -1,7 +1,7 @@
 # # Multivariate Poisson process
 
-using LogarithmicNumbers
 using ControlledHiddenMarkovModels
+using Random
 using Statistics
 using Test  #src
 
@@ -13,7 +13,7 @@ pp = MultivariatePoissonProcess(λ)
 
 history = rand(rng, pp, 3.14, 314.0)
 
-pp_est = fit_mle(MultivariatePoissonProcess{Float32}, history)
+pp_est = fit_mle(typeof(pp), history)
 
 error = mean(abs, pp_est.λ - pp.λ)
 

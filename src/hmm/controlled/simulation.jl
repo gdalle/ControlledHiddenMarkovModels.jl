@@ -5,7 +5,7 @@ function Base.rand(
     args...;
     check_args=false,
 )
-    T = length(control_sequence)
+    T = size(control_sequence, 2)
     p0 = initial_distribution(hmm)
     P_all = transition_matrix(hmm, control_sequence, args...)
     state_sequence = Vector{Int}(undef, T)

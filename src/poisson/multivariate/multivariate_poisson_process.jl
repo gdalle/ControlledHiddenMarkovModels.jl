@@ -1,13 +1,13 @@
 """
-    MultivariatePoissonProcess{R}
+    MultivariatePoissonProcess
 
 Multivariate homogeneous temporal Poisson process.
 
 # Fields
-- `λ::Vector{R}`: event rates.
+- `λ::AbstractVector{<:Real}`: event rates.
 """
-struct MultivariatePoissonProcess{R<:Real} <: AbstractPoissonProcess
-    λ::Vector{R}
+struct MultivariatePoissonProcess{R<:Real,V<:AbstractVector{R}} <: AbstractPoissonProcess
+    λ::V
 end
 
 function Base.show(io::IO, pp::MultivariatePoissonProcess{R}) where {R<:Real}

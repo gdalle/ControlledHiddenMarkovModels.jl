@@ -68,15 +68,13 @@ transition_error = mean(abs, transition_matrix(hmm_est) - transition_matrix(hmm)
 
 ## Poisson HMM
 
-struct PoissonHMM{R1,R2,R3} <: AbstractHMM
+struct PoissonHMM{R1,R2,R3,PP<:MultivariatePoissonProcess{R3}} <: AbstractHMM
     p0::Vector{R1}
     P::Matrix{R2}
-    emissions::Vector{MultivariatePoissonProcess{R3}}
+    emissions::Vector{PP}
 end
 
-function CHMMs.emission_type(::Type{PoissonHMM{R1,R2,R3}}) where {R1,R2,R3}
-    return MultivariatePoissonProcess{R3}
-end
+CHMMs.emission_type(::Type{PoissonHMM{R1,R2,R3,PP}}) where {R1,R2,R3,PP} = PP
 
 function CHMMs.fit_emission_from_multiple_sequences(
     ::Type{H}, xs, ws

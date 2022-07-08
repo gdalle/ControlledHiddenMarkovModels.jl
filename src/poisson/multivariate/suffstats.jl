@@ -14,8 +14,8 @@ end
 ## Compute sufficient stats
 
 function Distributions.suffstats(
-    ::Type{MultivariatePoissonProcess{R}}, history::History{<:Integer,<:Real}
-) where {R<:Real}
+    ::Type{MultivariatePoissonProcess{R,V}}, history::History{<:Integer,<:Real}
+) where {R,V}
     M = max_mark(history)
     event_count = zeros(Int, M)
     for m in event_marks(history)
@@ -25,10 +25,10 @@ function Distributions.suffstats(
 end
 
 function Distributions.suffstats(
-    ::Type{MultivariatePoissonProcess{R}},
+    ::Type{MultivariatePoissonProcess{R,V}},
     histories::AbstractVector{<:History{<:Integer,<:Real}},
     weights::AbstractVector{W},
-) where {R<:Real,W<:Real}
+) where {R,V,W<:Real}
     M = mapreduce(max_mark, max, histories)
     total_event_count = zeros(W, M)
     total_duration = zero(W)

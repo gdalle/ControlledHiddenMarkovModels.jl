@@ -1,15 +1,16 @@
 """
-    MarkedPoissonProcess{R1,R2}
+    MarkedPoissonProcess
 
 Marked homogeneous temporal Poisson process, where each mark is a vector of integers.
 
 # Fields
-- `λ::R1`: ground intensity
-- `mark_probs::Matrix{R2}`: categorical mark probabilities (dimensions in the columns, possible values in the rows)
+- `λ::Real`: ground intensity
+- `mark_probs::AbstractMatrix{<:Real}`: categorical mark probabilities (dimensions in the columns, possible values in the rows)
 """
-struct MarkedPoissonProcess{R1<:Real,R2<:Real} <: AbstractPoissonProcess
+struct MarkedPoissonProcess{R1<:Real,R2<:Real,M<:AbstractMatrix{R2}} <:
+       AbstractPoissonProcess
     λ::R1
-    mark_probs::Matrix{R2}
+    mark_probs::M
 end
 
 function Base.show(io::IO, pp::MarkedPoissonProcess{R1,R2}) where {R1<:Real,R2<:Real}
