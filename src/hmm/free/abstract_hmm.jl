@@ -21,6 +21,8 @@ initial_distribution(hmm::AbstractHMM) = hmm.p0
 transition_matrix(hmm::AbstractHMM) = hmm.P
 emissions(hmm::AbstractHMM) = hmm.emissions
 
+emission_type(::AbstractHMM) = error("Not implemented.")
+
 function fit_emission_from_multiple_sequences(
     hmm::H, i::Integer, xs, ws
 ) where {H<:AbstractHMM}

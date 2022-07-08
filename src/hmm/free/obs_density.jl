@@ -14,17 +14,18 @@ function update_obs_density!(
             obs_density[i, t] = densityof(em[i], yₜ)
         end
     end
-    if @views any(all(iszero_safe, obs_density[:, t]) for t in 1:T)
-        throw(OverflowError("Densities are too small for observations."))
-    end
+    # if @views any(all(iszero_safe, obs_density[:, t]) for t in 1:T)
+    #     throw(OverflowError("Densities are too small for observations."))
+    # end
+    return nothing
 end
 
 function compute_obs_density(hmm::AbstractHMM, obs_sequence::AbstractVector)
     T, S = length(obs_sequence), nb_states(hmm)
     em = emissions(hmm)
     obs_density = [densityof(em[i], obs_sequence[t]) for i in 1:S, t in 1:T]
-    if @views any(all(iszero_safe, obs_density[:, t]) for t in 1:T)
-        throw(OverflowError("Densities are too small for observations."))
-    end
+    # if @views any(all(iszero_safe, obs_density[:, t]) for t in 1:T)
+    #     throw(OverflowError("Densities are too small for observations."))
+    # end
     return obs_density
 end

@@ -5,7 +5,7 @@ abstract type AbstractContinuousMarkovChain <: AbstractMarkovChain end
 
 Return the intensity matrix of `mc`.
 """
-intensity_matrix(mc::AbstractContinuousMarkovChain) = error("not implemented")
+intensity_matrix(mc::AbstractContinuousMarkovChain) = error("Not implemented.")
 
 """
     intensity_matrix(mc::AbstractContinuousMarkovChain)

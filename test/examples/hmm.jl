@@ -18,6 +18,8 @@ struct GaussianHMM{R1,R2,R3} <: AbstractHMM
     emissions::Vector{Normal{R3}}
 end
 
+CHMMs.emission_type(::GaussianHMM{R1,R2,R3}) where {R1,R2,R3} = Normal{R3}
+
 function CHMMs.fit_emission_from_multiple_sequences(
     hmm::GaussianHMM{R1,R2,R3}, i::Integer, xs, ws
 ) where {R1,R2,R3}
@@ -70,6 +72,10 @@ struct PoissonHMM{R1,R2,R3} <: AbstractHMM
     p0::Vector{R1}
     P::Matrix{R2}
     emissions::Vector{MultivariatePoissonProcess{R3}}
+end
+
+function CHMMs.emission_type(::PoissonHMM{R1,R2,R3}) where {R1,R2,R3}
+    return MultivariatePoissonProcess{R3}
 end
 
 function CHMMs.fit_emission_from_multiple_sequences(

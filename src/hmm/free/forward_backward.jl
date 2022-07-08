@@ -39,14 +39,14 @@ function forward!(
     # Initialization
     α[:, 1] .= @views p0 .* obs_density[:, 1]
     α_sum_inv[1] = @views inv(sum(α[:, 1]))
-    α[:, 1] .*= α_sum_inv[1]
+    @views α[:, 1] .*= α_sum_inv[1]
     # Recursion
     @inbounds for t in 1:(T - 1)
         @inbounds for j in 1:S
             α[j, t + 1] = sum(α[i, t] * P[i, j] for i in 1:S) * obs_density[j, t + 1]
         end
         α_sum_inv[t + 1] = @views inv(sum(α[:, t + 1]))
-        α[:, t + 1] .*= α_sum_inv[t + 1]
+        @views α[:, t + 1] .*= α_sum_inv[t + 1]
     end
     # Overflow check
     if @views any(all(iszero_safe, α[:, t]) for t in 1:T)
@@ -70,7 +70,7 @@ function backward!(
         @inbounds for i in 1:S
             β[i, t] = sum(P[i, j] * obs_density[j, t + 1] * β[j, t + 1] for j in 1:S)
         end
-        β[:, t] .*= α_sum_inv[t]
+        @views β[:, t] .*= α_sum_inv[t]
     end
     # Overflow check
     if @views any(all(iszero_safe, β[:, t]) for t in 1:T)
@@ -99,9 +99,9 @@ function forward_backward!(
     backward!(β, α_sum_inv, hmm, obs_density)
     # State sufficient statistics
     @inbounds for t in 1:T
-        γ[:, t] .= @views α[:, t] .* β[:, t]
+        @views γ[:, t] .= α[:, t] .* β[:, t]
         γ_sum_inv = @views inv(sum(γ[:, t]))
-        γ[:, t] .*= γ_sum_inv
+        @views γ[:, t] .*= γ_sum_inv
     end
     # Transitions sufficient statistics
     @inbounds for t in 1:(T - 1)
@@ -111,8 +111,8 @@ function forward_backward!(
             end
         end
         ξ_sum_inv = @views inv(sum(ξ[:, :, t]))
-        ξ[:, :, t] .*= ξ_sum_inv
+        @views ξ[:, :, t] .*= ξ_sum_inv
     end
     logL = -sum(log, α_sum_inv)
-    return logL
+    return Float64(logL)
 end

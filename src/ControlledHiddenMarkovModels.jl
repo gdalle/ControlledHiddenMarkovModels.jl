@@ -7,9 +7,11 @@ using DensityInterface: DensityInterface, densityof, logdensityof
 using Distributions: Distributions
 using Distributions: Categorical, Exponential, Normal, Poisson, Uniform
 using Distributions: suffstats, fit, fit_mle
+using FLoops: @floop
 using LinearAlgebra
 using ProgressMeter: Progress, next!
 using Random: AbstractRNG, GLOBAL_RNG, rand
+using ThreadsX: ThreadsX
 
 ## Utilities
 

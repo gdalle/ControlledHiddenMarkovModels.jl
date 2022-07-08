@@ -31,7 +31,7 @@ Sample a [`ContinuousMarkovChain`](@ref) from `prior`.
 function Base.rand(
     rng::AbstractRNG, prior::ContinuousMarkovChainPrior{R1,R2,R3}; check_args=false
 ) where {R1<:Real,R2<:Real,R3<:Real}
-    return error("not implemented")
+    return error("Not implemented.")
 end
 
 Base.rand(prior::ContinuousMarkovChainPrior; kwargs...) = rand(GLOBAL_RNG, prior; kwargs...)
