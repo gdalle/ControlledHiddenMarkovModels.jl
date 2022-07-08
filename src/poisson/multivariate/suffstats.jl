@@ -3,18 +3,6 @@ struct MultivariatePoissonProcessStats{R1<:Real,R2<:Real}
     duration::R2
 end
 
-function suffstats_type(::Type{P}) where {R<:Real,P<:MultivariatePoissonProcess{R}}
-    return MultivariatePoissonProcessStats{R,R}
-end
-
-function add_suffstats(
-    ss1::MultivariatePoissonProcessStats{R1,R2}, ss2::MultivariatePoissonProcessStats{R1,R2}
-) where {R1<:Real,R2<:Real}
-    event_count = ss1.event_count .+ ss2.event_count
-    duration = ss1.duration + ss2.duration
-    return MultivariatePoissonProcessStats{R1,R2}(event_count, duration)
-end
-
 ## Compute sufficient stats
 
 function Distributions.suffstats(

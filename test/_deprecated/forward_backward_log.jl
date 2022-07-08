@@ -1,7 +1,7 @@
 ## Forward-backward
 
 function forward_log!(
-    logα::AbstractMatrix{R}, hmm::HMM, obs_logdensity::AbstractMatrix{R}
+    logα::AbstractMatrix{R}, hmm::AbstractHMM, obs_logdensity::AbstractMatrix{R}
 ) where {R<:Real}
     S, T = size(obs_logdensity)
     logp0, logP = log.(initial_distribution(hmm)), log.(transition_matrix(hmm))
@@ -31,7 +31,7 @@ function forward_log!(
 end
 
 function backward_log!(
-    logβ::AbstractMatrix{R}, hmm::HMM, obs_logdensity::AbstractMatrix{R}
+    logβ::AbstractMatrix{R}, hmm::AbstractHMM, obs_logdensity::AbstractMatrix{R}
 ) where {R<:Real}
     S, T = size(obs_logdensity)
     logP = log.(transition_matrix(hmm))
@@ -70,7 +70,7 @@ function forward_backward_log!(
     logβ::AbstractMatrix{R},
     logγ::AbstractMatrix{R},
     logξ::AbstractArray{R,3},
-    hmm::HMM,
+    hmm::AbstractHMM,
     obs_logdensity::AbstractMatrix,
 ) where {R<:Real}
     S, T = size(obs_logdensity)
