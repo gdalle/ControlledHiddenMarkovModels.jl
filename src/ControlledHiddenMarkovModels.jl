@@ -2,16 +2,13 @@ module ControlledHiddenMarkovModels
 
 const CHMMs = ControlledHiddenMarkovModels
 
-using Base.Threads: @threads
 using DensityInterface: DensityInterface, densityof, logdensityof
 using Distributions: Distributions
-using Distributions: Categorical, Exponential, Normal, Poisson, Uniform
-using Distributions: fit, fit_mle, product_distribution, suffstats
-using FLoops: @floop
+using Distributions: Categorical, Exponential, Normal, Poisson, Product, Uniform
+using Distributions: fit, fit_mle, suffstats
 using LinearAlgebra
 using ProgressMeter: Progress, next!
 using Random: AbstractRNG, GLOBAL_RNG, rand
-using ThreadsX: ThreadsX
 
 ## Utilities
 

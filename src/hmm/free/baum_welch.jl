@@ -18,19 +18,17 @@ function baum_welch_multiple_sequences!(
     # Main loop
     prog = Progress(max_iterations; desc="Baum-Welch algorithm", enabled=show_progress)
     for iteration in 1:max_iterations
-        let hmm = hmm
-            @floop for k in 1:K
-                # Local forward-backward
-                update_obs_density!(obs_densities[k], hmm, obs_sequences[k])
-                logL_by_seq[k] = forward_backward!(
-                    α[k], β[k], γ[k], ξ[k], α_sum_inv[k], hmm, obs_densities[k]
-                )
-            end
+        for k in 1:K
+            # Local forward-backward
+            update_obs_density!(obs_densities[k], hmm, obs_sequences[k])
+            logL_by_seq[k] = forward_backward!(
+                α[k], β[k], γ[k], ξ[k], α_sum_inv[k], hmm, obs_densities[k]
+            )
         end
         push!(logL_evolution, sum(logL_by_seq))
         # Aggregated transitions
-        p0 = ThreadsX.reduce(+, view(γ[k], :, 1) for k in 1:K)
-        P = ThreadsX.reduce(+, dropdims(sum(ξ[k]; dims=3); dims=3) for k in 1:K)
+        p0 = reduce(+, view(γ[k], :, 1) for k in 1:K)
+        P = reduce(+, dropdims(sum(ξ[k]; dims=3); dims=3) for k in 1:K)
         p0 ./= sum(p0)
         P ./= sum(P; dims=2)
         # Aggregated emissions

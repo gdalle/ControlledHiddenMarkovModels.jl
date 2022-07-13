@@ -7,10 +7,10 @@ using ProgressMeter
 using Random
 using Test
 
-import ForwardDiff
-import OptimizationFlux
-import OptimizationOptimJL
-import Zygote
+using ForwardDiff: ForwardDiff
+using OptimizationOptimisers: OptimizationOptimisers
+using OptimizationOptimJL: OptimizationOptimJL
+using Zygote: Zygote
 
 rng = Random.default_rng()
 Random.seed!(rng, 0)
@@ -55,7 +55,7 @@ end
 f = OptimizationFunction(loss, Optimization.AutoForwardDiff());
 prob = OptimizationProblem(f, ps_init, data);
 res1 = solve(prob, OptimizationOptimJL.BFGS());
-res2 = solve(prob, OptimizationFlux.Adam(), maxiters=1000);
+res2 = solve(prob, OptimizationOptimisers.Adam(); maxiters=1000);
 ps_est1 = res1.u
 ps_est2 = res2.u
 

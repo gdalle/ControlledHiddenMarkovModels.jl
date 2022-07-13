@@ -10,7 +10,7 @@ using Random
 using Test
 
 using ForwardDiff: ForwardDiff
-using OptimizationFlux: OptimizationFlux
+using OptimizationOptimisers: OptimizationOptimisers
 using OptimizationOptimJL: OptimizationOptimJL
 using Zygote: Zygote
 
@@ -20,7 +20,7 @@ Random.seed!(rng, 0)
 U = 2
 S = 3
 M = 4
-T = 100
+T = 1000
 
 make_stochastic(x) = x ./ sum(x; dims=2)
 
@@ -70,7 +70,7 @@ ps_init = ComponentVector(ps_init);
 
 nhmm = NeuralGaussianHMM(p0, P_μ_model);
 
-control_sequence = ones(U, T);
+control_sequence = randn(U, T);
 state_sequence, obs_sequence = rand(nhmm, control_sequence, ps_true, st_true);
 
 data = (nhmm, obs_sequence, control_sequence, st_init);
@@ -84,7 +84,7 @@ end
 
 f = OptimizationFunction(loss, Optimization.AutoForwardDiff());
 prob = OptimizationProblem(f, ps_init, data);
-res = solve(prob, OptimizationFlux.Adam(); maxiters=1000);
+res = solve(prob, OptimizationOptimisers.Adam(); maxiters=1000);
 ps_est = res.u;
 
 ## Testing
@@ -140,7 +140,7 @@ ps_init = ComponentVector(ps_init);
 
 nhmm = NeuralPoissonHMM(p0, P_λ_model);
 
-control_sequence = ones(U, T);
+control_sequence = rand(U, T);
 state_sequence, obs_sequence = rand(nhmm, control_sequence, ps_true, st_true);
 
 data = (nhmm, obs_sequence, control_sequence, st_init);
@@ -154,7 +154,7 @@ end
 
 f = OptimizationFunction(loss, Optimization.AutoForwardDiff());
 prob = OptimizationProblem(f, ps_init, data);
-res = solve(prob, OptimizationFlux.Adam(); maxiters=1000);
+res = solve(prob, OptimizationOptimisers.Adam(); maxiters=1000);
 ps_est = res.u;
 
 ## Testing
