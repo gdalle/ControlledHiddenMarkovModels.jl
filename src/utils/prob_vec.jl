@@ -27,3 +27,6 @@ rand_prob_vec(rng::AbstractRNG, n::Integer) = rand_prob_vec(rng, Float64, n)
 
 rand_prob_vec(::Type{R}, n::Integer) where {R} = rand_prob_vec(GLOBAL_RNG, R, n)
 rand_prob_vec(n::Integer) = rand_prob_vec(GLOBAL_RNG, n)
+
+make_row_stochastic(x::AbstractArray{<:Real}) = x ./ sum(x; dims=2)
+make_column_stochastic(x::AbstractArray{<:Real}) = x ./ sum(x; dims=1)

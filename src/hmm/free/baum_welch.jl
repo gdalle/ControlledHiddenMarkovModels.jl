@@ -5,7 +5,6 @@ function baum_welch_multiple_sequences!(
     obs_sequences::AbstractVector;
     max_iterations::Integer=100,
     tol::Real=1e-3,
-    show_progress::Bool=true,
 ) where {R,H<:AbstractHMM}
     hmm = hmm_init
     S = nb_states(hmm)
@@ -16,8 +15,7 @@ function baum_welch_multiple_sequences!(
     logL_evolution = float(R)[]
     logL_by_seq = Vector{float(R)}(undef, K)
     # Main loop
-    prog = Progress(max_iterations; desc="Baum-Welch algorithm", enabled=show_progress)
-    for iteration in 1:max_iterations
+    @progress for iteration in 1:max_iterations
         for k in 1:K
             # Local forward-backward
             update_obs_density!(obs_densities[k], hmm, obs_sequences[k])
@@ -43,8 +41,6 @@ function baum_welch_multiple_sequences!(
 
         if iteration > 1 && (logL_evolution[end] - logL_evolution[end - 1]) / sum(T) < tol
             break
-        else
-            next!(prog)
         end
     end
 

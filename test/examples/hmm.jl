@@ -52,7 +52,7 @@ em_init = [Normal(1.0), Normal(-1.0)]
 hmm_init = GaussianHMM(p0_init, P_init, em_init)
 
 hmm_est, logL_evolution = baum_welch_multiple_sequences(
-    hmm_init, obs_sequences; max_iterations=100, tol=1e-5, show_progress=false
+    hmm_init, obs_sequences; max_iterations=100, tol=1e-5
 );
 
 ## Testing
@@ -102,11 +102,7 @@ em_init_poisson = [
 hmm_init_poisson = PoissonHMM(p0_init, P_init, em_init_poisson)
 
 hmm_est_poisson, logL_evolution_poisson = baum_welch_multiple_sequences(
-    hmm_init_poisson,
-    obs_sequences_poisson;
-    max_iterations=100,
-    tol=1e-5,
-    show_progress=false,
+    hmm_init_poisson, obs_sequences_poisson; max_iterations=100, tol=NaN
 );
 
 ## Testing

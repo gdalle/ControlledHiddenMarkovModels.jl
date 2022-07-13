@@ -5,9 +5,9 @@ const CHMMs = ControlledHiddenMarkovModels
 using DensityInterface: DensityInterface, densityof, logdensityof
 using Distributions: Distributions
 using Distributions: Categorical, Exponential, Normal, Poisson, Product, Uniform
-using Distributions: fit, fit_mle, suffstats
+using Distributions: fit, fit_mle, suffstats, product_distribution
 using LinearAlgebra
-using ProgressMeter: Progress, next!
+using ProgressLogging: @progress
 using Random: AbstractRNG, GLOBAL_RNG, rand
 
 ## Utilities
@@ -71,6 +71,7 @@ export flat_prior
 
 export is_prob_vec, rand_prob_vec
 export is_trans_mat, rand_trans_mat
+export make_row_stochastic, make_column_stochastic
 
 export History
 export event_times, event_marks
