@@ -3,11 +3,13 @@ function sample_hitting_times(
     mc::AbstractControlledMarkovChain,
     target::Integer,
     control_matrix::AbstractMatrix,
-    p0=initial_distribution(mc);
+    p0,
+    ps,
+    st;
     nb_samples=10,
     check_args=false,
 )
-    P_all = transition_matrix(mc, control_matrix, args...)
+    P_all = transition_matrix(mc, control_matrix, ps, st)
     hitting_times = fill(T + 1, nb_samples)
     T = size(control_matrix, 2)
     for k in 1:nb_samples
@@ -32,8 +34,12 @@ function sample_hitting_times(
     mc::AbstractControlledMarkovChain,
     target::Integer,
     control_matrix::AbstractMatrix,
-    p0=initial_distribution(mc);
+    p0,
+    ps,
+    st;
     kwargs...,
 )
-    return sample_hitting_times(GLOBAL_RNG, mc, target, control_matrix, p0; kwargs...)
+    return sample_hitting_times(
+        GLOBAL_RNG, mc, target, control_matrix, p0, ps, st; kwargs...
+    )
 end

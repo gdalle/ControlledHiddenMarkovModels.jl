@@ -1,7 +1,7 @@
 """
     History{M,T}
 
-Linear event histories with marks of type `M` and locations of type `T`.
+Linear event histories with marks of type `M` and locations of type `T`, usually times represented as real numbers.
 
 # Fields
 
@@ -46,22 +46,29 @@ Return the end time of `h` (not the same as the last event time).
 max_time(h::History) = h.tmax
 
 """
-    nb_events(h::History, tmin=-Inf, tmax=Inf)
+    nb_events(h::History, tmin, tmax)
 
 Count events in `h` during the interval `[tmin, tmax)`.
 """
-function nb_events(h::History, tmin=-Inf, tmax=Inf)
+function nb_events(h::History{M,T}, tmin, tmax) where {M,T}
     i_min = searchsortedfirst(event_times(h), tmin)
     i_max = searchsortedlast(event_times(h), tmax - eps(tmax))
     return i_max - i_min + 1
 end
 
+nb_events(h::History) = length(h.marks)
+
+Base.length(h::History) = nb_events(h)
+
+
 """
-    has_events(h::History, tmin=-Inf, tmax=Inf)
+    has_events(h::History, tmin, tmax)
 
 Check the presence of events in `h` during the interval `[tmin, tmax)`.
 """
-has_events(h::History, tmin=-Inf, tmax=Inf) = nb_events(h, tmin, tmax) > 0
+has_events(h::History, tmin, tmax) = nb_events(h, tmin, tmax) > 0
+
+has_events(h::History) = nb_events(h) > 0
 
 """
     duration(h::History)
@@ -89,7 +96,8 @@ end
 Add event `(t, m)` at the end of history `h`.
 """
 function Base.push!(h::History, t, m)
-    @assert h.tmin <= h.times[end] <= t < h.tmax
+    @assert h.tmin <= t < h.tmax
+    @assert (length(h) == 0) || (h.times[end] <= t)
     push!(h.times, t)
     push!(h.marks, m)
     return nothing

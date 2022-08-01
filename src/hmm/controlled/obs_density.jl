@@ -3,10 +3,11 @@ function update_obs_density!(
     hmm::AbstractControlledHMM,
     obs_sequence::AbstractVector,
     control_matrix::AbstractMatrix,
-    args...,
+    ps,
+    st,
 ) where {R<:Real}
     T, S = length(obs_sequence), nb_states(hmm)
-    θ_all = emission_parameters(hmm, control_matrix, args...)
+    θ_all = emission_parameters(hmm, control_matrix, ps, st)
     for t in 1:T
         yₜ = obs_sequence[t]
         θₜ = @view θ_all[:, :, t]
@@ -24,10 +25,11 @@ function compute_obs_density(
     hmm::AbstractControlledHMM,
     obs_sequence::AbstractVector,
     control_matrix::AbstractMatrix,
-    args...,
+    ps,
+    st,
 )
     T, S = length(obs_sequence), nb_states(hmm)
-    θ_all = emission_parameters(hmm, control_matrix, args...)
+    θ_all = emission_parameters(hmm, control_matrix, ps, st)
     obs_density = @views [
         densityof(emission_from_parameters(hmm, θ_all[:, i, t]), obs_sequence[t]) for
         i in 1:S, t in 1:T

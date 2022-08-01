@@ -16,6 +16,7 @@ include("utils/prob_vec.jl")
 include("utils/trans_mat.jl")
 include("utils/overflow.jl")
 include("utils/storage.jl")
+include("utils/logsumexp.jl")
 
 ## Point processes
 
@@ -53,6 +54,7 @@ include("hmm/free/abstract_hmm.jl")
 include("hmm/free/simulation.jl")
 include("hmm/free/obs_density.jl")
 include("hmm/free/forward_backward.jl")
+include("hmm/free/light_forward.jl")
 include("hmm/free/density.jl")
 include("hmm/free/inference.jl")
 include("hmm/free/baum_welch.jl")
@@ -60,6 +62,7 @@ include("hmm/free/baum_welch.jl")
 include("hmm/controlled/abstract_controlled_hmm.jl")
 include("hmm/controlled/simulation.jl")
 include("hmm/controlled/forward_backward.jl")
+include("hmm/controlled/light_forward.jl")
 include("hmm/controlled/density.jl")
 include("hmm/controlled/inference.jl")
 

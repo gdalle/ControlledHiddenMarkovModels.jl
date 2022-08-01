@@ -2,8 +2,9 @@ function DensityInterface.logdensityof(
     hmm::AbstractControlledHMM,
     obs_sequence::AbstractVector,
     control_matrix::AbstractMatrix,
-    args...,
+    ps,
+    st,
 )
-    α, logL = light_forward(hmm, obs_sequence, control_matrix, args...)
+    logα, logL = light_logforward(hmm, obs_sequence, control_matrix, ps, st)
     return logL
 end

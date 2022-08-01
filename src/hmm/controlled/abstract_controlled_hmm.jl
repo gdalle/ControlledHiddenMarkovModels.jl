@@ -8,16 +8,12 @@ nb_states(::AbstractControlledHMM) = error("Not implemented.")
 
 initial_distribution(::AbstractControlledHMM) = error("Not implemented.")
 
-function transition_matrix(::AbstractControlledHMM, u, args...)
-    return error("Not implemented with control $(typeof(u)) and arguments $(typeof(args)).")
-end
+transition_matrix(::AbstractControlledHMM, u, ps, st) = error("Not implemented.")
 
-function emission_parameters(::AbstractControlledHMM, u, args...)
-    return error("Not implemented with control $(typeof(u)) and arguments $(typeof(args)).")
-end
+emission_parameters(::AbstractControlledHMM, u, ps, st) = error("Not implemented.")
 
 emission_from_parameters(::AbstractControlledHMM, θ) = error("Not implemented.")
 
-function transition_matrix_and_emission_parameters(hmm::AbstractControlledHMM, u, args...)
-    return (transition_matrix(hmm, u, args...), emission_parameters(hmm, u, args...))
+function transition_matrix_and_emission_parameters(hmm::AbstractControlledHMM, u, ps, st)
+    return (transition_matrix(hmm, u, ps, st), emission_parameters(hmm, u, ps, st))
 end
