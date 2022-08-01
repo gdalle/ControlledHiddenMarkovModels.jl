@@ -64,8 +64,7 @@ function Distributions.suffstats(
 end
 
 function Distributions.suffstats(
-    ::Type{MarkovChain{R1,R2}},
-    state_sequences::AbstractVector{<:AbstractVector{<:Integer}},
+    ::Type{MarkovChain{R1,R2}}, state_sequences::AbstractVector{<:AbstractVector{<:Integer}}
 ) where {R1,R2}
     S = mapreduce(maximum, max, state_sequences)
     initialization_count = zeros(R1, S)

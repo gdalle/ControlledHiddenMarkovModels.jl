@@ -1,13 +1,13 @@
 function Base.rand(
     rng::AbstractRNG,
     mc::AbstractControlledMarkovChain,
-    control_sequence::AbstractMatrix{<:Real},
+    control_matrix::AbstractMatrix{<:Real},
     args...;
     check_args=false,
 )
     p0 = initial_distribution(mc)
-    P_all = transition_matrix(mc, control_sequence, args...)
-    T = size(control_sequence, 2)
+    P_all = transition_matrix(mc, control_matrix, args...)
+    T = size(control_matrix, 2)
     state_sequence = Vector{Int}(undef, T)
     state_sequence[1] = rand(rng, Categorical(p0; check_args=check_args))
     for t in 1:(T - 1)
@@ -21,9 +21,9 @@ end
 
 function Base.rand(
     mc::AbstractControlledMarkovChain,
-    control_sequence::AbstractMatrix{<:Real},
+    control_matrix::AbstractMatrix{<:Real},
     args...;
     check_args=false,
 )
-    return rand(GLOBAL_RNG, mc, control_sequence, args...; check_args=check_args)
+    return rand(GLOBAL_RNG, mc, control_matrix, args...; check_args=check_args)
 end

@@ -1,13 +1,13 @@
 function light_forward(
     hmm::AbstractControlledHMM,
     obs_sequence::AbstractVector,
-    control_sequence::AbstractMatrix,
+    control_matrix::AbstractMatrix,
     args...,
 )
     S = nb_states(hmm)
     T = length(obs_sequence)
     p0 = initial_distribution(hmm)
-    P_all, θ_all = transition_matrix_and_emission_parameters(hmm, control_sequence, args...)
+    P_all, θ_all = transition_matrix_and_emission_parameters(hmm, control_matrix, args...)
     # Initialization
     y₁ = obs_sequence[1]
     θ₁ = @view θ_all[:, :, 1]
@@ -95,11 +95,11 @@ function forward_backward!(
     α_sum_inv::AbstractVector{R},
     hmm::AbstractControlledHMM,
     obs_density::AbstractMatrix{R},
-    control_sequence::AbstractMatrix{<:Real},
+    control_matrix::AbstractMatrix{<:Real},
     args...,
 ) where {R<:Real}
     S, T = size(obs_density)
-    P_all = transition_matrix(hmm, control_sequence, args...)
+    P_all = transition_matrix(hmm, control_matrix, args...)
     forward!(α, α_sum_inv, hmm, obs_density, P_all)
     backward!(β, α_sum_inv, hmm, obs_density, P_all)
     # State sufficient statistics

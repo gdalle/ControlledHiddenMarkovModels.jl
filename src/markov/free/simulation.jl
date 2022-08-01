@@ -13,5 +13,5 @@ function Base.rand(rng::AbstractRNG, mc::MarkovChain, T::Integer; check_args=fal
 end
 
 function Base.rand(mc::MarkovChain, T::Integer; check_args=false)
-    return rand(GLOBAL_RNG, mc, T, control_sequence, args...; check_args=check_args)
+    return rand(GLOBAL_RNG, mc, T, control_matrix, args...; check_args=check_args)
 end

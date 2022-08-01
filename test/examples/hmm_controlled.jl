@@ -31,10 +31,8 @@ G = 3
 P_μ_model = Chain(
     Dense(U, 1),
     BranchLayer(
-        Chain(
-            Dense(1 => S^2, softplus; bias=false), ReshapeLayer((S, S)), make_row_stochastic
-        ),
-        Chain(Dense(1 => S * G, identity; bias=false), ReshapeLayer((G, S))),
+        Chain(Dense(1 => S^2, softplus), ReshapeLayer((S, S)), make_row_stochastic),
+        Chain(Dense(1 => S * G, identity), ReshapeLayer((G, S))),
     ),
 )
 
@@ -70,16 +68,16 @@ ps_init = ComponentVector(ps_init);
 
 nhmm = NeuralGaussianHMM(p0, P_μ_model);
 
-control_sequence = randn(U, T);
-state_sequence, obs_sequence = rand(nhmm, control_sequence, ps_true, st_true);
+control_matrix = randn(U, T);
+state_sequence, obs_sequence = rand(nhmm, control_matrix, ps_true, st_true);
 
-data = (nhmm, obs_sequence, control_sequence, st_init);
+data = (nhmm, obs_sequence, control_matrix, st_init);
 
 ## Learning
 
 function loss(ps, data)
-    (nhmm, obs_sequence, control_sequence, st) = data
-    return -logdensityof(nhmm, obs_sequence, control_sequence, ps, st)
+    (nhmm, obs_sequence, control_matrix, st) = data
+    return -logdensityof(nhmm, obs_sequence, control_matrix, ps, st)
 end
 
 f = OptimizationFunction(loss, Optimization.AutoForwardDiff());
@@ -89,9 +87,9 @@ ps_est = res.u;
 
 ## Testing
 
-logL_true = logdensityof(nhmm, obs_sequence, control_sequence, ps_true, st_true)
-logL_init = logdensityof(nhmm, obs_sequence, control_sequence, ps_init, st_init)
-logL_est = logdensityof(nhmm, obs_sequence, control_sequence, ps_est, st_init)
+logL_true = logdensityof(nhmm, obs_sequence, control_matrix, ps_true, st_true)
+logL_init = logdensityof(nhmm, obs_sequence, control_matrix, ps_init, st_init)
+logL_est = logdensityof(nhmm, obs_sequence, control_matrix, ps_est, st_init)
 
 @test logL_est > logL_init
 
@@ -108,14 +106,12 @@ V = 4
 P_λ_p_model = Chain(
     Dense(U, 1),
     BranchLayer(
-        Chain(
-            Dense(1 => S^2, softplus; bias=false), ReshapeLayer((S, S)), make_row_stochastic
-        ),
+        Chain(Dense(1 => S^2, softplus), ReshapeLayer((S, S)), make_row_stochastic),
         Parallel(
             vcat,
-            Chain(Dense(1 => S, softplus; bias=false), ReshapeLayer((1, S))),
+            Chain(Dense(1 => S, softplus), ReshapeLayer((1, S))),
             Chain(
-                Dense(1 => S * D * V, softplus; bias=false),
+                Dense(1 => S * D * V, softplus),
                 ReshapeLayer((V, D, S)),
                 make_column_stochastic,
                 ReshapeLayer((V * D, S)),
@@ -160,16 +156,16 @@ ps_init = ComponentVector(ps_init);
 
 nhmm = NeuralPoissonHMM(D, V, p0, P_λ_p_model);
 
-control_sequence = rand(U, T);
-state_sequence, obs_sequence = rand(nhmm, control_sequence, ps_true, st_true);
+control_matrix = rand(U, T);
+state_sequence, obs_sequence = rand(nhmm, control_matrix, ps_true, st_true);
 
-data = (nhmm, obs_sequence, control_sequence, st_init);
+data = (nhmm, obs_sequence, control_matrix, st_init);
 
 ## Learning
 
 function loss(ps, data)
-    (nhmm, obs_sequence, control_sequence, st) = data
-    return -logdensityof(nhmm, obs_sequence, control_sequence, ps, st)
+    (nhmm, obs_sequence, control_matrix, st) = data
+    return -logdensityof(nhmm, obs_sequence, control_matrix, ps, st)
 end
 
 f = OptimizationFunction(loss, Optimization.AutoForwardDiff());
@@ -179,8 +175,8 @@ ps_est = res.u;
 
 ## Testing
 
-logL_true = logdensityof(nhmm, obs_sequence, control_sequence, ps_true, st_true)
-logL_init = logdensityof(nhmm, obs_sequence, control_sequence, ps_init, st_init)
-logL_est = logdensityof(nhmm, obs_sequence, control_sequence, ps_est, st_init)
+logL_true = logdensityof(nhmm, obs_sequence, control_matrix, ps_true, st_true)
+logL_init = logdensityof(nhmm, obs_sequence, control_matrix, ps_init, st_init)
+logL_est = logdensityof(nhmm, obs_sequence, control_matrix, ps_est, st_init)
 
 @test logL_est > logL_init

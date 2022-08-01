@@ -1,5 +1,5 @@
 """
-    rand(rng, hmm::AbstractHMM, T[, control_sequence])
+    rand(rng, hmm::AbstractHMM, T[, control_matrix])
 
 Sample a sequence of states of length `T` and the associated sequence of observations.
 """

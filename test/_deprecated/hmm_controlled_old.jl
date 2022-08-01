@@ -55,13 +55,13 @@ Lux.apply(hmm.model, rand(U), ps, st)
 #-
 
 T = 1000
-control_sequence = [randn(U) for t in 1:T];
+control_matrix = [randn(U) for t in 1:T];
 
-state_sequence, obs_sequence = rand(rng, hmm, T, control_sequence, ps_real, st_real)
+state_sequence, obs_sequence = rand(rng, hmm, T, control_matrix, ps_real, st_real)
 
 #-
 
-ps_est, logL_evolution = baum_welch(hmm, obs_sequence, control_sequence, ps, st)
+ps_est, logL_evolution = baum_welch(hmm, obs_sequence, control_matrix, ps, st)
 
-@time baum_welch(hmm, obs_sequence, control_sequence, ps, st)
-@profview baum_welch(hmm, obs_sequence, control_sequence, ps, st)
+@time baum_welch(hmm, obs_sequence, control_matrix, ps, st)
+@profview baum_welch(hmm, obs_sequence, control_matrix, ps, st)

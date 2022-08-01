@@ -1,11 +1,11 @@
 function DensityInterface.logdensityof(
     mc::AbstractControlledMarkovChain,
     state_sequence::AbstractVector{<:Integer},
-    control_sequence::AbstractMatrix{<:Real},
+    control_matrix::AbstractMatrix{<:Real},
     args...,
 )
     p0 = initial_distribution(mc)
-    P_all = transition_matrix(mc, control_sequence, args...)
+    P_all = transition_matrix(mc, control_matrix, args...)
     T = length(state_sequence)
     i₁ = state_sequence[1]
     logL = log(p0[i₁])

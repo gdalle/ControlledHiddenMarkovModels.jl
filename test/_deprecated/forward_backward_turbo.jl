@@ -1,7 +1,10 @@
 ## Forward-backward
 
 function forward_turbo!(
-    α::AbstractMatrix{R}, α_sum::AbstractVector{R}, hmm::AbstractHMM, obs_density::AbstractMatrix{R}
+    α::AbstractMatrix{R},
+    α_sum::AbstractVector{R},
+    hmm::AbstractHMM,
+    obs_density::AbstractMatrix{R},
 ) where {R<:Real}
     S, T = size(obs_density)
     p0, P = initial_distribution(hmm), transition_matrix(hmm)
@@ -32,7 +35,10 @@ function forward_turbo!(
 end
 
 function backward_turbo!(
-    β::AbstractMatrix{R}, α_sum::AbstractVector{R}, hmm::AbstractHMM, obs_density::AbstractMatrix{R}
+    β::AbstractMatrix{R},
+    α_sum::AbstractVector{R},
+    hmm::AbstractHMM,
+    obs_density::AbstractMatrix{R},
 ) where {R<:Real}
     S, T = size(obs_density)
     P = transition_matrix(hmm)

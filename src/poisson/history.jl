@@ -1,7 +1,7 @@
 """
-    History{M,T<:Real}
+    History{M,T}
 
-Linear event histories with marks of type `M` and locations of real type `T`.
+Linear event histories with marks of type `M` and locations of type `T`.
 
 # Fields
 
@@ -10,7 +10,7 @@ Linear event histories with marks of type `M` and locations of real type `T`.
 - `tmin::T`: start time
 - `tmax::T`: end time
 """
-mutable struct History{M,T<:Real}
+mutable struct History{M,T}
     times::Vector{T}
     marks::Vector{M}
     tmin::T
@@ -89,7 +89,7 @@ end
 Add event `(t, m)` at the end of history `h`.
 """
 function Base.push!(h::History, t, m)
-    @assert h.tmin <= t < h.tmax
+    @assert h.tmin <= h.times[end] <= t < h.tmax
     push!(h.times, t)
     push!(h.marks, m)
     return nothing

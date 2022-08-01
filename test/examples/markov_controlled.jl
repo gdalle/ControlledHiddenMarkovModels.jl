@@ -43,14 +43,14 @@ ps_true, st_true = Lux.setup(rng, P_model)
 ps_init, st_init = Lux.setup(rng, P_model)
 ps_init = ComponentVector(ps_init)
 
-control_sequence = randn(U, T);
-state_sequence = rand(mc, control_sequence, ps_true, st_true);
+control_matrix = randn(U, T);
+state_sequence = rand(mc, control_matrix, ps_true, st_true);
 
-data = (mc, state_sequence, control_sequence, st_init)
+data = (mc, state_sequence, control_matrix, st_init)
 
 function loss(ps, data)
-    (mc, state_sequence, control_sequence, st) = data
-    return -logdensityof(mc, state_sequence, control_sequence, ps, st)
+    (mc, state_sequence, control_matrix, st) = data
+    return -logdensityof(mc, state_sequence, control_matrix, ps, st)
 end
 
 f = OptimizationFunction(loss, Optimization.AutoForwardDiff());
@@ -58,9 +58,9 @@ prob = OptimizationProblem(f, ps_init, data);
 res = solve(prob, OptimizationOptimJL.LBFGS());
 ps_est = res.u
 
-logL_true = logdensityof(mc, state_sequence, control_sequence, ps_true, st_true)
-logL_init = logdensityof(mc, state_sequence, control_sequence, ps_init, st_init)
-logL_est = logdensityof(mc, state_sequence, control_sequence, ps_est, st_init)
+logL_true = logdensityof(mc, state_sequence, control_matrix, ps_true, st_true)
+logL_init = logdensityof(mc, state_sequence, control_matrix, ps_init, st_init)
+logL_est = logdensityof(mc, state_sequence, control_matrix, ps_est, st_init)
 
 @test logL_true > logL_init
 @test logL_est > logL_true

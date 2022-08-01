@@ -1,7 +1,4 @@
-function light_forward(
-    hmm::AbstractHMM,
-    obs_sequence::AbstractVector,
-)
+function light_forward(hmm::AbstractHMM, obs_sequence::AbstractVector)
     S = nb_states(hmm)
     T = length(obs_sequence)
     p0 = initial_distribution(hmm)

@@ -23,6 +23,7 @@ include("poisson/history.jl")
 include("poisson/abstract_poisson_process.jl")
 include("poisson/simulation.jl")
 include("poisson/density.jl")
+include("poisson/delimited.jl")
 
 include("poisson/multivariate/multivariate_poisson_process.jl")
 include("poisson/multivariate/suffstats.jl")
@@ -78,6 +79,7 @@ export event_times, event_marks
 
 export AbstractPoissonProcess
 export log_intensity, ground_intensity, mark_distribution
+export DelimitedPoissonProcess
 export MultivariatePoissonProcess, MultivariatePoissonProcessPrior
 export MarkedPoissonProcess
 
