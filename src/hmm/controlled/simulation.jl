@@ -12,10 +12,10 @@ function Base.rand(
     state_sequence = Vector{Int}(undef, T)
     state_sequence[1] = rand(rng, Categorical(p0; check_args=check_args))
     for t in 1:(T - 1)
-        iₜ = state_sequence[t]
-        Pₜ_row = @view P_all[iₜ, :, t]
-        iₜ₊₁ = rand(rng, Categorical(Pₜ_row; check_args=check_args))
-        state_sequence[t + 1] = iₜ₊₁
+        sₜ = state_sequence[t]
+        Pₜ_row = @view P_all[sₜ, :, t]
+        sₜ₊₁ = rand(rng, Categorical(Pₜ_row; check_args=check_args))
+        state_sequence[t + 1] = sₜ₊₁
     end
 
     θ_all = emission_parameters(hmm, control_matrix, ps, st)

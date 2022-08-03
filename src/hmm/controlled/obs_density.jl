@@ -12,8 +12,8 @@ function update_obs_density!(
         yₜ = obs_sequence[t]
         θₜ = @view θ_all[:, :, t]
         for i in 1:S
-            emiₜ = @views emission_from_parameters(hmm, θₜ[:, i])
-            obs_density[i, t] = densityof(emiₜ, yₜ)
+            emsₜ = @views emission_from_parameters(hmm, θₜ[:, i])
+            obs_density[i, t] = densityof(emsₜ, yₜ)
         end
     end
     if @views any(all(iszero_safe, obs_density[:, t]) for t in 1:T)

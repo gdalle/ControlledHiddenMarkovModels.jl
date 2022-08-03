@@ -2,10 +2,9 @@ function sample_hitting_times(
     rng::AbstractRNG,
     mc::AbstractControlledMarkovChain,
     target::Integer,
-    control_matrix::AbstractMatrix,
+    control_sequence::AbstractVector,
     p0,
-    ps,
-    st;
+    params;
     nb_samples=10,
     check_args=false,
 )

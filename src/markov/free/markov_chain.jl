@@ -32,7 +32,7 @@ end
 
 nb_states(mc::MarkovChain) = length(mc.p0)
 initial_distribution(mc::MarkovChain) = mc.p0
-transition_matrix(mc::MarkovChain, u=nothing) = mc.P
+transition_matrix(mc::MarkovChain) = mc.P
 
 """
     stationary_distribution(mc::MarkovChain)

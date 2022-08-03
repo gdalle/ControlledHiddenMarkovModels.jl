@@ -17,57 +17,68 @@ Random.seed!(rng, 0)
 
 ## Struct
 
-struct NeuralMarkovChain{R,M} <: AbstractControlledMarkovChain
-    p0::Vector{R}
-    P_model::M
+struct ControlledMarkovChain <: AbstractControlledMarkovChain
+    S::Int
 end
 
-CHMMs.nb_states(nmc::NeuralMarkovChain) = length(nmc.p0)
-CHMMs.initial_distribution(nmc::NeuralMarkovChain) = nmc.p0
-CHMMs.transition_matrix(nmc::NeuralMarkovChain, u, ps, st) = first(nmc.P_model(u, ps, st))
+CHMMs.nb_states(cmc::ControlledMarkovChain) = cmc.S
+CHMMs.initial_distribution(cmc::ControlledMarkovChain) = ones(cmc.S) ./ cmc.S
+
+function CHMMs.transition_matrix!(
+    P::Matrix, ::ControlledMarkovChain, control::AbstractVector, params
+)
+    (; logP) = params
+    scale = sum(abs, control)
+    P .= scale .* exp.(logP)
+    P ./= sum(P; dims=2)
+    return P
+end
+
+function CHMMs.transition_matrix(
+    cmc::ControlledMarkovChain, control::AbstractVector, params
+)
+    (; logP) = params
+    scale = sum(abs, control)
+    P = scale .* exp.(logP)
+    P ./= sum(P; dims=2)
+    return P
+end
 
 ##
 
-U = 2
+U = 5
 S = 3
 T = 1000
 
-p0 = rand_prob_vec(S)
+mc = ControlledMarkovChain(S)
+params_true = ComponentVector(logP = randn(S, S),)
+params_init = ComponentVector(logP = randn(S, S),)
 
-P_model = Chain(
-    Dense(U, 1), Dense(1, S^2, softplus), ReshapeLayer((S, S)), make_row_stochastic
-)
-mc = NeuralMarkovChain(p0, P_model)
+control_sequence = [randn(U) for t in 1:T];
+state_sequence = rand(mc, control_sequence, params_true);
 
-ps_true, st_true = Lux.setup(rng, P_model)
-ps_init, st_init = Lux.setup(rng, P_model)
-ps_init = ComponentVector(ps_init)
+data = (mc, state_sequence, control_sequence);
 
-control_matrix = randn(U, T);
-state_sequence = rand(mc, control_matrix, ps_true, st_true);
-
-data = (mc, state_sequence, control_matrix, st_init)
-
-function loss(ps, data)
-    (mc, state_sequence, control_matrix, st) = data
-    return -logdensityof(mc, state_sequence, control_matrix, ps, st)
+function loss(params, data)
+    (mc, state_sequence, control_sequence) = data
+    return -logdensityof(mc, state_sequence, control_sequence, params)
 end
 
 f = OptimizationFunction(loss, Optimization.AutoForwardDiff());
-prob = OptimizationProblem(f, ps_init, data);
+prob = OptimizationProblem(f, params_init, data);
 res = solve(prob, OptimizationOptimJL.LBFGS());
-ps_est = res.u
+params_est = res.u
 
-logL_true = logdensityof(mc, state_sequence, control_matrix, ps_true, st_true)
-logL_init = logdensityof(mc, state_sequence, control_matrix, ps_init, st_init)
-logL_est = logdensityof(mc, state_sequence, control_matrix, ps_est, st_init)
+logL_true = logdensityof(mc, state_sequence, control_sequence, params_true)
+logL_init = logdensityof(mc, state_sequence, control_sequence, params_init)
+logL_est = logdensityof(mc, state_sequence, control_sequence, params_est)
 
 @test logL_true > logL_init
 @test logL_est > logL_true
 
-P_true = transition_matrix(mc, ones(U, 1), ps_true, st_true)
-P_init = transition_matrix(mc, ones(U, 1), ps_init, st_init)
-P_est = transition_matrix(mc, ones(U, 1), ps_est, st_init)
+P_true = transition_matrix(mc, ones(U), params_true)
+P_init = transition_matrix(mc, ones(U), params_init)
+P_est = transition_matrix(mc, ones(U), params_est)
 
 err_init = mean(abs, P_true - P_init)
 err_est = mean(abs, P_true - P_est)

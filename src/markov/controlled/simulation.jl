@@ -1,31 +1,31 @@
 function Base.rand(
     rng::AbstractRNG,
     mc::AbstractControlledMarkovChain,
-    control_matrix::AbstractMatrix{<:Real},
-    ps,
-    st;
+    control_sequence::AbstractVector,
+    params;
     check_args=false,
 )
     p0 = initial_distribution(mc)
-    P_all = transition_matrix(mc, control_matrix, ps, st)
-    T = size(control_matrix, 2)
+    T = length(control_sequence)
     state_sequence = Vector{Int}(undef, T)
     state_sequence[1] = rand(rng, Categorical(p0; check_args=check_args))
-    for t in 1:(T - 1)
-        iₜ = state_sequence[t]
-        Pₜ_row = view(P_all, iₜ, :, t)
-        iₜ₊₁ = rand(rng, Categorical(Pₜ_row; check_args=check_args))
-        state_sequence[t + 1] = iₜ₊₁
+    c₁ = control_sequence[1]
+    P = transition_matrix(mc, c₁, params)
+    @views for t in 1:(T - 1)
+        sₜ = state_sequence[t]
+        sₜ₊₁ = rand(rng, Categorical(P[sₜ, :]; check_args=check_args))
+        state_sequence[t + 1] = sₜ₊₁
+        cₜ₊₁ = control_sequence[t + 1]
+        transition_matrix!(P, mc, cₜ₊₁, params)
     end
     return state_sequence
 end
 
 function Base.rand(
     mc::AbstractControlledMarkovChain,
-    control_matrix::AbstractMatrix{<:Real},
-    ps,
-    st;
+    control_sequence::AbstractVector,
+    params;
     check_args=false,
 )
-    return rand(GLOBAL_RNG, mc, control_matrix, ps, st; check_args=check_args)
+    return rand(GLOBAL_RNG, mc, control_sequence, params; check_args=check_args)
 end

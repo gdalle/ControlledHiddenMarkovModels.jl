@@ -34,12 +34,12 @@ Compute the log-likelihood of the chain `mc` with respect to a `prior`.
 """
 function DensityInterface.logdensityof(prior::MarkovChainPrior, mc::MarkovChain)
     (; p0_α, P_α) = prior
-    S = length(p0_α)
+    S = nb_states(mc)
     p0 = initial_distribution(mc)
     P = transition_matrix(mc)
     l = logdensityof(Dirichlet(p0_α), p0)
-    for i in 1:S
-        l += logdensityof(Dirichlet(view(P_α, i, :)), view(P, i, :))
+    @views for s in 1:S
+        l += logdensityof(Dirichlet(P_α[s, :]), P[s, :])
     end
     return l
 end
@@ -51,11 +51,12 @@ Sample a [`MarkovChain`](@ref) from `prior`.
 """
 function Base.rand(rng::AbstractRNG, prior::MarkovChainPrior; check_args=false)
     (; p0_α, P_α) = prior
-    S = length(p0_α)
+    S = nb_states(mc)
     p0 = rand(rng, Dirichlet(p0_α; check_args=check_args))
-    P = reduce(
-        vcat, rand(rng, Dirichlet(view(P_α, i, :); check_args=check_args)) for i in 1:S
-    )
+    P = zeros(eltype(P_α), S, S)
+    @views for s in 1:S
+        P[s, :] .= rand(rng, Dirichlet(P_α[s, :]; check_args=check_args))
+    end
     return MarkovChain(p0, P)
 end
 

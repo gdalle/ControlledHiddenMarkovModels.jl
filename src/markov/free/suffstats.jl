@@ -57,8 +57,8 @@ function Distributions.suffstats(
     transition_count = zeros(R2, S, S)
     initialization_count[first(state_sequence)] = one(R1)
     for t in 1:(T - 1)
-        iₜ, iₜ₊₁ = state_sequence[t], state_sequence[t + 1]
-        transition_count[iₜ, iₜ₊₁] += one(R2)
+        sₜ, sₜ₊₁ = state_sequence[t], state_sequence[t + 1]
+        transition_count[sₜ, sₜ₊₁] += one(R2)
     end
     return MarkovChainStats{R1,R2}(initialization_count, transition_count)
 end
@@ -73,8 +73,8 @@ function Distributions.suffstats(
         initialization_count[first(state_sequence)] += one(R1)
         T = length(state_sequence)
         for t in 1:(T - 1)
-            iₜ, iₜ₊₁ = state_sequence[t], state_sequence[t + 1]
-            transition_count[iₜ, iₜ₊₁] += one(R2)
+            sₜ, sₜ₊₁ = state_sequence[t], state_sequence[t + 1]
+            transition_count[sₜ, sₜ₊₁] += one(R2)
         end
     end
     return MarkovChainStats{R1,R2}(initialization_count, transition_count)

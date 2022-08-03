@@ -62,16 +62,16 @@ end
 
 ## Simulation
 
-ps_true, st_true = Lux.setup(rng, P_μ_model);
-ps_init, st_init = Lux.setup(rng, P_μ_model);
+ps_true, st = Lux.setup(rng, P_μ_model);
+ps_init, _ = Lux.setup(rng, P_μ_model);
 ps_init = ComponentVector(ps_init);
 
 nhmm = NeuralGaussianHMM(p0, P_μ_model);
 
 control_matrix = randn(U, T);
-state_sequence, obs_sequence = rand(nhmm, control_matrix, ps_true, st_true);
+state_sequence, obs_sequence = rand(nhmm, control_matrix, ps_true, st);
 
-data = (nhmm, obs_sequence, control_matrix, st_init);
+data = (nhmm, obs_sequence, control_matrix, st);
 
 ## Learning
 
@@ -87,16 +87,16 @@ ps_est = res.u;
 
 ## Testing
 
-logL_true = logdensityof(nhmm, obs_sequence, control_matrix, ps_true, st_true)
-logL_init = logdensityof(nhmm, obs_sequence, control_matrix, ps_init, st_init)
-logL_est = logdensityof(nhmm, obs_sequence, control_matrix, ps_est, st_init)
+logL_true = logdensityof(nhmm, obs_sequence, control_matrix, ps_true, st)
+logL_init = logdensityof(nhmm, obs_sequence, control_matrix, ps_init, st)
+logL_est = logdensityof(nhmm, obs_sequence, control_matrix, ps_est, st)
 
 @test logL_est > logL_init
 
 single_control = randn(U, 1)
-P_true = transition_matrix(nhmm, single_control, ps_true, st_true)
-P_init = transition_matrix(nhmm, single_control, ps_init, st_init)
-P_est = transition_matrix(nhmm, single_control, ps_est, st_init)
+P_true = transition_matrix(nhmm, single_control, ps_true, st)
+P_init = transition_matrix(nhmm, single_control, ps_init, st)
+P_est = transition_matrix(nhmm, single_control, ps_est, st)
 
 ## Neural Poisson HMM
 
@@ -150,16 +150,16 @@ end
 
 ## Simulation
 
-ps_true, st_true = Lux.setup(rng, P_λ_p_model);
-ps_init, st_init = Lux.setup(rng, P_λ_p_model);
+ps_true, st = Lux.setup(rng, P_λ_p_model);
+ps_init, _ = Lux.setup(rng, P_λ_p_model);
 ps_init = ComponentVector(ps_init);
 
 nhmm = NeuralPoissonHMM(D, V, p0, P_λ_p_model);
 
 control_matrix = rand(U, T);
-state_sequence, obs_sequence = rand(nhmm, control_matrix, ps_true, st_true);
+state_sequence, obs_sequence = rand(nhmm, control_matrix, ps_true, st);
 
-data = (nhmm, obs_sequence, control_matrix, st_init);
+data = (nhmm, obs_sequence, control_matrix, st);
 
 ## Learning
 
@@ -175,8 +175,8 @@ ps_est = res.u;
 
 ## Testing
 
-logL_true = logdensityof(nhmm, obs_sequence, control_matrix, ps_true, st_true)
-logL_init = logdensityof(nhmm, obs_sequence, control_matrix, ps_init, st_init)
-logL_est = logdensityof(nhmm, obs_sequence, control_matrix, ps_est, st_init)
+logL_true = logdensityof(nhmm, obs_sequence, control_matrix, ps_true, st)
+logL_init = logdensityof(nhmm, obs_sequence, control_matrix, ps_init, st)
+logL_est = logdensityof(nhmm, obs_sequence, control_matrix, ps_est, st)
 
 @test logL_est > logL_init

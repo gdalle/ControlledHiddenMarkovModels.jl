@@ -3,11 +3,10 @@ function Base.rand(rng::AbstractRNG, mc::MarkovChain, T::Integer; check_args=fal
     P = transition_matrix(mc)
     state_sequence = Vector{Int}(undef, T)
     state_sequence[1] = rand(rng, Categorical(p0; check_args=check_args))
-    for t in 1:(T - 1)
-        iₜ = state_sequence[t]
-        P_row = @view P[iₜ, :]
-        iₜ₊₁ = rand(rng, Categorical(P_row; check_args=check_args))
-        state_sequence[t + 1] = iₜ₊₁
+    @views for t in 1:(T - 1)
+        sₜ = state_sequence[t]
+        sₜ₊₁ = rand(rng, Categorical(P[sₜ, :]; check_args=check_args))
+        state_sequence[t + 1] = sₜ₊₁
     end
     return state_sequence
 end
