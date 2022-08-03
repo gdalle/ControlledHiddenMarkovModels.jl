@@ -1,14 +1,15 @@
 abstract type AbstractControlledMarkovChain end
 
-nb_states(::AbstractControlledMarkovChain) = error("Not implemented.")
-initial_distribution(::AbstractControlledMarkovChain) = error("Not implemented.")
+nb_states(mc::AbstractControlledMarkovChain) = error("Not implemented.")
+initial_distribution(mc::AbstractControlledMarkovChain) = error("Not implemented.")
 
-function transition_matrix(::AbstractControlledMarkovChain, control, params)
+function transition_matrix(mc::AbstractControlledMarkovChain, control, parameters)
     return error("Not implemented.")
 end
 
 function transition_matrix!(
-    ::AbstractMatrix, ::AbstractControlledMarkovChain, control, params
+    P::AbstractMatrix, mc::AbstractControlledMarkovChain, control, parameters
 )
-    return error("Not implemented.")
+    P .= transition_matrix(mc, control, parameters)
+    return P
 end

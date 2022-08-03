@@ -60,7 +60,6 @@ nb_events(h::History) = length(h.marks)
 
 Base.length(h::History) = nb_events(h)
 
-
 """
     has_events(h::History, tmin, tmax)
 

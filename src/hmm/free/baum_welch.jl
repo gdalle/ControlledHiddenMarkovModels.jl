@@ -32,9 +32,9 @@ function baum_welch_multiple_sequences!(
         # Aggregated emissions
         em = Vector{emission_type(H)}(undef, S)
         xs = (obs_sequences[k] for k in 1:K)
-        for i in 1:S
-            ws = (view(γ[k], i, :) for k in 1:K)
-            em[i] = fit_emission_from_multiple_sequences(H, xs, ws)
+        for s in 1:S
+            ws = (view(γ[k], s, :) for k in 1:K)
+            em[s] = fit_emission_from_multiple_sequences(H, xs, ws)
         end
         # New object
         hmm = H(p0, P, em)

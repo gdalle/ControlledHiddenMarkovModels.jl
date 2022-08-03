@@ -99,6 +99,5 @@ export infer_current_state
 
 export AbstractControlledHiddenMarkovModel, AbstractControlledHMM
 export emission_parameters, emission_from_parameters
-export transition_matrix_and_emission_parameters
 
 end

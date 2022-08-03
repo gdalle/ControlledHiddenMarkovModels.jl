@@ -4,8 +4,8 @@ function DensityInterface.logdensityof(
     control_sequence::AbstractVector,
     params,
 )
-    p0 = initial_distribution(mc)
     T = length(state_sequence)
+    p0 = initial_distribution(mc)
     s₁ = state_sequence[1]
     logL = log(p0[s₁])
     c₁ = control_sequence[1]

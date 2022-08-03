@@ -1,34 +1,47 @@
 function Base.rand(
     rng::AbstractRNG,
     hmm::AbstractControlledHMM,
-    control_matrix::AbstractMatrix,
-    ps,
-    st;
+    control_sequence::AbstractVector,
+    parameters;
     check_args=false,
 )
-    T = size(control_matrix, 2)
+    T = length(control_sequence)
     p0 = initial_distribution(hmm)
-    P_all = transition_matrix(hmm, control_matrix, ps, st)
-    state_sequence = Vector{Int}(undef, T)
-    state_sequence[1] = rand(rng, Categorical(p0; check_args=check_args))
-    for t in 1:(T - 1)
+
+    c₁ = control_sequence[1]
+    P = transition_matrix(hmm, c₁, parameters)
+    θ = emission_parameters(hmm, c₁, parameters)
+
+    s₁ = rand(rng, Categorical(p0; check_args=check_args))
+    state_sequence = Vector{typeof(s₁)}(undef, T)
+    state_sequence[1] = s₁
+    @views for t in 1:(T - 1)
+        cₜ = control_sequence[t]
+        transition_matrix!(P, hmm, cₜ, parameters)
         sₜ = state_sequence[t]
-        Pₜ_row = @view P_all[sₜ, :, t]
-        sₜ₊₁ = rand(rng, Categorical(Pₜ_row; check_args=check_args))
+        sₜ₊₁ = rand(rng, Categorical(P[sₜ, :]; check_args=check_args))
         state_sequence[t + 1] = sₜ₊₁
     end
 
-    θ_all = emission_parameters(hmm, control_matrix, ps, st)
-    obs_sequence = @views [
-        rand(rng, emission_from_parameters(hmm, θ_all[:, state_sequence[t], t])) for
-        t in 1:T
-    ]
+    o₁ = @views rand(rng, emission_from_parameters(hmm, θ[:, s₁]))
+    obs_sequence = Vector{typeof(o₁)}(undef, T)
+    obs_sequence[1] = o₁
+    @views for t in 2:T
+        cₜ = control_sequence[t]
+        emission_parameters!(θ, hmm, cₜ, parameters)
+        sₜ = state_sequence[t]
+        oₜ = rand(rng, emission_from_parameters(hmm, θ[:, sₜ]))
+        obs_sequence[t] = oₜ
+    end
 
     return state_sequence, obs_sequence
 end
 
 function Base.rand(
-    hmm::AbstractControlledHMM, control_matrix::AbstractMatrix, ps, st; check_args=false
+    hmm::AbstractControlledHMM,
+    control_sequence::AbstractVector,
+    parameters;
+    check_args=false,
 )
-    return rand(GLOBAL_RNG, hmm, control_matrix, ps, st; check_args=check_args)
+    return rand(GLOBAL_RNG, hmm, control_sequence, parameters; check_args=check_args)
 end
