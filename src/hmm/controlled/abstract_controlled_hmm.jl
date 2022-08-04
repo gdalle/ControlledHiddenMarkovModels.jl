@@ -6,17 +6,17 @@ const AbstractControlledHMM = AbstractControlledHiddenMarkovModel
 
 nb_states(hmm::AbstractControlledHMM) = error("Not implemented.")
 
-initial_distribution(hmm::AbstractControlledHMM) = error("Not implemented.")
+log_initial_distribution(hmm::AbstractControlledHMM) = error("Not implemented.")
 
-function transition_matrix(hmm::AbstractControlledHMM, control, parameters)
+function log_transition_matrix(hmm::AbstractControlledHMM, control, parameters)
     return error("Not implemented.")
 end
 
-function transition_matrix!(
-    P::AbstractMatrix, hmm::AbstractControlledHMM, control, parameters
+function log_transition_matrix!(
+    logP::AbstractMatrix, hmm::AbstractControlledHMM, control, parameters
 )
-    P .= transition_matrix(hmm, control, parameters)
-    return P
+    logP .= log_transition_matrix(hmm, control, parameters)
+    return logP
 end
 
 function emission_parameters(hmm::AbstractControlledHMM, control, parameters)

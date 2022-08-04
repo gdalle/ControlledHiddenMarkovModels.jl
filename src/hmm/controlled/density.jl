@@ -3,12 +3,7 @@ function DensityInterface.logdensityof(
     obs_sequence::AbstractVector,
     control_sequence::AbstractVector,
     params;
-    log=false,
 )
-    if log
-        α, logL = light_logforward(hmm, obs_sequence, control_sequence, params)
-    else
-        α, logL = light_forward(hmm, obs_sequence, control_sequence, params)
-    end
+    α, logL = light_forward(hmm, obs_sequence, control_sequence, params)
     return logL
 end

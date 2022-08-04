@@ -93,7 +93,7 @@ export MarkedPoissonProcess
 export LogMarkedPoissonProcess
 
 export MarkovChain, MarkovChainPrior, stationary_distribution
-export nb_states, initial_distribution, transition_matrix
+export nb_states, initial_distribution, transition_matrix, log_transition_matrix
 export sample_hitting_times
 
 export AbstractControlledMarkovChain

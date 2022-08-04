@@ -4,16 +4,15 @@ using ComponentArrays
 using ControlledHiddenMarkovModels
 using Distributions
 using LinearAlgebra
-using Lux
 using Optimization
 using ProgressMeter
 using Statistics
 using Random
 using Test
+using ThreadsX
 
 using ForwardDiff: ForwardDiff
 using OptimizationOptimisers: OptimizationOptimisers
-using NNlib: NNlib
 
 ## Setup
 
@@ -25,102 +24,112 @@ S = 5
 T = 100
 C = 40
 V = 3
-
-function loss(parameters, data)
-    (hmm, obs_sequence, control_sequence) = data
-    return -logdensityof(hmm, obs_sequence, control_sequence, parameters; log=true)
-end
+K = 10
 
 function callback(x, l)
     @info "Iteration" l
     return false
 end
 
-## Abstract Poisson HMM
+## Controlled Poisson HMM
 
-abstract type ControlledPoissonHMM <: AbstractControlledHMM end
-
-CHMMs.nb_states(hmm::ControlledPoissonHMM) = hmm.S
-CHMMs.initial_distribution(hmm::ControlledPoissonHMM) = ones(hmm.S) / hmm.S
-
-## Fast Poisson HMM
-
-struct FastPoissonHMM <: ControlledPoissonHMM
+struct ControlledPoissonHMM <: AbstractControlledHMM
     S::Int
 end
 
-function CHMMs.transition_matrix!(P::Matrix, hmm::FastPoissonHMM, control, parameters)
-    (; logP) = parameters
+CHMMs.nb_states(hmm::ControlledPoissonHMM) = hmm.S
+CHMMs.log_initial_distribution(hmm::ControlledPoissonHMM) = log.(ones(hmm.S) / hmm.S)
+
+function CHMMs.log_transition_matrix!(
+    logP::Matrix, hmm::ControlledPoissonHMM, control, parameters
+)
     shift = mean(control)
-    P .= logP .+ shift
-    @views for s in axes(P, 1)
-        P[s, :] .-= CHMMs.logsumexp(P[s, :])
+    logP .= parameters.logP .+ shift
+    @views for s in axes(logP, 1)
+        logP[s, :] .-= CHMMs.logsumexp_stream(logP[s, :])
     end
-    P .= exp.(P)
-    return P
+    return logP
 end
 
-function CHMMs.transition_matrix(hmm::FastPoissonHMM, control::AbstractVector, parameters)
-    (; logP) = parameters
-    P = Matrix{float(eltype(logP))}(undef, size(logP)...)
-    CHMMs.transition_matrix!(P, hmm, control, parameters)
-    return P
+function CHMMs.log_transition_matrix(
+    hmm::ControlledPoissonHMM, control::AbstractVector, parameters
+)
+    logP = similar(parameters.logP)
+    CHMMs.log_transition_matrix!(logP, hmm, control, parameters)
+    return logP
 end
 
 function CHMMs.emission_parameters!(
-    θ::AbstractVector, hmm::FastPoissonHMM, control, parameters
+    θ::AbstractVector, hmm::ControlledPoissonHMM, control, parameters
 )
     (; logλ, logp) = parameters.θ
     shift = mean(control)
-    θ.logλ .= logλ .+ shift
-    θ.logp .= logp .+ shift
+    for i in eachindex(θ.logλ)
+        θ.logλ[i] = logλ[i] + shift
+    end
+    for i in eachindex(θ.logp)
+        θ.logp[i] = logp[i] + shift
+    end
     @views for s in axes(θ.logp, 3), c in axes(θ.logp, 2)
-        θ.logp[:, c, s] .-= CHMMs.logsumexp(θ.logp[:, c, s])
+        θ.logp[:, c, s] .-= CHMMs.logsumexp_stream(θ.logp[:, c, s])
     end
     return θ
 end
 
-function CHMMs.emission_parameters(hmm::FastPoissonHMM, control, parameters)
+function CHMMs.emission_parameters(hmm::ControlledPoissonHMM, control, parameters)
     θ = similar(parameters.θ)
     CHMMs.emission_parameters!(θ, hmm, control, parameters)
     return θ
 end
 
-function CHMMs.emission_from_parameters(hmm::FastPoissonHMM, θ::AbstractVector, s::Integer)
+function CHMMs.emission_from_parameters(
+    hmm::ControlledPoissonHMM, θ::AbstractVector, s::Integer
+)
     logλ = θ.logλ[s]
     logp = @view θ.logp[:, :, s]
-    return DelimitedPoissonProcess(LogMarkedPoissonProcess(logλ, logp), 0., 1.)
+    return DelimitedPoissonProcess(LogMarkedPoissonProcess(logλ, logp), 0.0, 1.0)
 end
 
 ## Simulation
 
-hmm = FastPoissonHMM(S);
+hmm = ControlledPoissonHMM(S);
 
 parameters_true = ComponentVector(;
-    logP=randn(S, S), θ=ComponentVector(; logλ=randn(S), logp=randn(V, C, S))
+    logP=randn(S, S), θ=ComponentVector(; logλ=randn(S).+2, logp=randn(V, C, S))
 );
 parameters_init = ComponentVector(;
-    logP=randn(S, S), θ=ComponentVector(; logλ=randn(S), logp=randn(V, C, S))
+    logP=randn(S, S), θ=ComponentVector(; logλ=randn(S).+2, logp=randn(V, C, S))
 );
 
-control_sequence = [rand(U) for t in 1:T];
-state_sequence, obs_sequence = rand(hmm, control_sequence, parameters_true);
+control_sequences = [[rand(U) for t in 1:T] for k in 1:K];
+
+obs_sequences = [
+    last(rand(hmm, control_sequence, parameters_true)) for
+    control_sequence in control_sequences
+];
 
 ## Learning
 
-data = (hmm, obs_sequence, control_sequence);
+data = (hmm, obs_sequences, control_sequences);
+
+function loss(parameters, data)
+    (hmm, obs_sequences, control_sequences) = data
+    return -ThreadsX.sum(
+        logdensityof(hmm, os, cs, parameters) for
+        (os, cs) in zip(obs_sequences, control_sequences)
+    )
+end
+
 f = OptimizationFunction(loss, Optimization.AutoForwardDiff());
 prob = OptimizationProblem(f, parameters_init, data);
 res = solve(prob, OptimizationOptimisers.Adam(); maxiters=10);
-# @time solve(prob, OptimizationOptimisers.Adam(); maxiters=10);
-# @profview solve(prob, OptimizationOptimisers.Adam(); maxiters=10);
 
 parameters_est = res.u;
 
 ## Testing
 
-logL_true = logdensityof(hmm, obs_sequence, control_sequence, parameters_true)
-logL_init = logdensityof(hmm, obs_sequence, control_sequence, parameters_init)
-logL_est = logdensityof(hmm, obs_sequence, control_sequence, parameters_est)
+logL_true = logdensityof(hmm, obs_sequences[1], control_sequences[1], parameters_true)
+logL_init = logdensityof(hmm, obs_sequences[1], control_sequences[1], parameters_init)
+logL_est = logdensityof(hmm, obs_sequences[1], control_sequences[1], parameters_est)
 
 @test logL_est > logL_init

@@ -46,8 +46,8 @@ obs_sequences = [rand(rng, hmm, rand(1000:2000))[2] for k in 1:5];
 
 ## Learning
 
-p0_init = rand_prob_vec(rng, Float32, 2)
-P_init = rand_trans_mat(rng, Float32, 2)
+p0_init = rand_prob_vec(rng, LogFloat32, 2)
+P_init = rand_trans_mat(rng, LogFloat32, 2)
 em_init = [Normal(1.0), Normal(-1.0)]
 hmm_init = GaussianHMM(p0_init, P_init, em_init)
 

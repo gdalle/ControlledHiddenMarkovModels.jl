@@ -32,5 +32,7 @@ function log_intensity(pp::MarkedPoissonProcess, m::AbstractVector{<:Integer})
 end
 
 function mark_distribution(pp::MarkedPoissonProcess)
-    return @views Product([Categorical(pp.p[:, d]; check_args=false) for d in 1:length(pp)])
+    return @views product_distribution([
+        Categorical(pp.p[:, d]; check_args=false) for d in 1:length(pp)
+    ])
 end

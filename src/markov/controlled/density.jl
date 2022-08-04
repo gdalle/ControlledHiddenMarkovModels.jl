@@ -2,19 +2,19 @@ function DensityInterface.logdensityof(
     mc::AbstractControlledMarkovChain,
     state_sequence::AbstractVector{<:Integer},
     control_sequence::AbstractVector,
-    params,
+    parameters,
 )
     T = length(state_sequence)
-    p0 = initial_distribution(mc)
+    logp0 = log_initial_distribution(mc)
     s₁ = state_sequence[1]
-    logL = log(p0[s₁])
+    logL = logp0[s₁]
     c₁ = control_sequence[1]
-    P = transition_matrix(mc, c₁, params)
+    logP = log_transition_matrix(mc, c₁, parameters)
     for t in 1:(T - 1)
+        cₜ = control_sequence[t]
+        log_transition_matrix!(logP, mc, cₜ, parameters)
         sₜ, sₜ₊₁ = state_sequence[t], state_sequence[t + 1]
-        logL += log(P[sₜ, sₜ₊₁])
-        cₜ₊₁ = control_sequence[t + 1]
-        transition_matrix!(P, mc, cₜ₊₁, params)
+        logL += logP[sₜ, sₜ₊₁]
     end
     return logL
 end
