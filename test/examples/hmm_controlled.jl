@@ -38,7 +38,10 @@ struct ControlledPoissonHMM <: AbstractControlledHMM
 end
 
 CHMMs.nb_states(hmm::ControlledPoissonHMM) = hmm.S
-CHMMs.log_initial_distribution(hmm::ControlledPoissonHMM) = log.(ones(hmm.S) / hmm.S)
+
+function CHMMs.log_initial_distribution(hmm::ControlledPoissonHMM, parameters)
+    return log.(ones(hmm.S) / hmm.S)
+end
 
 function CHMMs.log_transition_matrix!(
     logP::Matrix, hmm::ControlledPoissonHMM, control, parameters
@@ -82,7 +85,7 @@ function CHMMs.emission_parameters(hmm::ControlledPoissonHMM, control, parameter
     return θ
 end
 
-function CHMMs.emission_from_parameters(
+function CHMMs.emission_distribution(
     hmm::ControlledPoissonHMM, θ::AbstractVector, s::Integer
 )
     logλ = θ.logλ[s]
@@ -95,10 +98,10 @@ end
 hmm = ControlledPoissonHMM(S);
 
 parameters_true = ComponentVector(;
-    logP=randn(S, S), θ=ComponentVector(; logλ=randn(S).+2, logp=randn(V, C, S))
+    logP=randn(S, S), θ=ComponentVector(; logλ=randn(S) .+ 2, logp=randn(V, C, S))
 );
 parameters_init = ComponentVector(;
-    logP=randn(S, S), θ=ComponentVector(; logλ=randn(S).+2, logp=randn(V, C, S))
+    logP=randn(S, S), θ=ComponentVector(; logλ=randn(S) .+ 2, logp=randn(V, C, S))
 );
 
 control_sequences = [[rand(U) for t in 1:T] for k in 1:K];

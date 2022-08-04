@@ -19,7 +19,10 @@ struct ControlledMarkovChain <: AbstractControlledMarkovChain
 end
 
 CHMMs.nb_states(mc::ControlledMarkovChain) = mc.S
-CHMMs.log_initial_distribution(mc::ControlledMarkovChain) = log.(ones(mc.S) ./ mc.S)
+
+function CHMMs.log_initial_distribution(mc::ControlledMarkovChain, parameters)
+    return log.(ones(mc.S) ./ mc.S)
+end
 
 function CHMMs.log_transition_matrix!(
     logP::Matrix, ::ControlledMarkovChain, control::AbstractVector, parameters
@@ -62,7 +65,7 @@ end
 
 f = OptimizationFunction(loss, Optimization.AutoForwardDiff());
 prob = OptimizationProblem(f, parameters_init, data);
-res = solve(prob, OptimizationOptimisers.Adam(), maxiters=1000);
+res = solve(prob, OptimizationOptimisers.Adam(); maxiters=1000);
 parameters_est = res.u
 
 logL_true = logdensityof(mc, state_sequence, control_sequence, parameters_true)

@@ -104,6 +104,6 @@ export baum_welch_multiple_sequences, baum_welch
 export infer_current_state
 
 export AbstractControlledHiddenMarkovModel, AbstractControlledHMM
-export emission_parameters, emission_from_parameters
+export emission_parameters, emission_distribution
 
 end

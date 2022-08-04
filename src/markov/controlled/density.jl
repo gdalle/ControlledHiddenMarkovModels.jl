@@ -5,7 +5,7 @@ function DensityInterface.logdensityof(
     parameters,
 )
     T = length(state_sequence)
-    logp0 = log_initial_distribution(mc)
+    logp0 = log_initial_distribution(mc, parameters)
     s₁ = state_sequence[1]
     logL = logp0[s₁]
     c₁ = control_sequence[1]

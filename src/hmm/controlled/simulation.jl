@@ -6,16 +6,14 @@ function Base.rand(
     check_args=false,
 )
     T = length(control_sequence)
-    logp0 = log_initial_distribution(hmm)
-    p0 = exp.(logp0)
+    p0 = initial_distribution(hmm, parameters)
 
     c₁ = control_sequence[1]
-    logP = log_transition_matrix(hmm, c₁, parameters)
-    P = exp.(logP)
+    P = transition_matrix(hmm, c₁, parameters)
     θ = emission_parameters(hmm, c₁, parameters)
 
     s₁ = rand(rng, Categorical(p0; check_args=check_args))
-    o₁ = rand(rng, emission_from_parameters(hmm, θ, s₁))
+    o₁ = rand(rng, emission_distribution(hmm, θ, s₁))
     state_sequence = Vector{typeof(s₁)}(undef, T)
     obs_sequence = Vector{typeof(o₁)}(undef, T)
     state_sequence[1] = s₁
@@ -23,8 +21,7 @@ function Base.rand(
 
     @views for t in 1:(T - 1)
         cₜ = control_sequence[t]
-        log_transition_matrix!(logP, hmm, cₜ, parameters)
-        P .= exp.(logP)
+        transition_matrix!(P, hmm, cₜ, parameters)
         sₜ = state_sequence[t]
         sₜ₊₁ = rand(rng, Categorical(P[sₜ, :]; check_args=check_args))
         state_sequence[t + 1] = sₜ₊₁
@@ -34,7 +31,7 @@ function Base.rand(
         cₜ = control_sequence[t]
         emission_parameters!(θ, hmm, cₜ, parameters)
         sₜ = state_sequence[t]
-        oₜ = rand(rng, emission_from_parameters(hmm, θ, sₜ))
+        oₜ = rand(rng, emission_distribution(hmm, θ, sₜ))
         obs_sequence[t] = oₜ
     end
 

@@ -9,11 +9,9 @@ function sample_hitting_times(
 )
     T = length(control_sequence)
     hitting_times = fill(T + 1, nb_samples)
-    logp0 = log_initial_distribution(mc)
-    p0 = exp.(logp0)
+    p0 = initial_distribution(mc, parameters)
     c₁ = control_sequence[1]
-    logP = log_transition_matrix(mc, c₁, parameters)
-    P = exp.(logP)
+    P = transition_matrix(mc, c₁, parameters)
     for k in 1:nb_samples
         s = rand(rng, Categorical(p0; check_args=check_args))
         if s == target
@@ -21,8 +19,7 @@ function sample_hitting_times(
         else
             @views for t in 1:(T - 1)
                 cₜ = control_sequence[t]
-                log_transition_matrix!(logP, mc, cₜ, parameters)
-                P .= exp.(logP)
+                transition_matrix!(P, mc, cₜ, parameters)
                 s = rand(rng, Categorical(P[s, :]; check_args=check_args))
                 if s == target
                     hitting_times[k] = t - 1

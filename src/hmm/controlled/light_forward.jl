@@ -7,7 +7,7 @@ function light_forward(
 )
     S = nb_states(hmm)
     T = length(obs_sequence)
-    logp0 = log_initial_distribution(hmm)
+    logp0 = log_initial_distribution(hmm, parameters)
 
     c₁ = control_sequence[1]
     logP = log_transition_matrix(hmm, c₁, parameters)
@@ -15,7 +15,7 @@ function light_forward(
 
     # Initialization
     o₁ = obs_sequence[1]
-    logα = [logp0[s] + logdensityof(emission_from_parameters(hmm, θ, s), o₁) for s in 1:S]
+    logα = [logp0[s] + logdensityof(emission_distribution(hmm, θ, s), o₁) for s in 1:S]
 
     # Recursion
     logα_tmp = similar(logα)
@@ -24,7 +24,7 @@ function light_forward(
         oₜ₊₁ = obs_sequence[t + 1]
         emission_parameters!(θ, hmm, cₜ₊₁, parameters)
         @inbounds for j in 1:S
-            emjₜ₊₁ = emission_from_parameters(hmm, θ, j)
+            emjₜ₊₁ = emission_distribution(hmm, θ, j)
             logα_tmp[j] = logsumexp_stream(eltype(logα), logα[i] + logP[i, j] for i in 1:S)
             logα_tmp[j] += logdensityof(emjₜ₊₁, oₜ₊₁)
         end
