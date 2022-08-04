@@ -1,108 +1,66 @@
+## Imports
+
 using ComponentArrays
 using ControlledHiddenMarkovModels
 using Distributions
 using LinearAlgebra
 using Lux
-using NNlib
 using Optimization
 using ProgressMeter
+using Statistics
 using Random
 using Test
 
 using ForwardDiff: ForwardDiff
 using OptimizationOptimisers: OptimizationOptimisers
+using NNlib: NNlib
+
+## Setup
 
 rng = Random.default_rng()
 Random.seed!(rng, 0)
 
-U = 4
-S = 3
+U = 50
+S = 5
 T = 100
-
-## Neural Gaussian HMM
-
-struct NeuralGaussianHMM{M,S} <: AbstractControlledHMM
-    S::Int
-    model::M
-    st::S
-end
-
-CHMMs.nb_states(hmm::NeuralGaussianHMM) = hmm.S
-CHMMs.initial_distribution(hmm::NeuralGaussianHMM) = ones(hmm.S) / hmm.S
-
-function CHMMs.transition_matrix(hmm::NeuralGaussianHMM, control, parameters)
-    return dropdims(hmm.model(control, parameters, hmm.st)[1][1]; dims=3)
-end
-
-function CHMMs.emission_parameters(hmm::NeuralGaussianHMM, control, parameters)
-    return dropdims(hmm.model(control, parameters, hmm.st)[1][2]; dims=3)
-end
-
-function CHMMs.emission_from_parameters(hmm::NeuralGaussianHMM, θ::AbstractVector)
-    return MvNormal(θ, I)
-end
-
-## Simulation
-
-G = 2
-
-model = Chain(
-    Dense(U, 1),
-    BranchLayer(
-        Chain(Dense(1 => S^2, softplus), ReshapeLayer((S, S)), make_row_stochastic),
-        Chain(Dense(1 => S * G, identity), ReshapeLayer((G, S))),
-    ),
-)
-
-parameters_true, st = Lux.setup(rng, model);
-parameters_init, _ = Lux.setup(rng, model);
-parameters_init = ComponentVector(parameters_init);
-
-hmm = NeuralGaussianHMM(S, model, st);
-
-control_sequence = [randn(U, 1) for t in 1:T];
-state_sequence, obs_sequence = rand(hmm, control_sequence, parameters_true);
-
-## Learning
-
-data = (hmm, obs_sequence, control_sequence);
+C = 40
+V = 3
 
 function loss(parameters, data)
     (hmm, obs_sequence, control_sequence) = data
-    return -logdensityof(hmm, obs_sequence, control_sequence, parameters)
+    return -logdensityof(hmm, obs_sequence, control_sequence, parameters; log=true)
 end
 
-f = OptimizationFunction(loss, Optimization.AutoForwardDiff());
-prob = OptimizationProblem(f, parameters_init, data);
-res = solve(prob, OptimizationOptimisers.Adam(); maxiters=100);
-parameters_est = res.u;
+function callback(x, l)
+    @info "Iteration" l
+    return false
+end
 
-## Testing
+## Abstract Poisson HMM
 
-logL_true = logdensityof(hmm, obs_sequence, control_sequence, parameters_true)
-logL_init = logdensityof(hmm, obs_sequence, control_sequence, parameters_init)
-logL_est = logdensityof(hmm, obs_sequence, control_sequence, parameters_est)
+abstract type ControlledPoissonHMM <: AbstractControlledHMM end
 
-@test logL_est > logL_init
+CHMMs.nb_states(hmm::ControlledPoissonHMM) = hmm.S
+CHMMs.initial_distribution(hmm::ControlledPoissonHMM) = ones(hmm.S) / hmm.S
 
-## Neural Poisson HMM
+## Fast Poisson HMM
 
-struct NeuralPoissonHMM <: AbstractControlledHMM
+struct FastPoissonHMM <: ControlledPoissonHMM
     S::Int
 end
 
-CHMMs.nb_states(hmm::NeuralPoissonHMM) = hmm.S
-CHMMs.initial_distribution(hmm::NeuralPoissonHMM) = ones(hmm.S) ./ hmm.S
-
-function CHMMs.transition_matrix!(P::Matrix, hmm::NeuralPoissonHMM, control, parameters)
+function CHMMs.transition_matrix!(P::Matrix, hmm::FastPoissonHMM, control, parameters)
     (; logP) = parameters
-    shift = sum(control) / length(control)
-    P .= exp.(logP .+ shift)
-    P ./= sum(P; dims=2)
+    shift = mean(control)
+    P .= logP .+ shift
+    @views for s in axes(P, 1)
+        P[s, :] .-= CHMMs.logsumexp(P[s, :])
+    end
+    P .= exp.(P)
     return P
 end
 
-function CHMMs.transition_matrix(hmm::NeuralPoissonHMM, control::AbstractVector, parameters)
+function CHMMs.transition_matrix(hmm::FastPoissonHMM, control::AbstractVector, parameters)
     (; logP) = parameters
     P = Matrix{float(eltype(logP))}(undef, size(logP)...)
     CHMMs.transition_matrix!(P, hmm, control, parameters)
@@ -110,50 +68,53 @@ function CHMMs.transition_matrix(hmm::NeuralPoissonHMM, control::AbstractVector,
 end
 
 function CHMMs.emission_parameters!(
-    λ::AbstractMatrix, hmm::NeuralPoissonHMM, control, parameters
+    θ::AbstractVector, hmm::FastPoissonHMM, control, parameters
 )
-    (; logλ) = parameters
-    shift = sum(control) / length(control)
-    λ .= exp.(logλ .+ shift)
-    return λ
+    (; logλ, logp) = parameters.θ
+    shift = mean(control)
+    θ.logλ .= logλ .+ shift
+    θ.logp .= logp .+ shift
+    @views for s in axes(θ.logp, 3), c in axes(θ.logp, 2)
+        θ.logp[:, c, s] .-= CHMMs.logsumexp(θ.logp[:, c, s])
+    end
+    return θ
 end
 
-function CHMMs.emission_parameters(hmm::NeuralPoissonHMM, control, parameters)
-    (; logλ) = parameters
-    λ = Matrix{float(eltype(logλ))}(undef, size(logλ)...)
-    CHMMs.emission_parameters!(λ, hmm, control, parameters)
-    return λ
+function CHMMs.emission_parameters(hmm::FastPoissonHMM, control, parameters)
+    θ = similar(parameters.θ)
+    CHMMs.emission_parameters!(θ, hmm, control, parameters)
+    return θ
 end
 
-function CHMMs.emission_from_parameters(hmm::NeuralPoissonHMM, λ::AbstractVector)
-    return MultivariatePoissonProcess(λ)
+function CHMMs.emission_from_parameters(hmm::FastPoissonHMM, θ::AbstractVector, s::Integer)
+    logλ = θ.logλ[s]
+    logp = @view θ.logp[:, :, s]
+    return DelimitedPoissonProcess(LogMarkedPoissonProcess(logλ, logp), 0., 1.)
 end
 
 ## Simulation
 
-M = 5
+hmm = FastPoissonHMM(S);
 
-hmm = NeuralPoissonHMM(S);
-
-parameters_true = ComponentVector(; logP=randn(S, S), logλ=randn(M, S))
-parameters_init = ComponentVector(; logP=randn(S, S), logλ=randn(M, S))
+parameters_true = ComponentVector(;
+    logP=randn(S, S), θ=ComponentVector(; logλ=randn(S), logp=randn(V, C, S))
+);
+parameters_init = ComponentVector(;
+    logP=randn(S, S), θ=ComponentVector(; logλ=randn(S), logp=randn(V, C, S))
+);
 
 control_sequence = [rand(U) for t in 1:T];
-
 state_sequence, obs_sequence = rand(hmm, control_sequence, parameters_true);
 
 ## Learning
 
 data = (hmm, obs_sequence, control_sequence);
-
-function loss(parameters, data)
-    (hmm, obs_sequence, control_sequence) = data
-    return -logdensityof(hmm, obs_sequence, control_sequence, parameters)
-end
-
 f = OptimizationFunction(loss, Optimization.AutoForwardDiff());
 prob = OptimizationProblem(f, parameters_init, data);
-res = solve(prob, OptimizationOptimisers.Adam(); maxiters=100);
+res = solve(prob, OptimizationOptimisers.Adam(); maxiters=10);
+# @time solve(prob, OptimizationOptimisers.Adam(); maxiters=10);
+# @profview solve(prob, OptimizationOptimisers.Adam(); maxiters=10);
+
 parameters_est = res.u;
 
 ## Testing

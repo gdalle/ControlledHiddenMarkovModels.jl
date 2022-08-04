@@ -23,14 +23,14 @@ function Base.rand(
         state_sequence[t + 1] = sₜ₊₁
     end
 
-    o₁ = @views rand(rng, emission_from_parameters(hmm, θ[:, s₁]))
+    o₁ = rand(rng, emission_from_parameters(hmm, θ, s₁))
     obs_sequence = Vector{typeof(o₁)}(undef, T)
     obs_sequence[1] = o₁
-    @views for t in 2:T
+    for t in 2:T
         cₜ = control_sequence[t]
         emission_parameters!(θ, hmm, cₜ, parameters)
         sₜ = state_sequence[t]
-        oₜ = rand(rng, emission_from_parameters(hmm, θ[:, sₜ]))
+        oₜ = rand(rng, emission_from_parameters(hmm, θ, sₜ))
         obs_sequence[t] = oₜ
     end
 

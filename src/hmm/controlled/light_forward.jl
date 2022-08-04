@@ -14,7 +14,7 @@ function light_forward(
 
     # Initialization
     o₁ = obs_sequence[1]
-    α = @views [p0[i] * densityof(emission_from_parameters(hmm, θ[:, s]), o₁) for s in 1:S]
+    α = [p0[s] * densityof(emission_from_parameters(hmm, θ, s), o₁) for s in 1:S]
     α_sum_inv = inv(sum(α))
     α .*= α_sum_inv
     logL = -log(α_sum_inv)
@@ -26,7 +26,7 @@ function light_forward(
         emission_parameters!(θ, hmm, cₜ₊₁, parameters)
         oₜ₊₁ = obs_sequence[t + 1]
         @inbounds for j in 1:S
-            emjₜ₊₁ = @views emission_from_parameters(hmm, θ[:, j])
+            emjₜ₊₁ = emission_from_parameters(hmm, θ, j)
             α_tmp[j] = sum(α[i] * P[i, j] for i in 1:S) * densityof(emjₜ₊₁, oₜ₊₁)
         end
         transition_matrix!(P, hmm, cₜ₊₁, parameters)
@@ -58,9 +58,7 @@ function light_logforward(
 
     # Initialization
     o₁ = obs_sequence[1]
-    logα = @views [
-        log(p0[i]) + logdensityof(emission_from_parameters(hmm, θ[:, i]), o₁) for i in 1:S
-    ]
+    logα = [log(p0[s]) + logdensityof(emission_from_parameters(hmm, θ, s), o₁) for s in 1:S]
 
     # Recursion
     logα_tmp = similar(logα)
@@ -69,7 +67,7 @@ function light_logforward(
         emission_parameters!(θ, hmm, cₜ₊₁, parameters)
         oₜ₊₁ = obs_sequence[t + 1]
         @inbounds for j in 1:S
-            emjₜ₊₁ = @views emission_from_parameters(hmm, θ[:, j])
+            emjₜ₊₁ = emission_from_parameters(hmm, θ, j)
             logα_tmp[j] =
                 logsumexp(logα[i] + log(P[i, j]) for i in 1:S) + logdensityof(emjₜ₊₁, oₜ₊₁)
         end

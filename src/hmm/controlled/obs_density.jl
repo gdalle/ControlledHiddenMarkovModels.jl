@@ -10,8 +10,8 @@ function update_obs_density!(
     θ = emission_parameters(hmm, c₁, params)
     for t in 1:T
         oₜ = obs_sequence[t]
-        @views for s in 1:S
-            emsₜ = emission_from_parameters(hmm, θ[:, s])
+        for s in 1:S
+            emsₜ = emission_from_parameters(hmm, θ, s)
             obs_density[s, t] = densityof(emsₜ, oₜ)
         end
         if t < T
@@ -34,7 +34,7 @@ function compute_obs_density(
     c₁ = control_sequence[1]
     o₁ = obs_sequence[1]
     θ = emission_parameters(hmm, c₁, params)
-    test_density_value = @views densityof(emission_from_parameters(hmm, θ[:, 1]), o₁)
+    test_density_value = densityof(emission_from_parameters(hmm, θ, 1), o₁)
     obs_density = Matrix{typeof(test_density_value)}(undef, S, T)
     update_obs_density!(obs_density, hmm, obs_sequence, control_sequence, params)
     return obs_density

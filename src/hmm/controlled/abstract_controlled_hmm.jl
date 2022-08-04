@@ -24,12 +24,12 @@ function emission_parameters(hmm::AbstractControlledHMM, control, parameters)
 end
 
 function emission_parameters!(
-    θ::AbstractMatrix, hmm::AbstractControlledHMM, control, parameters
+    θ::AbstractArray, hmm::AbstractControlledHMM, control, parameters
 )
     θ .= emission_parameters(hmm, control, parameters)
     return θ
 end
 
-function emission_from_parameters(hmm::AbstractControlledHMM, θ::AbstractVector)
+function emission_from_parameters(hmm::AbstractControlledHMM, θ::AbstractArray, s::Integer)
     return error("Not implemented.")
 end
