@@ -1,10 +1,11 @@
 using Aqua
-using Documenter
 using ControlledHiddenMarkovModels
+using Documenter
+using JuliaFormatter
 using Random
 using Test
 
-Random.seed!(1)
+Random.seed!(63)
 
 DocMeta.setdocmeta!(
     ControlledHiddenMarkovModels,
@@ -17,25 +18,16 @@ DocMeta.setdocmeta!(
     @testset verbose = true "Code quality (Aqua.jl)" begin
         Aqua.test_all(ControlledHiddenMarkovModels; ambiguities=false)
     end
+    @testset verbose = true "Formatting" begin
+        @test format(ControlledHiddenMarkovModels; verbose=true, overwrite=false)
+    end
     @testset verbose = true "Doctests" begin
         doctest(ControlledHiddenMarkovModels)
     end
-    @testset verbose = true "Multivariate Poisson process" begin
-        include("examples/multivariate_poisson.jl")
+    @testset verbose = true "Vanilla HMM" begin
+        include("hmm.jl")
     end
-    @testset verbose = true "Marked Poisson process" begin
-        include("examples/marked_poisson.jl")
-    end
-    @testset verbose = true "Markov chain" begin
-        include("examples/markov.jl")
-    end
-    @testset verbose = true "Controlled Markov chain" begin
-        include("examples/markov_controlled.jl")
-    end
-    @testset verbose = true "Hidden Markov Model" begin
-        include("examples/hmm.jl")
-    end
-    @testset verbose = true "Controlled Hidden Markov Model" begin
-        include("examples/hmm_controlled.jl")
-    end
+    # @testset verbose = true "Controlled HMM" begin
+    #     include("hmm_controlled.jl")
+    # end
 end

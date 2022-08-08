@@ -19,7 +19,7 @@ To understand the algorithms implemented here, check out the following literatur
 
 > [_A Tutorial on Hidden Markov Models and Selected Applications in Speech Recognition_](https://web.mit.edu/6.435/www/Rabiner89.pdf), Lawrence R. Rabiner (1989)
 
-> [_An Input Output HMM Architecture_](papers.neurips.cc/paper/964-an-input-output-hmm-architecture.pdf), Yoshua Bengio and Paolo Frasconi (1994)
+> [_An Input Output HMM Architecture_](https://proceedings.neurips.cc/paper/1994/file/8065d07da4a77621450aa84fee5656d9-Paper.pdf), Yoshua Bengio and Paolo Frasconi (1994)
 
 ## Alternatives
 

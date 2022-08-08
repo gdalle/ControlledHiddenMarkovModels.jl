@@ -1,9 +1,3 @@
-function logsumexp(a)
-    m = maximum(a)
-    se = sum(exp, x - m for x in a)
-    return m + log(se)
-end
-
 function logsumexp_stream(::Type{T}, a) where {T}
     m = typemin(T)
     se = zero(T)
@@ -22,3 +16,5 @@ end
 logsumexp_stream(a::AbstractArray{T}) where {T<:Real} = logsumexp_stream(T, a)
 
 logsumexp_stream(a) = logsumexp_stream(typeof(first(a)), a)
+
+logsumexp(a) = logsumexp_stream(a)

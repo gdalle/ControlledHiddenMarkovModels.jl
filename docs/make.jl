@@ -41,9 +41,8 @@ makedocs(;
     pages=[
         "Home" => "index.md",
         # "Examples" => [
-        #     "Discrete Markov chain" => "examples/discrete_markov.md",
-        #     "Multivariate Poisson process" => "examples/multivariate_poisson.md",
-        #     "Hidden Markov Model" => "examples/hmm.md",
+        #     "Vanilla HMM" => "examples/hmm.md",
+        #     "Controlled HMM" => "examples/hmm_controlled.md",
         # ],
         "API reference" => "api.md",
     ],
