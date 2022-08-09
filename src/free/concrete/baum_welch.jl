@@ -54,8 +54,15 @@ function baum_welch_multiple_sequences!(
     return hmm, logL_evolution
 end
 
+"""
+    baum_welch_multiple_sequences(obs_sequences, hmm_init::HMM[, par; max_iterations, tol])
+
+Apply the Baum-Welch algorithm on multiple observation sequences, starting from an initial [`HMM`](@ref) `hmm_init` with parameters `par`.
+
+The parameters are not modified.
+"""
 function baum_welch_multiple_sequences(
-    obs_sequences::AbstractVector, hmm_init::AbstractHMM, par=nothing; kwargs...
+    obs_sequences::AbstractVector, hmm_init::HMM, par=nothing; kwargs...
 )
     K = length(obs_sequences)
     obs_densities = [compute_obs_density(obs_sequences[k], hmm_init, par) for k in 1:K]
@@ -66,8 +73,11 @@ function baum_welch_multiple_sequences(
     return result
 end
 
-function baum_welch(
-    obs_sequence::AbstractVector, hmm_init::AbstractHMM, par=nothing; kwargs...
-)
+"""
+    baum_welch(obs_sequence, hmm_init::HMM[, par; max_iterations, tol])
+
+Apply [`baum_welch_multiple_sequences`](@ref) on a single observation sequence.
+"""
+function baum_welch(obs_sequence::AbstractVector, hmm_init::HMM, par=nothing; kwargs...)
     return baum_welch_multiple_sequences([obs_sequence], hmm_init, par; kwargs...)
 end

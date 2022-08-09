@@ -1,3 +1,10 @@
+"""
+    rand(rng, hmm::AbstractHMM, T, par)
+
+Sample a trajectory of length `T` from `hmm` with parameters `par`.
+
+Returns a couple `(state_sequence, obs_sequence)`.
+"""
 function Base.rand(
     rng::AbstractRNG, hmm::AbstractHMM, T::Integer, par=nothing; check_args=false
 )

@@ -1,5 +1,15 @@
+"""
+    ControlledHiddenMarkovModels
+
+A package for Hidden Markov Models with exogenous control variables.
+"""
 module ControlledHiddenMarkovModels
 
+"""
+    CHMMs
+
+Alias for [`ControlledHiddenMarkovModels`](@ref).
+"""
 const CHMMs = ControlledHiddenMarkovModels
 
 using DensityInterface: DensityInterface, densityof, logdensityof

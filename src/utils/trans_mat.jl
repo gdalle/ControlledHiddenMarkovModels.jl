@@ -7,21 +7,21 @@ function is_trans_mat(P::AbstractMatrix{R}; atol=1e-5) where {R<:Real}
     return true
 end
 
-"""
-    uniform_trans_mat(n)
-
-Return a stochastic matrix of size `n` with uniform transition probability distributions.
-"""
 function uniform_trans_mat(::Type{R}, n::Integer) where {R<:Real}
     return ones(R, n, n) ./ n
 end
 
+"""
+    uniform_trans_mat(n)
+
+Return a transition (stochastic) matrix of size `n` with uniform transition probability distributions.
+"""
 uniform_trans_mat(n::Integer) = uniform_trans_mat(Float64, n)
 
 """
     rand_trans_mat(rng, n)
 
-Return a stochastic matrix of size `n` with random transition probability distributions.
+Return a transition (stochastic) matrix of size `n` with random transition probability distributions.
 """
 function rand_trans_mat(rng::AbstractRNG, ::Type{R}, n::Integer) where {R<:Real}
     P = rand(rng, R, n, n)
@@ -33,6 +33,11 @@ rand_trans_mat(rng::AbstractRNG, n::Integer) = rand_trans_mat(rng, Float64, n)
 rand_trans_mat(::Type{R}, n::Integer) where {R} = rand_trans_mat(GLOBAL_RNG, R, n)
 rand_trans_mat(n::Integer) = rand_trans_mat(GLOBAL_RNG, n)
 
+"""
+    make_trans_mat!(P)
+
+Scale `P` into a transition (stochastic) matrix.
+"""
 function make_trans_mat!(P::Matrix)
     @views for s in axes(P, 1)
         rowsum = sum(P[s, :])
@@ -41,6 +46,11 @@ function make_trans_mat!(P::Matrix)
     return P
 end
 
+"""
+    make_log_trans_mat!(logP)
+
+Scale `logP` so that `exp.(logP)` becomes a transition (stochastic) matrix.
+"""
 function make_log_trans_mat!(logP::Matrix)
     @views for s in axes(logP, 1)
         logP[s, :] .-= logsumexp(logP[s, :])

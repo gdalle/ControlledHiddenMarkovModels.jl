@@ -1,3 +1,8 @@
+"""
+    light_forward(obs_sequence, hmm::AbstractHMM, par)
+
+Perform a lightweight forward pass with minimal storage requirements.
+"""
 function light_forward(obs_sequence::AbstractVector, hmm::AbstractHMM, par)
     S = nb_states(hmm, par)
     T = length(obs_sequence)
@@ -34,6 +39,11 @@ function light_forward(obs_sequence::AbstractVector, hmm::AbstractHMM, par)
     return α, float(logL)
 end
 
+"""
+    forward!(α, c, obs_density, hmm::AbstractHMM, par)
+
+Perform a forward pass by mutating `α` and `c`.
+"""
 function forward!(
     α::AbstractMatrix, c::AbstractVector, obs_density::AbstractMatrix, hmm::AbstractHMM, par
 )
@@ -60,6 +70,11 @@ function forward!(
     return nothing
 end
 
+"""
+    backward!(β, bβ, c, obs_density, hmm::AbstractHMM, par)
+
+Perform a backward pass by mutating `β`, `bβ` and `c`.
+"""
 function backward!(
     β::AbstractMatrix,
     bβ::AbstractMatrix,
@@ -88,6 +103,11 @@ function backward!(
     return nothing
 end
 
+"""
+    forward_backward!(α, c, β, bβ, γ, ξ, obs_density, hmm::AbstractHMM, par)
+
+Apply the full forward-backward algorithm by mutating `α`, `c`, `β`, `bβ`, `γ` and `ξ`.
+"""
 function forward_backward!(
     α::AbstractMatrix,
     c::AbstractVector,
@@ -128,6 +148,11 @@ function forward_backward!(
     return float(logL)
 end
 
+"""
+    update_obs_density!(obs_density, obs_sequence, hmm::AbstractHMM, par)
+
+Update the values `obs_density[s, t]` using the emission density of `hmm` with parameters `par` applied to `obs_sequence[t]`.
+"""
 function update_obs_density!(
     obs_density::AbstractMatrix, obs_sequence::AbstractVector, hmm::AbstractHMM, par
 )
@@ -145,6 +170,11 @@ function update_obs_density!(
     return nothing
 end
 
+"""
+    compute_obs_density(obs_sequence, hmm, par)
+
+Create a new observation density matrix and apply [`update_obs_density!`](@ref).
+"""
 function compute_obs_density(obs_sequence::AbstractVector, hmm::AbstractHMM, par)
     T, S = length(obs_sequence), nb_states(hmm, par)
     test_density_value = densityof(emission_distribution(hmm, 1, par), obs_sequence[1])
@@ -153,6 +183,20 @@ function compute_obs_density(obs_sequence::AbstractVector, hmm::AbstractHMM, par
     return obs_density
 end
 
+"""
+    ForwardBackwardStorage{R}
+
+Storage for the forward-backward algorithm applied to multiple sequences.
+
+# Fields
+
+- `α::Vector{Matrix{R}}`
+- `c::Vector{Vector{R}}`
+- `β::Vector{Matrix{R}}`
+- `bβ::Vector{Matrix{R}}`
+- `γ::Vector{Matrix{R}}`
+- `ξ::Vector{Array{R,3}}`
+"""
 struct ForwardBackwardStorage{R}
     α::Vector{Matrix{R}}
     c::Vector{Vector{R}}
@@ -162,6 +206,11 @@ struct ForwardBackwardStorage{R}
     ξ::Vector{Array{R,3}}
 end
 
+"""
+    initialize_forward_backward_multiple_sequences(obs_densities)
+
+Create a [`ForwardBackwardStorage`](@ref) with same number type as the vector of observation density matrices.
+"""
 function initialize_forward_backward_multiple_sequences(
     obs_densities::AbstractVector{<:AbstractMatrix{R}}
 ) where {R<:Real}

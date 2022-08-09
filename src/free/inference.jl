@@ -1,3 +1,10 @@
+"""
+    logdensityof(hmm::AbstractHMM, obs_sequence, par; safe)
+
+Compute the log likelihood of `obs_sequence` for `hmm` with parameters `par`.
+
+If `safe = true`, everything is done in log scale.
+"""
 function DensityInterface.logdensityof(
     hmm::AbstractHMM, obs_sequence::AbstractVector, par=nothing; safe=false
 )
@@ -9,6 +16,13 @@ function DensityInterface.logdensityof(
     return logL
 end
 
+"""
+    infer_current_state(hmm::AbstractHMM, obs_sequence, par; safe)
+
+Infer the posterior distribution of the current state given `obs_sequence` for `hmm` with parameters `par`.
+
+If `safe = true`, everything is done in log scale.
+"""
 function infer_current_state(
     hmm::AbstractHMM, obs_sequence::AbstractVector, par=nothing; safe=false
 )
