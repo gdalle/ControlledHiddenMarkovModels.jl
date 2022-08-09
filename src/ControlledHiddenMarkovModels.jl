@@ -31,6 +31,7 @@ export logdensityof
 
 export is_prob_vec, rand_prob_vec
 export is_trans_mat, rand_trans_mat
+export logsumexp
 
 export AbstractHiddenMarkovModel, AbstractHMM
 export nb_states

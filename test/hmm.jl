@@ -1,12 +1,18 @@
 # # Hidden Markov Model
 
-using Distributions
+using ComponentArrays
 using ControlledHiddenMarkovModels
+using Distributions
+using ForwardDiff
 using LogarithmicNumbers
+using Optimization
+using OptimizationOptimJL
+using OptimizationOptimisers
 using PointProcesses
 using Random
 using Statistics
-using Test  #src
+using Test
+using Zygote
 
 rng = Random.default_rng()
 Random.seed!(rng, 63)
@@ -70,9 +76,9 @@ P_error = mean(abs, P_est - P)
 l_init = sum(logdensityof(hmm_init, obs_sequence) for obs_sequence in obs_sequences)
 l_est = sum(logdensityof(hmm_est, obs_sequence) for obs_sequence in obs_sequences)
 
-@test P_error < P_error_init / 3  #src
-@test μ_error < μ_error_init / 3  #src
-@test σ_error < σ_error_init / 3  #src
+@test P_error < P_error_init / 3
+@test μ_error < μ_error_init / 3
+@test σ_error < σ_error_init / 3
 @test l_est > l_init
 
 ## Poisson HMM
@@ -126,6 +132,72 @@ l_est = sum(
     logdensityof(hmm_est_poisson, obs_sequence) for obs_sequence in obs_sequences_poisson
 )
 
-@test P_error_poisson < P_error_init / 3  #src
-@test λ_error < λ_error_init / 3  #src
+@test P_error_poisson < P_error_init / 3
+@test λ_error < λ_error_init / 3
 @test l_est > l_init
+
+## Parameterized Normal HMM
+
+struct NormalHMM <: AbstractHMM end
+
+CHMMs.nb_states(::NormalHMM, par) = length(par.logp0)
+
+function CHMMs.initial_distribution(::NormalHMM, par)
+    p0 = exp.(par.logp0)
+    p0 ./= sum(p0)
+    return p0
+end
+
+function CHMMs.transition_matrix(::NormalHMM, par)
+    P = exp.(par.logP)
+    @views for s in axes(P, 1)
+        P[s, :] ./= sum(P[s, :])
+    end
+    return P
+end
+
+function CHMMs.emission_distribution(::NormalHMM, s::Integer, par)
+    return Normal(par.μ[s], exp(par.logσ[s]))
+end
+
+## Learning
+
+par_init = ComponentVector(;
+    logp0=log.(p0_init), logP=log.(P_init), μ=μ_init, logσ=log.(σ_init)
+)
+
+function loss(par, obs_sequences)
+    return -sum(
+        logdensityof(NormalHMM(), obs_sequence, par) for obs_sequence in obs_sequences
+    )
+end
+
+@test_broken Zygote.gradient(par -> loss(par, obs_sequences), par_init)
+
+f = OptimizationFunction(loss, Optimization.AutoForwardDiff());
+prob = OptimizationProblem(f, par_init, obs_sequences);
+res = solve(prob, OptimizationOptimJL.LBFGS(););
+par_est = res.u;
+
+hmm_est2 = HMM(
+    initial_distribution(NormalHMM(), par_est),
+    transition_matrix(NormalHMM(), par_est),
+    [emission_distribution(NormalHMM(), s, par_est) for s in 1:2],
+)
+
+## Testing
+
+p0_est2 = initial_distribution(hmm_est2)
+P_est2 = transition_matrix(hmm_est2)
+μ_est2 = [emission_distribution(hmm_est2, s).μ for s in 1:2]
+σ_est2 = [emission_distribution(hmm_est2, s).σ for s in 1:2]
+
+P_error2 = mean(abs, P_est2 - P)
+μ_error2 = mean(abs, μ_est2 - μ)
+σ_error2 = mean(abs, σ_est2 - σ)
+l_est2 = sum(logdensityof(hmm_est2, obs_sequence) for obs_sequence in obs_sequences)
+
+@test P_error2 < P_error_init / 3
+@test μ_error2 < μ_error_init / 3
+@test σ_error2 < σ_error_init / 3
+@test l_est2 > l_init
