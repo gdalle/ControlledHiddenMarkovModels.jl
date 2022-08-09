@@ -18,6 +18,12 @@ Interface for Hidden Markov Models with arbitrary emissions and exogenous contro
 - [`log_initial_distribution(hmm, par)`](@ref)
 - [`log_transition_matrix(hmm, control, par)`](@ref)
 - [`log_transition_matrix!(logP, hmm, control, par)`](@ref)
+
+# Compatible with
+
+- [`rand(rng, hmm, control_sequence, par)`](@ref)
+- [`logdensityof(hmm, obs_sequence, control_sequence, par; safe)`](@ref)
+- [`infer_current_state(hmm, obs_sequence, control_sequence, par; safe)`](@ref)
 """
 abstract type AbstractControlledHiddenMarkovModel end
 

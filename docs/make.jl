@@ -44,6 +44,7 @@ makedocs(;
         #     "Vanilla HMM" => "examples/hmm.md",
         #     "Controlled HMM" => "examples/hmm_controlled.md",
         # ],
+        "Tutorial" => "tutorial.md",
         "API reference" => "api.md",
     ],
 )
