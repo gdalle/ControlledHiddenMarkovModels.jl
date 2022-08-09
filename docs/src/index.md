@@ -1,16 +1,35 @@
 ```@meta
-CurrentModule = HiddenMarkovModels
+CurrentModule = ControlledHiddenMarkovModels
 ```
 
-# HiddenMarkovModels.jl
+# ControlledHiddenMarkovModels.jl
 
-Welcome to the documentation of [HiddenMarkovModels.jl](https://github.com/gdalle/HiddenMarkovModels.jl), a lightweight package for working with Markov chains and Hidden Markov Models.
+Welcome to the documentation of [ControlledHiddenMarkovModels.jl](https://github.com/gdalle/ControlledHiddenMarkovModels.jl), a package for Hidden Markov Models with exogenous control variables.
+
+## Why would you need it?
+
+This package focuses on discrete-time HMMs with a finite state space, but it's not the only one!
+A few alternatives that I am aware of:
+
+- [HMMBase.jl](https://github.com/maxmouchet/HMMBase.jl)
+- [HMMGradients.jl](https://github.com/idiap/HMMGradients.jl)
+- [MarkovModels.jl](https://github.com/FAST-ASR/MarkovModels.jl)
+- [Mitosis.jl](https://github.com/mschauer/Mitosis.jl)
+
+I started my own package because I needed specific features that were not simultaneously available elsewhere (to the best of my knowledge):
+
+- Control variables (obviously)
+- Compatibility with generic emissions (beyond [Distributions.jl](https://github.com/JuliaStats/Distributions.jl))
+- Numerical stability thanks to log-scale computations
+- Compatibility with automatic differentiation of parameters
+  - in forward mode
+  - in reverse mode (WIP)
 
 ## Getting started
 
 To install the package, open a Julia [Pkg REPL](https://pkgdocs.julialang.org/v1/getting-started/) and run
 ```julia
-pkg> add https://github.com/gdalle/HiddenMarkovModels.jl
+pkg> add https://github.com/gdalle/ControlledHiddenMarkovModels.jl
 ```
 
 ## Mathematical background
@@ -19,21 +38,4 @@ To understand the algorithms implemented here, check out the following literatur
 
 > [_A Tutorial on Hidden Markov Models and Selected Applications in Speech Recognition_](https://web.mit.edu/6.435/www/Rabiner89.pdf), Lawrence R. Rabiner (1989)
 
-## Alternatives
-
-If you don't find what you are looking for around here, there are several other Julia packages with a focus on Markovian modeling.
-Here are the ones that I am aware of:
-
-- [HMMBase.jl](https://github.com/maxmouchet/HMMBase.jl)
-- [MarkovModels.jl](https://github.com/FAST-ASR/MarkovModels.jl)
-- [HiddenMarkovModels.jl](https://github.com/BenConnault/HiddenMarkovModels.jl)
-- [Mitosis.jl](https://github.com/mschauer/Mitosis.jl)
-- [ContinuousTimeMarkov.jl](https://github.com/tpapp/ContinuousTimeMarkov.jl)
-- [PiecewiseDeterministicMarkovProcesses.jl](https://github.com/rveltz/PiecewiseDeterministicMarkovProcesses.jl)
-
-The reason I implemented my own was because I needed specific features that were not simultaneously available elsewhere (to the best of my knowledge):
-
-- Compatibility with generic emissions that go beyond [Distributions.jl](https://github.com/JuliaStats/Distributions.jl) objects
-- Numerical stability thanks to log-scale computations
-- Discrete **and** continuous time versions (WIP)
-- MAP estimation with priors (WIP)
+> [_An Input Output HMM Architecture_](https://proceedings.neurips.cc/paper/1994/file/8065d07da4a77621450aa84fee5656d9-Paper.pdf), Yoshua Bengio and Paolo Frasconi (1994)
