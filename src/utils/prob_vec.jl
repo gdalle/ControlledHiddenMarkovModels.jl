@@ -27,3 +27,13 @@ rand_prob_vec(rng::AbstractRNG, n::Integer) = rand_prob_vec(rng, Float64, n)
 
 rand_prob_vec(::Type{R}, n::Integer) where {R} = rand_prob_vec(GLOBAL_RNG, R, n)
 rand_prob_vec(n::Integer) = rand_prob_vec(GLOBAL_RNG, n)
+
+function make_prob_vec!(p::Vector)
+    p .*= inv(sum(p))
+    return p
+end
+
+function make_log_prob_vec!(logp::Vector)
+    logp .-= logsumexp(logp)
+    return logp
+end

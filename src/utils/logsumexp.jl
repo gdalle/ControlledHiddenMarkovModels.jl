@@ -2,15 +2,19 @@ function logsumexp_stream(::Type{T}, a) where {T}
     m = typemin(T)
     se = zero(T)
     for x in a
-        if x <= m
+        if x < m
             se += exp(x - m)
+        elseif x == m
+            se += one(se)
         else
             se *= exp(m - x)
             se += one(se)
             m = x
         end
     end
-    return m + log(se)
+    lse = m + log(se)
+    @assert !isnan(lse)
+    return lse
 end
 
 logsumexp_stream(a::AbstractArray{T}) where {T<:Real} = logsumexp_stream(T, a)

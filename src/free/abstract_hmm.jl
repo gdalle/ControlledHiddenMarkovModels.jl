@@ -17,8 +17,18 @@ function initial_distribution(hmm::H, par) where {H<:AbstractHMM}
     return error("Not implemented for type $H")
 end
 
-transition_matrix(hmm::H, par) where {H<:AbstractHMM} = error("Not implemented for type $H")
+function log_initial_distribution(hmm::H, par) where {H<:AbstractHMM}
+    return error("Not implemented for type $H")
+end
 
-function emission_distribution(hmm::H, s::Integer, par) where {H<:AbstractHMM}
+function transition_matrix(hmm::H, par) where {H<:AbstractHMM}
+    return error("Not implemented for type $H")
+end
+
+function log_transition_matrix(hmm::H, par) where {H<:AbstractHMM}
+    return error("Not implemented for type $H")
+end
+
+function emission_distribution(hmm::H, s, par) where {H<:AbstractHMM}
     return error("Not implemented for type $H")
 end

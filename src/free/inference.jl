@@ -1,11 +1,21 @@
 function DensityInterface.logdensityof(
-    hmm::AbstractHMM, obs_sequence::AbstractVector, par=nothing
+    hmm::AbstractHMM, obs_sequence::AbstractVector, par=nothing; safe=false
 )
-    α, logL = light_forward(obs_sequence, hmm, par)
+    if safe
+        α, logL = light_forward_log(obs_sequence, hmm, par)
+    else
+        α, logL = light_forward(obs_sequence, hmm, par)
+    end
     return logL
 end
 
-function infer_current_state(hmm::AbstractHMM, obs_sequence::AbstractVector, par=nothing)
-    α, logL = light_forward(obs_sequence, hmm, par)
+function infer_current_state(
+    hmm::AbstractHMM, obs_sequence::AbstractVector, par=nothing; safe=false
+)
+    if safe
+        α, logL = light_forward_log(obs_sequence, hmm, par)
+    else
+        α, logL = light_forward(obs_sequence, hmm, par)
+    end
     return α
 end

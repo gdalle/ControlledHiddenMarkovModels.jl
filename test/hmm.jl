@@ -7,12 +7,10 @@ using ForwardDiff
 using LogarithmicNumbers
 using Optimization
 using OptimizationOptimJL
-using OptimizationOptimisers
 using PointProcesses
 using Random
 using Statistics
 using Test
-using Zygote
 
 rng = Random.default_rng()
 Random.seed!(rng, 63)
@@ -35,6 +33,9 @@ end
 
 ## Simulation
 
+T = 2000
+K = 5
+
 p0 = [0.3, 0.7]
 P = [0.9 0.1; 0.2 0.8]
 μ = [2.0, -3.0]
@@ -42,7 +43,7 @@ P = [0.9 0.1; 0.2 0.8]
 emissions = [Normal(μ[1], σ[1]), Normal(μ[2], σ[2])]
 hmm = HMM(p0, P, emissions)
 
-obs_sequences = [rand(rng, hmm, rand(1000:2000))[2] for k in 1:5];
+obs_sequences = [rand(rng, hmm, T)[2] for k in 1:K];
 
 ## Learning
 
@@ -76,9 +77,9 @@ P_error = mean(abs, P_est - P)
 l_init = sum(logdensityof(hmm_init, obs_sequence) for obs_sequence in obs_sequences)
 l_est = sum(logdensityof(hmm_est, obs_sequence) for obs_sequence in obs_sequences)
 
-@test P_error < P_error_init / 3
-@test μ_error < μ_error_init / 3
-@test σ_error < σ_error_init / 3
+@test P_error < P_error_init / 10
+@test μ_error < μ_error_init / 10
+@test σ_error < σ_error_init / 10
 @test l_est > l_init
 
 ## Poisson HMM
@@ -99,7 +100,7 @@ emissions_poisson = [
 ]
 hmm_poisson = HMM(p0, P, emissions_poisson)
 
-obs_sequences_poisson = [rand(rng, hmm_poisson, rand(1000:2000))[2] for k in 1:5];
+obs_sequences_poisson = [rand(rng, hmm_poisson, T)[2] for k in 1:K];
 
 ## Learning
 
@@ -110,7 +111,7 @@ emissions_init_poisson = [
 hmm_init_poisson = HMM(p0_init, P_init, emissions_init_poisson)
 
 hmm_est_poisson, logL_evolution_poisson = baum_welch_multiple_sequences(
-    obs_sequences_poisson, hmm_init_poisson; max_iterations=100, tol=1e-3
+    obs_sequences_poisson, hmm_init_poisson; max_iterations=100, tol=1e-5
 );
 
 p0_est_poisson = initial_distribution(hmm_est_poisson)
@@ -119,7 +120,6 @@ P_est_poisson = transition_matrix(hmm_est_poisson)
 
 ## Testing
 
-P_error_init = mean(abs, P_init - P)
 P_error_poisson = mean(abs, P_est_poisson - P)
 
 λ_error_init = mean(abs, λ_init - λ)
@@ -132,8 +132,8 @@ l_est = sum(
     logdensityof(hmm_est_poisson, obs_sequence) for obs_sequence in obs_sequences_poisson
 )
 
-@test P_error_poisson < P_error_init / 3
-@test λ_error < λ_error_init / 3
+@test P_error_poisson < P_error_init / 10
+@test λ_error < λ_error_init / 10
 @test l_est > l_init
 
 ## Parameterized Normal HMM
@@ -144,16 +144,26 @@ CHMMs.nb_states(::NormalHMM, par) = length(par.logp0)
 
 function CHMMs.initial_distribution(::NormalHMM, par)
     p0 = exp.(par.logp0)
-    p0 ./= sum(p0)
+    make_prob_vec!(p0)
     return p0
+end
+
+function CHMMs.log_initial_distribution(::NormalHMM, par)
+    logp0 = copy(par.logp0)
+    make_log_prob_vec!(logp0)
+    return logp0
 end
 
 function CHMMs.transition_matrix(::NormalHMM, par)
     P = exp.(par.logP)
-    @views for s in axes(P, 1)
-        P[s, :] ./= sum(P[s, :])
-    end
+    make_trans_mat!(P)
     return P
+end
+
+function CHMMs.log_transition_matrix(::NormalHMM, par)
+    logP = copy(par.logP)
+    make_log_trans_mat!(logP)
+    return logP
 end
 
 function CHMMs.emission_distribution(::NormalHMM, s::Integer, par)
@@ -163,20 +173,24 @@ end
 ## Learning
 
 par_init = ComponentVector(;
-    logp0=log.(p0_init), logP=log.(P_init), μ=μ_init, logσ=log.(σ_init)
+    logp0=log.(copy(p0_init)),
+    logP=log.(copy(P_init)),
+    μ=copy(μ_init),
+    logσ=log.(copy(σ_init)),
 )
 
-function loss(par, obs_sequences)
+function loss(par, obs_sequences; safe=true)
     return -sum(
-        logdensityof(NormalHMM(), obs_sequence, par) for obs_sequence in obs_sequences
+        logdensityof(NormalHMM(), obs_sequence, par; safe=safe) for
+        obs_sequence in obs_sequences
     )
 end
 
-@test_broken Zygote.gradient(par -> loss(par, obs_sequences), par_init)
+@test loss(par_init, obs_sequences; safe=true) ≈ loss(par_init, obs_sequences; safe=false)
 
 f = OptimizationFunction(loss, Optimization.AutoForwardDiff());
 prob = OptimizationProblem(f, par_init, obs_sequences);
-res = solve(prob, OptimizationOptimJL.LBFGS(););
+res = solve(prob, OptimizationOptimJL.LBFGS());
 par_est = res.u;
 
 hmm_est2 = HMM(
@@ -197,7 +211,7 @@ P_error2 = mean(abs, P_est2 - P)
 σ_error2 = mean(abs, σ_est2 - σ)
 l_est2 = sum(logdensityof(hmm_est2, obs_sequence) for obs_sequence in obs_sequences)
 
-@test P_error2 < P_error_init / 3
-@test μ_error2 < μ_error_init / 3
-@test σ_error2 < σ_error_init / 3
+@test P_error2 < P_error_init / 10
+@test μ_error2 < μ_error_init / 10
+@test σ_error2 < σ_error_init / 10
 @test l_est2 > l_init

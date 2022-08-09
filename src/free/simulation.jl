@@ -1,8 +1,3 @@
-"""
-    rand(rng, hmm::AbstractHMM, T[, par])
-
-Sample a sequence of states of length `T` and the associated sequence of observations.
-"""
 function Base.rand(
     rng::AbstractRNG, hmm::AbstractHMM, T::Integer, par=nothing; check_args=false
 )

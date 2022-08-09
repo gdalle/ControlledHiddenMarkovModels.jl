@@ -28,6 +28,9 @@ function light_forward(obs_sequence::AbstractVector, hmm::AbstractHMM, par)
         α .= α_tmp
     end
 
+    @assert !isnan(logL)
+    @assert !any(isnan, α)
+
     return α, float(logL)
 end
 

@@ -32,3 +32,18 @@ rand_trans_mat(rng::AbstractRNG, n::Integer) = rand_trans_mat(rng, Float64, n)
 
 rand_trans_mat(::Type{R}, n::Integer) where {R} = rand_trans_mat(GLOBAL_RNG, R, n)
 rand_trans_mat(n::Integer) = rand_trans_mat(GLOBAL_RNG, n)
+
+function make_trans_mat!(P::Matrix)
+    @views for s in axes(P, 1)
+        rowsum = sum(P[s, :])
+        P[s, :] .*= inv(rowsum)
+    end
+    return P
+end
+
+function make_log_trans_mat!(logP::Matrix)
+    @views for s in axes(logP, 1)
+        logP[s, :] .-= logsumexp(logP[s, :])
+    end
+    return logP
+end

@@ -19,7 +19,7 @@ DocMeta.setdocmeta!(
         Aqua.test_all(ControlledHiddenMarkovModels; ambiguities=false)
     end
     @testset verbose = true "Formatting" begin
-        @test format(ControlledHiddenMarkovModels; verbose=true, overwrite=false)
+        @test format(ControlledHiddenMarkovModels; verbose=false, overwrite=false)
     end
     @testset verbose = true "Doctests" begin
         doctest(ControlledHiddenMarkovModels)
@@ -27,7 +27,7 @@ DocMeta.setdocmeta!(
     @testset verbose = true "Vanilla HMM" begin
         include("hmm.jl")
     end
-    # @testset verbose = true "Controlled HMM" begin
-    #     include("hmm_controlled.jl")
-    # end
+    @testset verbose = true "Controlled HMM" begin
+        include("hmm_controlled.jl")
+    end
 end
