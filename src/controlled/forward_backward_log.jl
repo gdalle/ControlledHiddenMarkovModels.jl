@@ -1,3 +1,8 @@
+"""
+    light_forward_log(obs_sequence, control_sequence, hmm::AbstractControlledHMM, par)
+
+Perform a lightweight forward pass _in log scale_ with minimal storage requirements.
+"""
 function light_forward_log(
     obs_sequence::AbstractVector,
     control_sequence::AbstractVector,

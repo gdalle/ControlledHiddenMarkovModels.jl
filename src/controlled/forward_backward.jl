@@ -1,3 +1,8 @@
+"""
+    light_forward(obs_sequence, control_sequence, hmm::AbstractControlledHMM, par)
+
+Perform a lightweight forward pass with minimal storage requirements.
+"""
 function light_forward(
     obs_sequence::AbstractVector,
     control_sequence::AbstractVector,

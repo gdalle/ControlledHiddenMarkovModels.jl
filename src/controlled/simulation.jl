@@ -1,3 +1,10 @@
+"""
+    rand(rng, hmm::AbstractControlledHMM, control_sequence, par)
+
+Sample a trajectory from `hmm` with controls `control_sequence` and parameters `par`.
+
+Returns a couple `(state_sequence, obs_sequence)`.
+"""
 function Base.rand(
     rng::AbstractRNG,
     hmm::AbstractControlledHMM,

@@ -1,3 +1,8 @@
+"""
+    light_forward_log(obs_sequence, hmm::AbstractHMM, par)
+
+Perform a lightweight forward pass _in log scale_ with minimal storage requirements.
+"""
 function light_forward_log(obs_sequence::AbstractVector, hmm::AbstractHMM, par)
     S = nb_states(hmm, par)
     T = length(obs_sequence)
