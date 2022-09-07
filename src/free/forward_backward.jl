@@ -12,8 +12,8 @@ function light_forward(obs_sequence::AbstractVector, hmm::AbstractHMM, par)
 
     # Initialization
     o₁ = obs_sequence[1]
-    obs_density = [densityof(emissions[s], o₁) for s in 1:S]
-    α = p0 .* obs_density
+    obs_logdensity = [logdensityof(emissions[s], o₁) for s in 1:S]
+    α = p0 .* exp.(obs_logdensity)
     c = inv(sum(α))
     α .*= c
     logL = -log(c)
@@ -23,10 +23,10 @@ function light_forward(obs_sequence::AbstractVector, hmm::AbstractHMM, par)
     for t in 1:(T - 1)
         oₜ₊₁ = obs_sequence[t + 1]
         for s in 1:S
-            obs_density[s] = densityof(emissions[s], oₜ₊₁)
+            obs_logdensity[s] = logdensityof(emissions[s], oₜ₊₁)
         end
         mul!(α_tmp, P', α)
-        α_tmp .*= obs_density
+        α_tmp .*= exp.(obs_logdensity)
         c = inv(sum(α_tmp))
         α_tmp .*= c
         logL -= log(c)
@@ -40,26 +40,30 @@ function light_forward(obs_sequence::AbstractVector, hmm::AbstractHMM, par)
 end
 
 """
-    forward!(α, c, obs_density, hmm::AbstractHMM, par)
+    forward!(α, c, obs_logdensity, hmm::AbstractHMM, par)
 
 Perform a forward pass by mutating `α` and `c`.
 """
 function forward!(
-    α::AbstractMatrix, c::AbstractVector, obs_density::AbstractMatrix, hmm::AbstractHMM, par
+    α::AbstractMatrix,
+    c::AbstractVector,
+    obs_logdensity::AbstractMatrix,
+    hmm::AbstractHMM,
+    par,
 )
-    _, T = size(obs_density)
+    _, T = size(obs_logdensity)
     p0 = initial_distribution(hmm, par)
     P = transition_matrix(hmm, par)
 
     # Initialization
-    @views α[:, 1] .= p0 .* obs_density[:, 1]
+    @views α[:, 1] .= p0 .* exp.(obs_logdensity[:, 1])
     @views c[1] = inv(sum(α[:, 1]))
     @views α[:, 1] .*= c[1]
 
     # Recursion
     @views for t in 1:(T - 1)
         mul!(α[:, t + 1], P', α[:, t])
-        α[:, t + 1] .*= obs_density[:, t + 1]
+        α[:, t + 1] .*= exp.(obs_logdensity[:, t + 1])
         c[t + 1] = inv(sum(α[:, t + 1]))
         α[:, t + 1] .*= c[t + 1]
     end
@@ -79,11 +83,11 @@ function backward!(
     β::AbstractMatrix,
     bβ::AbstractMatrix,
     c::AbstractVector,
-    obs_density::AbstractMatrix,
+    obs_logdensity::AbstractMatrix,
     hmm::AbstractHMM,
     par,
 )
-    _, T = size(obs_density)
+    _, T = size(obs_logdensity)
     P = transition_matrix(hmm, par)
 
     # Initialization
@@ -91,7 +95,7 @@ function backward!(
 
     # Recursion
     @views for t in (T - 1):-1:1
-        bβ[:, t + 1] .= obs_density[:, t + 1] .* β[:, t + 1]
+        bβ[:, t + 1] .= exp.(obs_logdensity[:, t + 1]) .* β[:, t + 1]
         mul!(β[:, t], P, bβ[:, t + 1])
         β[:, t] .*= c[t]
     end
@@ -115,16 +119,16 @@ function forward_backward!(
     bβ::AbstractMatrix,
     γ::AbstractMatrix,
     ξ::AbstractArray{<:Real,3},
-    obs_density::AbstractMatrix,
+    obs_logdensity::AbstractMatrix,
     hmm::AbstractHMM,
     par,
 )
-    S, T = size(obs_density)
+    S, T = size(obs_logdensity)
     P = transition_matrix(hmm, par)
 
     # Forward and backward pass
-    forward!(α, c, obs_density, hmm, par)
-    backward!(β, bβ, c, obs_density, hmm, par)
+    forward!(α, c, obs_logdensity, hmm, par)
+    backward!(β, bβ, c, obs_logdensity, hmm, par)
 
     # State marginals
     γ .= α .* β
@@ -146,39 +150,4 @@ function forward_backward!(
 
     logL = -sum(log, c)
     return float(logL)
-end
-
-"""
-    update_obs_density!(obs_density, obs_sequence, hmm::AbstractHMM, par)
-
-Update the values `obs_density[s, t]` using the emission density of `hmm` with parameters `par` applied to `obs_sequence[t]`.
-"""
-function update_obs_density!(
-    obs_density::AbstractMatrix, obs_sequence::AbstractVector, hmm::AbstractHMM, par
-)
-    T, S = length(obs_sequence), nb_states(hmm, par)
-    emissions = [emission_distribution(hmm, s, par) for s in 1:S]
-    for t in 1:T
-        oₜ = obs_sequence[t]
-        for s in 1:S
-            obs_density[s, t] = densityof(emissions[s], oₜ)
-        end
-    end
-    if @views any(all(iszero_safe, obs_density[:, t]) for t in 1:T)
-        throw(OverflowError("Densities are too small for observations."))
-    end
-    return nothing
-end
-
-"""
-    compute_obs_density(obs_sequence, hmm, par)
-
-Create a new observation density matrix and apply [`update_obs_density!`](@ref).
-"""
-function compute_obs_density(obs_sequence::AbstractVector, hmm::AbstractHMM, par)
-    T, S = length(obs_sequence), nb_states(hmm, par)
-    test_density_value = densityof(emission_distribution(hmm, 1, par), obs_sequence[1])
-    obs_density = Matrix{typeof(test_density_value)}(undef, S, T)
-    update_obs_density!(obs_density, obs_sequence, hmm, par)
-    return obs_density
 end

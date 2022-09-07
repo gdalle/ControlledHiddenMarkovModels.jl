@@ -25,6 +25,7 @@ include("utils/logsumexp.jl")
 
 include("free/abstract_hmm.jl")
 include("free/simulation.jl")
+include("free/obs_density.jl")
 include("free/forward_backward.jl")
 include("free/forward_backward_log.jl")
 include("free/inference.jl")

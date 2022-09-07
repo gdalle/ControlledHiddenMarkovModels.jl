@@ -1,5 +1,5 @@
 function baum_welch!(
-    obs_density::Matrix{R},
+    obs_logdensity::Matrix{R},
     fb_storage::ForwardBackwardStorage{R},
     obs_sequence::AbstractVector,
     hmm_init::H,
@@ -11,15 +11,14 @@ function baum_welch!(
     S = nb_states(hmm, par)
     T = length(obs_sequence)
     (; α, c, β, bβ, γ, ξ) = fb_storage
-
     # Initialize loglikelihood storage
     logL_evolution = float(R)[]
 
     # Main loop
     @progress for iteration in 1:max_iterations
         # Local forward-backward
-        update_obs_density!(obs_density, obs_sequence, hmm, par)
-        logL = forward_backward!(α, c, β, bβ, γ, ξ, obs_density, hmm, par)
+        update_obs_logdensity!(obs_logdensity, obs_sequence, hmm, par)
+        logL = forward_backward!(α, c, β, bβ, γ, ξ, obs_logdensity, hmm, par)
         push!(logL_evolution, logL)
 
         # Aggregated transitions
@@ -55,10 +54,10 @@ Apply the Baum-Welch algorithm on a single observation sequence, starting from a
 function baum_welch(
     obs_sequence::AbstractVector, hmm_init::HMM, par=nothing; max_iterations=100, tol=1e-3
 )
-    obs_density = compute_obs_density(obs_sequence, hmm_init, par)
-    fb_storage = initialize_forward_backward(obs_density)
+    obs_logdensity = compute_obs_logdensity(obs_sequence, hmm_init, par)
+    fb_storage = initialize_forward_backward(obs_logdensity)
     result = baum_welch!(
-        obs_density,
+        obs_logdensity,
         fb_storage,
         obs_sequence,
         hmm_init,

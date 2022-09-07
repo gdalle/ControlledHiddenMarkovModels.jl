@@ -1,5 +1,5 @@
 function baum_welch_multiple_sequences!(
-    obs_densities::Vector{Matrix{R}},
+    obs_logdensities::Vector{Matrix{R}},
     multiple_fb_storage::MultipleForwardBackwardStorage{R},
     obs_sequences::AbstractVector{<:AbstractVector},
     hmm_init::H,
@@ -21,9 +21,9 @@ function baum_welch_multiple_sequences!(
     @progress for iteration in 1:max_iterations
         for k in 1:K
             # Local forward-backward
-            update_obs_density!(obs_densities[k], obs_sequences[k], hmm, par)
+            update_obs_logdensity!(obs_logdensities[k], obs_sequences[k], hmm, par)
             logL_by_seq[k] = forward_backward!(
-                α[k], c[k], β[k], bβ[k], γ[k], ξ[k], obs_densities[k], hmm, par
+                α[k], c[k], β[k], bβ[k], γ[k], ξ[k], obs_logdensities[k], hmm, par
             )
         end
         push!(logL_evolution, sum(logL_by_seq))
@@ -67,10 +67,12 @@ function baum_welch_multiple_sequences(
     tol=1e-3,
 )
     K = length(obs_sequences)
-    obs_densities = [compute_obs_density(obs_sequences[k], hmm_init, par) for k in 1:K]
-    multiple_fb_storage = initialize_forward_backward_multiple_sequences(obs_densities)
+    obs_logdensities = [
+        compute_obs_logdensity(obs_sequences[k], hmm_init, par) for k in 1:K
+    ]
+    multiple_fb_storage = initialize_forward_backward_multiple_sequences(obs_logdensities)
     result = baum_welch_multiple_sequences!(
-        obs_densities,
+        obs_logdensities,
         multiple_fb_storage,
         obs_sequences,
         hmm_init,
