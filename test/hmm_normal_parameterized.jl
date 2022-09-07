@@ -1,10 +1,9 @@
-# # Hidden Markov Model
+module HMMNormalParameterizedTest
 
 using ComponentArrays
 using ControlledHiddenMarkovModels
 using Distributions
 using ForwardDiff
-using LogarithmicNumbers
 using Optimization
 using OptimizationOptimJL
 using PointProcesses
@@ -30,10 +29,10 @@ obs_sequence = rand(rng, hmm, T)[2]
 
 ## Learning
 
-p0_init = rand_prob_vec(rng, LogFloat32, 2)
-P_init = rand_trans_mat(rng, LogFloat32, 2)
-μ_init = [1.0, -1.0]
-σ_init = ones(2)
+p0_init = rand_prob_vec(rng, Float32, 2)
+P_init = rand_trans_mat(rng, Float32, 2)
+μ_init = [1.0f0, -1.0f0]
+σ_init = [1.0f0, 1.0f0]
 
 ## Parameterized Normal HMM
 
@@ -84,12 +83,18 @@ end
 
 @test loss(par_init, obs_sequence; safe=true) ≈ loss(par_init, obs_sequence; safe=false)
 
-f = OptimizationFunction(loss, Optimization.AutoForwardDiff());
-prob = OptimizationProblem(f, par_init, obs_sequence);
-res = solve(prob, OptimizationOptimJL.LBFGS());
-par_est = res.u;
+f = OptimizationFunction(loss, Optimization.AutoForwardDiff())
+prob = OptimizationProblem(f, par_init, obs_sequence)
+res = solve(prob, OptimizationOptimJL.LBFGS())
+par_est = res.u
 
-hmm_est2 = HMM(
+hmm_init = HMM(
+    initial_distribution(NormalHMM(), par_init),
+    transition_matrix(NormalHMM(), par_init),
+    [emission_distribution(NormalHMM(), s, par_init) for s in 1:2],
+)
+
+hmm_est = HMM(
     initial_distribution(NormalHMM(), par_est),
     transition_matrix(NormalHMM(), par_est),
     [emission_distribution(NormalHMM(), s, par_est) for s in 1:2],
@@ -97,17 +102,26 @@ hmm_est2 = HMM(
 
 ## Testing
 
-p0_est2 = initial_distribution(hmm_est2)
-P_est2 = transition_matrix(hmm_est2)
-μ_est2 = [emission_distribution(hmm_est2, s).μ for s in 1:2]
-σ_est2 = [emission_distribution(hmm_est2, s).σ for s in 1:2]
+p0_est = initial_distribution(hmm_est)
+P_est = transition_matrix(hmm_est)
+μ_est = [emission_distribution(hmm_est, s).μ for s in 1:2]
+σ_est = [emission_distribution(hmm_est, s).σ for s in 1:2]
 
-P_error2 = mean(abs, P_est2 - P)
-μ_error2 = mean(abs, μ_est2 - μ)
-σ_error2 = mean(abs, σ_est2 - σ)
-l_est2 = logdensityof(hmm_est2, obs_sequence)
+P_error_init = mean(abs, P_init - P)
+P_error = mean(abs, P_est - P)
 
-@test P_error2 < P_error_init / 10
-@test μ_error2 < μ_error_init / 10
-@test σ_error2 < σ_error_init / 10
-@test l_est2 > l_init
+μ_error_init = mean(abs, μ_init - μ)
+μ_error = mean(abs, μ_est - μ)
+
+σ_error_init = mean(abs, σ_init - σ)
+σ_error = mean(abs, σ_est - σ)
+
+l_init = logdensityof(hmm_init, obs_sequence)
+l_est = logdensityof(hmm_est, obs_sequence)
+
+@test P_error < P_error_init / 5
+@test μ_error < μ_error_init / 5
+@test σ_error < σ_error_init / 5
+@test l_est > l_init
+
+end

@@ -75,7 +75,7 @@ function forward!(
 end
 
 """
-    backward!(β, bβ, c, obs_density, hmm::AbstractHMM, par)
+    backward!(β, bβ, c, obs_logdensity, hmm::AbstractHMM, par)
 
 Perform a backward pass by mutating `β`, `bβ` and `c`.
 """
@@ -108,7 +108,7 @@ function backward!(
 end
 
 """
-    forward_backward!(α, c, β, bβ, γ, ξ, obs_density, hmm::AbstractHMM, par)
+    forward_backward!(α, c, β, bβ, γ, ξ, obs_logdensity, hmm::AbstractHMM, par)
 
 Apply the full forward-backward algorithm by mutating `α`, `c`, `β`, `bβ`, `γ` and `ξ`.
 """

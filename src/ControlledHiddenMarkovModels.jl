@@ -57,7 +57,8 @@ export emission_distribution
 export infer_current_state
 
 export HiddenMarkovModel, HMM
-export baum_welch, baum_welch_multiple_sequences
+export baum_welch, baum_welch_log
+export baum_welch_multiple_sequences, baum_welch_log_multiple_sequences
 export emission_type
 
 export AbstractControlledHiddenMarkovModel, AbstractControlledHMM

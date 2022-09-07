@@ -27,11 +27,11 @@ DocMeta.setdocmeta!(
     @testset verbose = true "HMM - Gaussian emissions" begin
         include("hmm_normal.jl")
     end
+    @testset verbose = true "HMM - Poisson process emissions, multiple sequences" begin
+        include("hmm_poisson.jl")
+    end
     @testset verbose = true "HMM - parameterized Gaussian emissions" begin
         include("hmm_normal_parameterized.jl")
-    end
-    @testset verbose = true "HMM - Poisson process emissions" begin
-        include("hmm_poisson.jl")
     end
     @testset verbose = true "Controlled HMM - Gaussian emissions" begin
         include("controlled_hmm_normal.jl")
