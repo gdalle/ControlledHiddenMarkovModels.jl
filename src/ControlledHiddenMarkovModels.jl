@@ -15,7 +15,6 @@ const CHMMs = ControlledHiddenMarkovModels
 using DensityInterface: DensityInterface, densityof, logdensityof
 using Distributions: Categorical, fit_mle
 using LinearAlgebra
-using ProgressLogging: @progress
 using Random: AbstractRNG, GLOBAL_RNG, rand
 
 include("utils/prob_vec.jl")
@@ -26,14 +25,14 @@ include("utils/logsumexp.jl")
 include("free/abstract_hmm.jl")
 include("free/simulation.jl")
 include("free/obs_density.jl")
+include("free/storage.jl")
 include("free/forward_backward.jl")
 include("free/forward_backward_log.jl")
 include("free/inference.jl")
-include("free/storage.jl")
 
 include("free/concrete/hmm.jl")
+include("free/concrete/re_estimation.jl")
 include("free/concrete/baum_welch.jl")
-include("free/concrete/baum_welch_multiple_sequences.jl")
 
 include("controlled/abstract_controlled_hmm.jl")
 include("controlled/simulation.jl")

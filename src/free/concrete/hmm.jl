@@ -66,8 +66,6 @@ Fit a distribution of type `D` based on multiple sequences of observations `xs` 
 
 Must accept arbitrary iterables for `xs` and `ws`.
 """
-function fit_mle_from_multiple_sequences(::Type{D}, xs, ws) where {D}
-    return error(
-        "The method `fit_mle_from_multiple_sequences(::Type{D}, xs, ws)` is not implemented for emission type $D. It is required for the Baum-Welch algorithm when applied to multiple sequences.",
-    )
+function fit_mle_from_multiple_sequences(T::Type{D}, xs, ws) where {D}
+    return fit_mle_from_single_sequence(T, vcat(xs...), vcat(ws...))
 end

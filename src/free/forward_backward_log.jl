@@ -129,3 +129,16 @@ function forward_backward_log!(
     logL = logsumexp(logα)
     return float(logL)
 end
+
+function forward_backward_generic!(
+    log_fb_storage::LogForwardBackwardStorage,
+    k::Integer,
+    obs_logdensity::AbstractMatrix,
+    hmm::AbstractHMM,
+    par,
+)
+    (; logα, logβ, logγ, logξ) = log_fb_storage
+    return forward_backward_log!(
+        logα[k], logβ[k], logγ[k], logξ[k], obs_logdensity, hmm, par
+    )
+end

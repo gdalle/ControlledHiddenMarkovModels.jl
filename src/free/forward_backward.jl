@@ -151,3 +151,14 @@ function forward_backward!(
     logL = -sum(log, c)
     return float(logL)
 end
+
+function forward_backward_generic!(
+    fb_storage::ForwardBackwardStorage,
+    k::Integer,
+    obs_logdensity::AbstractMatrix,
+    hmm::AbstractHMM,
+    par,
+)
+    (; α, c, β, bβ, γ, ξ) = fb_storage
+    return forward_backward!(α[k], c[k], β[k], bβ[k], γ[k], ξ[k], obs_logdensity, hmm, par)
+end
