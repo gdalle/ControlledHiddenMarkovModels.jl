@@ -1,5 +1,5 @@
 function baum_welch_multiple_sequences!(
-    obs_logdensities::Vector{Matrix{R}},
+    obs_logdensities::Vector{<:Matrix},
     multiple_fb_storage::MultipleForwardBackwardStorage{R},
     obs_sequences::AbstractVector{<:AbstractVector},
     hmm_init::H,
@@ -55,7 +55,7 @@ function baum_welch_multiple_sequences!(
 end
 
 function baum_welch_log_multiple_sequences!(
-    obs_logdensities::Vector{Matrix{R}},
+    obs_logdensities::Vector{<:Matrix},
     multiple_fb_log_storage::MultipleForwardBackwardLogStorage{R},
     obs_sequences::AbstractVector{<:AbstractVector},
     hmm_init::H,

@@ -1,5 +1,5 @@
 function baum_welch!(
-    obs_logdensity::Matrix{R},
+    obs_logdensity::Matrix,
     fb_storage::ForwardBackwardStorage{R},
     obs_sequence::AbstractVector,
     hmm_init::H,
@@ -47,7 +47,7 @@ function baum_welch!(
 end
 
 function baum_welch_log!(
-    obs_logdensity::Matrix{R},
+    obs_logdensity::Matrix,
     fb_log_storage::ForwardBackwardLogStorage{R},
     obs_sequence::AbstractVector,
     hmm_init::H,

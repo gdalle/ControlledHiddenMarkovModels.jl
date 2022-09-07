@@ -2,6 +2,7 @@ module HMMNormalTest
 
 using ControlledHiddenMarkovModels
 using Distributions
+using LogarithmicNumbers
 using Random
 using Statistics
 using Test
@@ -29,39 +30,45 @@ obs_sequence = rand(rng, hmm, T)[2]
 p0_init = rand_prob_vec(rng, Float32, 2)
 P_init = rand_trans_mat(rng, Float32, 2)
 
-μ_init = [1.0f0, -1.0f0]
-σ_init = [1.0f0, 1.0f0]
+p0_init_log = LogFloat32.(p0_init)
+P_init_log = LogFloat32.(P_init)
+
+μ_init = Float64.([1.0f0, -1.0f0])
+σ_init = Float64.([1.0f0, 1.0f0])
 emissions_init = [Normal(μ_init[1], σ_init[1]), Normal(μ_init[2], σ_init[2])]
 
-hmm_init = HMM(p0_init, P_init, emissions_init)
-
-hmm_ests = (
-    baum_welch(obs_sequence, hmm_init;)[1], baum_welch_log(obs_sequence, hmm_init;)[1]
+hmm_inits = (
+    HMM(p0_init, P_init, emissions_init), HMM(p0_init_log, P_init_log, emissions_init)
 )
 
-for hmm_est in hmm_ests
-    p0_est = initial_distribution(hmm_est)
-    P_est = transition_matrix(hmm_est)
-    μ_est = [emission_distribution(hmm_est, s).μ for s in 1:2]
-    σ_est = [emission_distribution(hmm_est, s).σ for s in 1:2]
+for hmm_init in hmm_inits
+    hmm_ests = (
+        baum_welch(obs_sequence, hmm_init;)[1], baum_welch_log(obs_sequence, hmm_init;)[1]
+    )
+    for hmm_est in hmm_ests
+        p0_est = initial_distribution(hmm_est)
+        P_est = transition_matrix(hmm_est)
+        μ_est = [emission_distribution(hmm_est, s).μ for s in 1:2]
+        σ_est = [emission_distribution(hmm_est, s).σ for s in 1:2]
 
-    P_error_init = mean(abs, P_init - P)
-    P_error = mean(abs, P_est - P)
+        P_error_init = mean(abs, P_init - P)
+        P_error = mean(abs, P_est - P)
 
-    μ_error_init = mean(abs, μ_init - μ)
-    μ_error = mean(abs, μ_est - μ)
+        μ_error_init = mean(abs, μ_init - μ)
+        μ_error = mean(abs, μ_est - μ)
 
-    σ_error_init = mean(abs, σ_init - σ)
-    σ_error = mean(abs, σ_est - σ)
+        σ_error_init = mean(abs, σ_init - σ)
+        σ_error = mean(abs, σ_est - σ)
 
-    l_init = logdensityof(hmm_init, obs_sequence)
-    l_est = logdensityof(hmm_est, obs_sequence)
+        l_init = logdensityof(hmm_init, obs_sequence)
+        l_est = logdensityof(hmm_est, obs_sequence)
 
-    @test typeof(hmm_est) == typeof(hmm_init)
-    @test P_error < P_error_init / 5
-    @test μ_error < μ_error_init / 5
-    @test σ_error < σ_error_init / 5
-    @test l_est > l_init
+        @test typeof(hmm_est) == typeof(hmm_init)
+        @test P_error < P_error_init / 5
+        @test μ_error < μ_error_init / 5
+        @test σ_error < σ_error_init / 5
+        @test l_est > l_init
+    end
 end
 
 end
