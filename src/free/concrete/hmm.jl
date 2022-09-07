@@ -40,14 +40,14 @@ Return the type of an emission distribution object.
 emission_type(::Type{HMM{R1,R2,D}}) where {R1,R2,D} = D
 
 """
-    fit_from_multiple_sequences(::Type{D}, xs, ws)
+    fit_mle_from_multiple_sequences(::Type{D}, xs, ws)
 
 Fit a distribution of type `D` based on multiple sequences of observations `xs` associated with multiple sequences of weights `ws`.
 
 Must accept arbitrary iterables for `xs` and `ws`.
 """
-function fit_from_multiple_sequences(::Type{D}, xs, ws) where {D}
+function fit_mle_from_multiple_sequences(::Type{D}, xs, ws) where {D}
     return error(
-        "The method `fit_from_multiple_sequences(::Type{D}, xs, ws)` is not implemented for emission type $D. It is required for the Baum-Welch algorithm",
+        "The method `fit_mle_from_multiple_sequences(::Type{D}, xs, ws)` is not implemented for emission type $D. It is required for the Baum-Welch algorithm when applied to multiple sequences.",
     )
 end

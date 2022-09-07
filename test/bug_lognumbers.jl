@@ -97,7 +97,7 @@ ForwardDiff.gradient(p -> loss(p, data), par_init)
 function Base.promote_rule(
     ::Type{R}, ::Type{ForwardDiff.Dual{T,V,N}}
 ) where {R<:(Union{Logarithmic{T},ULogarithmic{T}} where {T}),T,V,N}
-    return ForwardDiff.Dual{T,promote_type(R,V),N}
+    return ForwardDiff.Dual{T,promote_type(R, V),N}
 end
 
 ForwardDiff.gradient(p -> loss(p, data), par_init)

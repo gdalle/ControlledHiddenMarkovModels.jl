@@ -1,46 +1,39 @@
-function baum_welch_multiple_sequences!(
-    obs_densities::Vector{Matrix{R}},
+function baum_welch!(
+    obs_density::Matrix{R},
     fb_storage::ForwardBackwardStorage{R},
-    obs_sequences::AbstractVector,
+    obs_sequence::AbstractVector,
     hmm_init::H,
     par;
-    max_iterations::Integer=100,
-    tol::Real=1e-3,
+    max_iterations,
+    tol,
 ) where {R,H<:HMM}
     hmm = hmm_init
     S = nb_states(hmm, par)
-    K = length(obs_sequences)
-    T = [length(obs_sequences[k]) for k in 1:K]
+    T = length(obs_sequence)
     (; α, c, β, bβ, γ, ξ) = fb_storage
 
     # Initialize loglikelihood storage
     logL_evolution = float(R)[]
-    logL_by_seq = Vector{float(R)}(undef, K)
 
     # Main loop
     @progress for iteration in 1:max_iterations
-        for k in 1:K
-            # Local forward-backward
-            update_obs_density!(obs_densities[k], obs_sequences[k], hmm, par)
-            logL_by_seq[k] = forward_backward!(
-                α[k], c[k], β[k], bβ[k], γ[k], ξ[k], obs_densities[k], hmm, par
-            )
-        end
-        push!(logL_evolution, sum(logL_by_seq))
+        # Local forward-backward
+        update_obs_density!(obs_density, obs_sequence, hmm, par)
+        logL = forward_backward!(α, c, β, bβ, γ, ξ, obs_density, hmm, par)
+        push!(logL_evolution, logL)
 
         # Aggregated transitions
-        @views p0 = reduce(+, γ[k][:, 1] for k in 1:K)
-        P = reduce(+, dropdims(sum(ξ[k]; dims=3); dims=3) for k in 1:K)
+        @views p0 = γ[:, 1]
+        P = dropdims(sum(ξ; dims=3); dims=3)
         p0 ./= sum(p0)
         P ./= sum(P; dims=2)
 
         # Aggregated emissions
         D = emission_type(H)
         emissions = Vector{D}(undef, S)
-        xs = (obs_sequences[k] for k in 1:K)
         @views for s in 1:S
-            ws = (γ[k][s, :] for k in 1:K)
-            emissions[s] = fit_from_multiple_sequences(D, xs, ws)
+            ws = γ[s, :]
+            emissions[s] = fit_mle(D, obs_sequence, ws)
         end
 
         # New object
@@ -55,29 +48,23 @@ function baum_welch_multiple_sequences!(
 end
 
 """
-    baum_welch_multiple_sequences(obs_sequences, hmm_init::HMM[, par; max_iterations, tol])
-
-Apply the Baum-Welch algorithm on multiple observation sequences, starting from an initial [`HMM`](@ref) `hmm_init` with parameters `par`.
-
-The parameters are not modified.
-"""
-function baum_welch_multiple_sequences(
-    obs_sequences::AbstractVector, hmm_init::HMM, par=nothing; kwargs...
-)
-    K = length(obs_sequences)
-    obs_densities = [compute_obs_density(obs_sequences[k], hmm_init, par) for k in 1:K]
-    fb_storage = initialize_forward_backward_multiple_sequences(obs_densities)
-    result = baum_welch_multiple_sequences!(
-        obs_densities, fb_storage, obs_sequences, hmm_init, par; kwargs...
-    )
-    return result
-end
-
-"""
     baum_welch(obs_sequence, hmm_init::HMM[, par; max_iterations, tol])
 
-Apply [`baum_welch_multiple_sequences`](@ref) on a single observation sequence.
+Apply the Baum-Welch algorithm on a single observation sequence, starting from an initial [`HMM`](@ref) `hmm_init` with parameters `par` (not modified).
 """
-function baum_welch(obs_sequence::AbstractVector, hmm_init::HMM, par=nothing; kwargs...)
-    return baum_welch_multiple_sequences([obs_sequence], hmm_init, par; kwargs...)
+function baum_welch(
+    obs_sequence::AbstractVector, hmm_init::HMM, par=nothing; max_iterations=100, tol=1e-3
+)
+    obs_density = compute_obs_density(obs_sequence, hmm_init, par)
+    fb_storage = initialize_forward_backward(obs_density)
+    result = baum_welch!(
+        obs_density,
+        fb_storage,
+        obs_sequence,
+        hmm_init,
+        par;
+        max_iterations=max_iterations,
+        tol=tol,
+    )
+    return result
 end

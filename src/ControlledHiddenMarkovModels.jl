@@ -13,7 +13,7 @@ Alias for [`ControlledHiddenMarkovModels`](@ref).
 const CHMMs = ControlledHiddenMarkovModels
 
 using DensityInterface: DensityInterface, densityof, logdensityof
-using Distributions: Categorical
+using Distributions: Categorical, fit_mle
 using LinearAlgebra
 using ProgressLogging: @progress
 using Random: AbstractRNG, GLOBAL_RNG, rand
@@ -28,9 +28,11 @@ include("free/simulation.jl")
 include("free/forward_backward.jl")
 include("free/forward_backward_log.jl")
 include("free/inference.jl")
+include("free/storage.jl")
 
 include("free/concrete/hmm.jl")
 include("free/concrete/baum_welch.jl")
+include("free/concrete/baum_welch_multiple_sequences.jl")
 
 include("controlled/abstract_controlled_hmm.jl")
 include("controlled/simulation.jl")
@@ -54,8 +56,8 @@ export emission_distribution
 export infer_current_state
 
 export HiddenMarkovModel, HMM
-export baum_welch_multiple_sequences, baum_welch
-export emission_type, fit_from_multiple_sequences
+export baum_welch, baum_welch_multiple_sequences
+export emission_type
 
 export AbstractControlledHiddenMarkovModel, AbstractControlledHMM
 export emission_parameters
