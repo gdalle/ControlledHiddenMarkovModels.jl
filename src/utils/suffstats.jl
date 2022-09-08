@@ -7,7 +7,7 @@ function add_suffstats(stats1::Distributions.NormalStats, stats2::Distributions.
     return stats
 end
 
-function fit_mle_from_multiple_sequences(D::Type{<:Normal}, xs, ws)
+function fit_mle_from_multiple_sequences(D::Type{<:Distributions.Normal}, xs, ws)
     stats = reduce(add_suffstats, suffstats(D, x, w) for (x, w) in zip(xs, ws))
     return fit_mle(D, stats)
 end

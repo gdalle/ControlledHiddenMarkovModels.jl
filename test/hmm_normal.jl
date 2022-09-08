@@ -13,6 +13,7 @@ Random.seed!(rng, 63)
 ## Simulation
 
 T = 1000
+K = 5
 
 p0 = [0.3, 0.7]
 P = [0.9 0.1; 0.2 0.8]
@@ -23,7 +24,7 @@ emissions = [Normal(μ[1], σ[1]), Normal(μ[2], σ[2])]
 
 hmm = HMM(p0, P, emissions)
 
-obs_sequence = rand(rng, hmm, T)[2]
+obs_sequences = [rand(rng, hmm, T)[2] for k in 1:K]
 
 ## Learning
 
@@ -43,7 +44,9 @@ hmm_inits = (
 
 for hmm_init in hmm_inits
     hmm_ests = (
-        baum_welch(obs_sequence, hmm_init;)[1], baum_welch_log(obs_sequence, hmm_init;)[1]
+        baum_welch_nolog(obs_sequences, hmm_init)[1],
+        baum_welch_log(obs_sequences, hmm_init)[1],
+        baum_welch_doublelog(obs_sequences, hmm_init)[1],
     )
     for hmm_est in hmm_ests
         p0_est = initial_distribution(hmm_est)
@@ -60,10 +63,9 @@ for hmm_init in hmm_inits
         σ_error_init = mean(abs, σ_init - σ)
         σ_error = mean(abs, σ_est - σ)
 
-        l_init = logdensityof(hmm_init, obs_sequence)
-        l_est = logdensityof(hmm_est, obs_sequence)
+        l_init = sum(logdensityof(hmm_init, obs_sequence) for obs_sequence in obs_sequences)
+        l_est = sum(logdensityof(hmm_est, obs_sequence) for obs_sequence in obs_sequences)
 
-        @test typeof(hmm_est) == typeof(hmm_init)
         @test P_error < P_error_init / 5
         @test μ_error < μ_error_init / 5
         @test σ_error < σ_error_init / 5

@@ -120,7 +120,11 @@ function loss(par, data; safe=true)
     )
 end
 
-@test loss(par_init, data; safe=false) ≈ loss(par_init, data; safe=true)
+l0 = loss(par_init, data; safe=0)
+l1 = loss(par_init, data; safe=1)
+l2 = loss(par_init, data; safe=2)
+@test l0 ≈ l1
+@test l0 ≈ l2
 
 f = OptimizationFunction(loss, Optimization.AutoForwardDiff())
 prob = OptimizationProblem(f, par_init, data)

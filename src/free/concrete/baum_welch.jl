@@ -1,127 +1,112 @@
 function baum_welch_multiple_sequences!(
-    obs_logdensities::Vector{<:Matrix},
-    any_fb_storage::AnyForwardBackwardStorage{R},
+    od_storage::AnyObsDensityStorage,
+    fb_storage::AnyForwardBackwardStorage{R},
     obs_sequences::AbstractVector{<:AbstractVector},
     hmm_init::H,
     par;
-    max_iterations,
+    maxiter,
     tol,
 ) where {R,H<:HMM}
     hmm = hmm_init
-    S = nb_states(hmm, par)
-    K = length(obs_sequences)
-    T = [length(obs_sequences[k]) for k in 1:K]
-
-    # Initialize loglikelihood storage
     logL_evolution = float(R)[]
-    logL_by_seq = Vector{float(R)}(undef, K)
+    for iteration in 1:maxiter
+        update_obs_densities_generic!(od_storage, obs_sequences, hmm, par)
+        logL = forward_backward_generic!(fb_storage, od_storage, hmm, par)
+        push!(logL_evolution, logL)
 
-    # Main loop
-    for iteration in 1:max_iterations
-        for k in 1:K
-            # Local forward-backward
-            update_obs_logdensity!(obs_logdensities[k], obs_sequences[k], hmm, par)
-            logL_by_seq[k] = forward_backward_generic!(
-                any_fb_storage, k, obs_logdensities[k], hmm, par
-            )
-        end
-        push!(logL_evolution, sum(logL_by_seq))
-
-        p0 = initial_distribution(any_fb_storage)
-        P = transition_matrix(any_fb_storage)
+        p0 = initial_distribution(fb_storage)
+        P = transition_matrix(fb_storage)
         emissions = [
-            emission_distribution(H, any_fb_storage, obs_sequences, s) for s in 1:S
+            emission_distribution(H, fb_storage, obs_sequences, s) for s in 1:nb_states(hmm)
         ]
-
-        # New object
         hmm = H(p0, P, emissions)
 
-        if iteration > 1 && (logL_evolution[end] - logL_evolution[end - 1]) / sum(T) < tol
+        if (iteration > 1) && (logL_evolution[end] - logL_evolution[end - 1] < tol)
             break
         end
     end
-
     return hmm, logL_evolution
 end
 
 """
-    baum_welch_multiple_sequences(obs_sequences, hmm_init::HMM[, par; max_iterations, tol])
+    baum_welch_nolog(obs_sequences, hmm_init::HMM[, par; maxiter, tol])
 
 Apply the Baum-Welch algorithm on multiple observation sequences, starting from an initial [`HMM`](@ref) `hmm_init` with parameters `par` (not modifed).
 """
-function baum_welch_multiple_sequences(
+function baum_welch_nolog(
     obs_sequences::AbstractVector{<:AbstractVector},
     hmm_init::HMM,
     par=nothing;
-    max_iterations=100,
+    maxiter=100,
     tol=1e-5,
 )
-    K = length(obs_sequences)
-    obs_logdensities = [
-        compute_obs_logdensity(obs_sequences[k], hmm_init, par) for k in 1:K
-    ]
-    fb_storage = initialize_forward_backward(obs_logdensities)
+    od_storage = initialize_obs_densities(obs_sequences, hmm_init, par)
+    fb_storage = initialize_forward_backward(od_storage)
     result = baum_welch_multiple_sequences!(
-        obs_logdensities,
-        fb_storage,
-        obs_sequences,
-        hmm_init,
-        par;
-        max_iterations=max_iterations,
-        tol=tol,
+        od_storage, fb_storage, obs_sequences, hmm_init, par; maxiter=maxiter, tol=tol
     )
     return result
 end
 
 """
-    baum_welch_log_multiple_sequences(obs_sequences, hmm_init::HMM[, par; max_iterations, tol])
+    baum_welch_log(obs_sequences, hmm_init::HMM[, par; maxiter, tol])
 
-Apply the Baum-Welch algorithm _in log scale_ on multiple observation sequences, starting from an initial [`HMM`](@ref) `hmm_init` with parameters `par` (not modifed).
+Apply the Baum-Welch algorithm _partly in log scale_ on multiple observation sequences, starting from an initial [`HMM`](@ref) `hmm_init` with parameters `par` (not modifed).
 """
-function baum_welch_log_multiple_sequences(
+function baum_welch_log(
     obs_sequences::AbstractVector{<:AbstractVector},
     hmm_init::HMM,
     par=nothing;
-    max_iterations=100,
+    maxiter=100,
     tol=1e-5,
 )
-    K = length(obs_sequences)
-    obs_logdensities = [
-        compute_obs_logdensity(obs_sequences[k], hmm_init, par) for k in 1:K
-    ]
-    log_fb_storage = initialize_forward_backward_log(obs_logdensities)
+    log_od_storage = initialize_obs_logdensities(obs_sequences, hmm_init, par)
+    fb_storage = initialize_forward_backward(log_od_storage)
     result = baum_welch_multiple_sequences!(
-        obs_logdensities,
+        log_od_storage, fb_storage, obs_sequences, hmm_init, par; maxiter=maxiter, tol=tol
+    )
+    return result
+end
+
+"""
+    baum_welch_doublelog(obs_sequences, hmm_init::HMM[, par; maxiter, tol])
+
+Apply the Baum-Welch algorithm _fully in log scale_ on multiple observation sequences, starting from an initial [`HMM`](@ref) `hmm_init` with parameters `par` (not modifed).
+"""
+function baum_welch_doublelog(
+    obs_sequences::AbstractVector{<:AbstractVector},
+    hmm_init::HMM,
+    par=nothing;
+    maxiter=100,
+    tol=1e-5,
+)
+    log_od_storage = initialize_obs_logdensities(obs_sequences, hmm_init, par)
+    log_fb_storage = initialize_forward_backward_log(log_od_storage)
+    result = baum_welch_multiple_sequences!(
+        log_od_storage,
         log_fb_storage,
         obs_sequences,
         hmm_init,
         par;
-        max_iterations=max_iterations,
+        maxiter=maxiter,
         tol=tol,
     )
     return result
 end
 
-"""
-    baum_welch(obs_sequence, hmm_init::HMM[, par; max_iterations, tol])
-
-Apply the Baum-Welch algorithm on a single observation sequence, starting from an initial [`HMM`](@ref) `hmm_init` with parameters `par` (not modified).
-"""
 function baum_welch(
-    obs_sequence::AbstractVector, hmm_init::HMM, par=nothing; max_iterations=100, tol=1e-5
+    obs_sequences::AbstractVector{<:AbstractVector},
+    hmm_init::HMM,
+    par=nothing;
+    maxiter=100,
+    tol=1e-5,
+    safe=2,
 )
-    return baum_welch_multiple_sequences([obs_sequence], hmm_init, par; max_iterations, tol)
-end
-
-"""
-    baum_welch_log(obs_sequence, hmm_init::HMM[, par; max_iterations, tol])
-
-Apply the Baum-Welch algorithm _in log scale_ on a single observation sequence, starting from an initial [`HMM`](@ref) `hmm_init` with parameters `par` (not modified).
-"""
-function baum_welch_log(
-    obs_sequence::AbstractVector, hmm_init::HMM, par=nothing; max_iterations=100, tol=1e-5
-)
-    return baum_welch_log_multiple_sequences(
-        [obs_sequence], hmm_init, par; max_iterations, tol
-    )
+    if safe == 0
+        return baum_welch_nolog(obs_sequences, hmm_init, par; maxiter=maxiter, tol=tol)
+    elseif safe == 1
+        return baum_welch_log(obs_sequences, hmm_init, par; maxiter=maxiter, tol=tol)
+    elseif safe == 2
+        return baum_welch_doublelog(obs_sequences, hmm_init, par; maxiter=maxiter, tol=tol)
+    end
 end

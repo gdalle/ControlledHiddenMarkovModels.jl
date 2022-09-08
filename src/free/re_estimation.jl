@@ -31,18 +31,23 @@ end
 ## Emissions
 
 function emission_distribution(
-    ::Type{H}, fb_storage::ForwardBackwardStorage, obs_sequences, s
+    ::Type{H},
+    fb_storage::ForwardBackwardStorage,
+    obs_sequences::AbstractVector{<:AbstractVector},
+    s::Integer,
 ) where {H<:AbstractHMM}
     (; γ) = fb_storage
     D = emission_type(H)
-    S = size(γ[1], 1)
     xs = (obs_sequences[k] for k in eachindex(obs_sequences))
     ws = (γ[k][s, :] for k in eachindex(γ))
     return fit_mle_from_multiple_sequences(D, xs, ws)
 end
 
 function emission_distribution(
-    ::Type{H}, log_fb_storage::LogForwardBackwardStorage, obs_sequences, s
+    ::Type{H},
+    log_fb_storage::LogForwardBackwardStorage,
+    obs_sequences::AbstractVector{<:AbstractVector},
+    s::Integer,
 ) where {H<:AbstractHMM}
     (; logγ) = log_fb_storage
     D = emission_type(H)

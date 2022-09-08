@@ -13,31 +13,33 @@ Alias for [`ControlledHiddenMarkovModels`](@ref).
 const CHMMs = ControlledHiddenMarkovModels
 
 using DensityInterface: DensityInterface, densityof, logdensityof
-using Distributions: Categorical, fit_mle
+using Distributions: Distributions, Categorical, fit_mle, suffstats
 using LinearAlgebra
 using Random: AbstractRNG, GLOBAL_RNG, rand
 
 include("utils/prob_vec.jl")
 include("utils/trans_mat.jl")
 include("utils/overflow.jl")
+include("utils/suffstats.jl")
 include("utils/logsumexp.jl")
 
 include("free/abstract_hmm.jl")
 include("free/simulation.jl")
 include("free/obs_density.jl")
 include("free/storage.jl")
+include("free/forward_light.jl")
+include("free/forward.jl")
+include("free/backward.jl")
 include("free/forward_backward.jl")
-include("free/forward_backward_log.jl")
+include("free/re_estimation.jl")
 include("free/inference.jl")
 
 include("free/concrete/hmm.jl")
-include("free/concrete/re_estimation.jl")
 include("free/concrete/baum_welch.jl")
 
 include("controlled/abstract_controlled_hmm.jl")
 include("controlled/simulation.jl")
-include("controlled/forward_backward.jl")
-include("controlled/forward_backward_log.jl")
+include("controlled/forward_light.jl")
 include("controlled/inference.jl")
 
 export CHMMs
@@ -56,8 +58,7 @@ export emission_distribution
 export infer_current_state
 
 export HiddenMarkovModel, HMM
-export baum_welch, baum_welch_log
-export baum_welch_multiple_sequences, baum_welch_log_multiple_sequences
+export baum_welch, baum_welch_nolog, baum_welch_log, baum_welch_doublelog
 export emission_type
 
 export AbstractControlledHiddenMarkovModel, AbstractControlledHMM

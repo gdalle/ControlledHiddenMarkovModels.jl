@@ -6,7 +6,6 @@ using Distributions
 using ForwardDiff
 using Optimization
 using OptimizationOptimJL
-using PointProcesses
 using Random
 using Statistics
 using Test
@@ -16,7 +15,8 @@ Random.seed!(rng, 63)
 
 ## Simulation
 
-T = 2000
+T = 1000
+K = 5
 
 p0 = [0.3, 0.7]
 P = [0.9 0.1; 0.2 0.8]
@@ -25,14 +25,14 @@ P = [0.9 0.1; 0.2 0.8]
 emissions = [Normal(μ[1], σ[1]), Normal(μ[2], σ[2])]
 hmm = HMM(p0, P, emissions)
 
-obs_sequence = rand(rng, hmm, T)[2]
+obs_sequences = [rand(rng, hmm, T)[2] for k in 1:K]
 
 ## Learning
 
-p0_init = rand_prob_vec(rng, Float32, 2)
-P_init = rand_trans_mat(rng, Float32, 2)
-μ_init = [1.0f0, -1.0f0]
-σ_init = [1.0f0, 1.0f0]
+p0_init = rand_prob_vec(rng, 2)
+P_init = rand_trans_mat(rng, 2)
+μ_init = [1.0, -1.0]
+σ_init = [1.0, 1.0]
 
 ## Parameterized Normal HMM
 
@@ -77,14 +77,21 @@ par_init = ComponentVector(;
     logσ=log.(copy(σ_init)),
 )
 
-function loss(par, obs_sequence; safe=true)
-    return -logdensityof(NormalHMM(), obs_sequence, par; safe=safe)
+function loss(par, obs_sequences; safe=2)
+    return -sum(
+        logdensityof(NormalHMM(), obs_sequence, par; safe=safe) for
+        obs_sequence in obs_sequences
+    )
 end
 
-@test loss(par_init, obs_sequence; safe=true) ≈ loss(par_init, obs_sequence; safe=false)
+l0 = loss(par_init, obs_sequences; safe=0)
+l1 = loss(par_init, obs_sequences; safe=1)
+l2 = loss(par_init, obs_sequences; safe=2)
+@test l0 ≈ l1
+@test l0 ≈ l2
 
 f = OptimizationFunction(loss, Optimization.AutoForwardDiff())
-prob = OptimizationProblem(f, par_init, obs_sequence)
+prob = OptimizationProblem(f, par_init, obs_sequences)
 res = solve(prob, OptimizationOptimJL.LBFGS())
 par_est = res.u
 
@@ -116,12 +123,9 @@ P_error = mean(abs, P_est - P)
 σ_error_init = mean(abs, σ_init - σ)
 σ_error = mean(abs, σ_est - σ)
 
-l_init = logdensityof(hmm_init, obs_sequence)
-l_est = logdensityof(hmm_est, obs_sequence)
-
 @test P_error < P_error_init / 5
 @test μ_error < μ_error_init / 5
 @test σ_error < σ_error_init / 5
-@test l_est > l_init
+@test loss(par_est, obs_sequences) < loss(par_init, obs_sequences)
 
 end

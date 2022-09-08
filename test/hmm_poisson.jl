@@ -22,7 +22,7 @@ end
 
 ## Simulation
 
-T = 100
+T = 1000
 K = 5
 
 p0 = [0.3, 0.7]
@@ -63,8 +63,9 @@ hmm_inits = (
 
 for hmm_init in hmm_inits
     hmm_ests = (
-        baum_welch_multiple_sequences(obs_sequences, hmm_init;)[1],
-        baum_welch_log_multiple_sequences(obs_sequences, hmm_init;)[1],
+        baum_welch_nolog(obs_sequences, hmm_init;)[1],
+        baum_welch_log(obs_sequences, hmm_init;)[1],
+        baum_welch_doublelog(obs_sequences, hmm_init;)[1],
     )
     for hmm_est in hmm_ests
         p0_est = initial_distribution(hmm_est)
@@ -77,8 +78,13 @@ for hmm_init in hmm_inits
         λ_error_init = mean(abs, λ_init - λ)
         λ_error = mean(abs, λ_est - λ)
 
-        l_init = sum(logdensityof(hmm_init, obs_sequence) for obs_sequence in obs_sequences)
-        l_est = sum(logdensityof(hmm_est, obs_sequence) for obs_sequence in obs_sequences)
+        l_init = sum(
+            logdensityof(hmm_init, obs_sequence; safe=true) for
+            obs_sequence in obs_sequences
+        )
+        l_est = sum(
+            logdensityof(hmm_est, obs_sequence; safe=true) for obs_sequence in obs_sequences
+        )
 
         @test typeof(hmm_est) == typeof(hmm_init)
         @test P_error < P_error_init / 5
