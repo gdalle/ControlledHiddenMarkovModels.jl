@@ -1,14 +1,12 @@
-# # Controlled Hidden Markov Model
+module ControlledHMMTest
 
 using ComponentArrays
 using ControlledHiddenMarkovModels
 using Distributions
 using ForwardDiff
 using LinearAlgebra
-using LogarithmicNumbers
 using Optimization
 using OptimizationOptimJL
-using PointProcesses
 using Random
 using Statistics
 using Test
@@ -96,7 +94,7 @@ par_true = ComponentVector(;
 T = 100
 K = 2
 
-control_sequences = [[rand(rng, U) for t in 1:T] for k in 1:K];
+control_sequences = [[rand(rng, U) for t in 1:T] for k in 1:K]
 
 obs_sequences = [
     rand(rng, ControlledNormalHMM(), control_sequence, par_true)[2] for
@@ -112,7 +110,7 @@ par_init = ComponentVector(;
     logσ_weights=randn(rng, S, U),
 )
 
-data = (obs_sequences, control_sequences);
+data = (obs_sequences, control_sequences)
 
 function loss(par, data; safe=true)
     (obs_sequences, control_sequences) = data
@@ -122,13 +120,19 @@ function loss(par, data; safe=true)
     )
 end
 
-@test loss(par_init, data; safe=false) ≈ loss(par_init, data; safe=true)
+l0 = loss(par_init, data; safe=0)
+l1 = loss(par_init, data; safe=1)
+l2 = loss(par_init, data; safe=2)
+@test l0 ≈ l1
+@test l0 ≈ l2
 
-f = OptimizationFunction(loss, Optimization.AutoForwardDiff());
-prob = OptimizationProblem(f, par_init, data);
-res = solve(prob, OptimizationOptimJL.LBFGS(););
-par_est = res.u;
+f = OptimizationFunction(loss, Optimization.AutoForwardDiff())
+prob = OptimizationProblem(f, par_init, data)
+res = solve(prob, OptimizationOptimJL.LBFGS();)
+par_est = res.u
 
 ## Testing
 
 @test loss(par_est, data) < loss(par_init, data)
+
+end

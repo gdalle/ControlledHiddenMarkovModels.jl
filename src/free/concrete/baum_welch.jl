@@ -1,83 +1,112 @@
 function baum_welch_multiple_sequences!(
-    obs_densities::Vector{Matrix{R}},
-    fb_storage::ForwardBackwardStorage{R},
-    obs_sequences::AbstractVector,
+    od_storage::AnyObsDensityStorage,
+    fb_storage::AnyForwardBackwardStorage{R},
+    obs_sequences::AbstractVector{<:AbstractVector},
     hmm_init::H,
     par;
-    max_iterations::Integer=100,
-    tol::Real=1e-3,
+    maxiter,
+    tol,
 ) where {R,H<:HMM}
     hmm = hmm_init
-    S = nb_states(hmm, par)
-    K = length(obs_sequences)
-    T = [length(obs_sequences[k]) for k in 1:K]
-    (; α, c, β, bβ, γ, ξ) = fb_storage
-
-    # Initialize loglikelihood storage
     logL_evolution = float(R)[]
-    logL_by_seq = Vector{float(R)}(undef, K)
+    for iteration in 1:maxiter
+        update_obs_densities_generic!(od_storage, obs_sequences, hmm, par)
+        logL = forward_backward_generic!(fb_storage, od_storage, hmm, par)
+        push!(logL_evolution, logL)
 
-    # Main loop
-    @progress for iteration in 1:max_iterations
-        for k in 1:K
-            # Local forward-backward
-            update_obs_density!(obs_densities[k], obs_sequences[k], hmm, par)
-            logL_by_seq[k] = forward_backward!(
-                α[k], c[k], β[k], bβ[k], γ[k], ξ[k], obs_densities[k], hmm, par
-            )
-        end
-        push!(logL_evolution, sum(logL_by_seq))
-
-        # Aggregated transitions
-        @views p0 = reduce(+, γ[k][:, 1] for k in 1:K)
-        P = reduce(+, dropdims(sum(ξ[k]; dims=3); dims=3) for k in 1:K)
-        p0 ./= sum(p0)
-        P ./= sum(P; dims=2)
-
-        # Aggregated emissions
-        D = emission_type(H)
-        emissions = Vector{D}(undef, S)
-        xs = (obs_sequences[k] for k in 1:K)
-        @views for s in 1:S
-            ws = (γ[k][s, :] for k in 1:K)
-            emissions[s] = fit_from_multiple_sequences(D, xs, ws)
-        end
-
-        # New object
+        p0 = initial_distribution(fb_storage)
+        P = transition_matrix(fb_storage)
+        emissions = [
+            emission_distribution(H, fb_storage, obs_sequences, s) for s in 1:nb_states(hmm)
+        ]
         hmm = H(p0, P, emissions)
 
-        if iteration > 1 && (logL_evolution[end] - logL_evolution[end - 1]) / sum(T) < tol
+        if (iteration > 1) && (logL_evolution[end] - logL_evolution[end - 1] < tol)
             break
         end
     end
-
     return hmm, logL_evolution
 end
 
 """
-    baum_welch_multiple_sequences(obs_sequences, hmm_init::HMM[, par; max_iterations, tol])
+    baum_welch_nolog(obs_sequences, hmm_init::HMM[, par; maxiter, tol])
 
-Apply the Baum-Welch algorithm on multiple observation sequences, starting from an initial [`HMM`](@ref) `hmm_init` with parameters `par`.
-
-The parameters are not modified.
+Apply the Baum-Welch algorithm on multiple observation sequences, starting from an initial [`HMM`](@ref) `hmm_init` with parameters `par` (not modifed).
 """
-function baum_welch_multiple_sequences(
-    obs_sequences::AbstractVector, hmm_init::HMM, par=nothing; kwargs...
+function baum_welch_nolog(
+    obs_sequences::AbstractVector{<:AbstractVector},
+    hmm_init::HMM,
+    par=nothing;
+    maxiter=100,
+    tol=1e-5,
 )
-    K = length(obs_sequences)
-    obs_densities = [compute_obs_density(obs_sequences[k], hmm_init, par) for k in 1:K]
-    fb_storage = initialize_forward_backward_multiple_sequences(obs_densities)
+    od_storage = initialize_obs_densities(obs_sequences, hmm_init, par)
+    fb_storage = initialize_forward_backward(od_storage)
     result = baum_welch_multiple_sequences!(
-        obs_densities, fb_storage, obs_sequences, hmm_init, par; kwargs...
+        od_storage, fb_storage, obs_sequences, hmm_init, par; maxiter=maxiter, tol=tol
     )
     return result
 end
 
 """
-    baum_welch(obs_sequence, hmm_init::HMM[, par; max_iterations, tol])
+    baum_welch_log(obs_sequences, hmm_init::HMM[, par; maxiter, tol])
 
-Apply [`baum_welch_multiple_sequences`](@ref) on a single observation sequence.
+Apply the Baum-Welch algorithm _partly in log scale_ on multiple observation sequences, starting from an initial [`HMM`](@ref) `hmm_init` with parameters `par` (not modifed).
 """
-function baum_welch(obs_sequence::AbstractVector, hmm_init::HMM, par=nothing; kwargs...)
-    return baum_welch_multiple_sequences([obs_sequence], hmm_init, par; kwargs...)
+function baum_welch_log(
+    obs_sequences::AbstractVector{<:AbstractVector},
+    hmm_init::HMM,
+    par=nothing;
+    maxiter=100,
+    tol=1e-5,
+)
+    log_od_storage = initialize_obs_logdensities(obs_sequences, hmm_init, par)
+    fb_storage = initialize_forward_backward(log_od_storage)
+    result = baum_welch_multiple_sequences!(
+        log_od_storage, fb_storage, obs_sequences, hmm_init, par; maxiter=maxiter, tol=tol
+    )
+    return result
+end
+
+"""
+    baum_welch_doublelog(obs_sequences, hmm_init::HMM[, par; maxiter, tol])
+
+Apply the Baum-Welch algorithm _fully in log scale_ on multiple observation sequences, starting from an initial [`HMM`](@ref) `hmm_init` with parameters `par` (not modifed).
+"""
+function baum_welch_doublelog(
+    obs_sequences::AbstractVector{<:AbstractVector},
+    hmm_init::HMM,
+    par=nothing;
+    maxiter=100,
+    tol=1e-5,
+)
+    log_od_storage = initialize_obs_logdensities(obs_sequences, hmm_init, par)
+    log_fb_storage = initialize_forward_backward_log(log_od_storage)
+    result = baum_welch_multiple_sequences!(
+        log_od_storage,
+        log_fb_storage,
+        obs_sequences,
+        hmm_init,
+        par;
+        maxiter=maxiter,
+        tol=tol,
+    )
+    return result
+end
+
+function baum_welch(
+    obs_sequences::AbstractVector{<:AbstractVector},
+    hmm_init::HMM,
+    par=nothing;
+    maxiter=100,
+    tol=1e-5,
+    safe=2,
+)
+    if safe == 0
+        return baum_welch_nolog(obs_sequences, hmm_init, par; maxiter=maxiter, tol=tol)
+    elseif safe == 1
+        return baum_welch_log(obs_sequences, hmm_init, par; maxiter=maxiter, tol=tol)
+    elseif safe == 2
+        return baum_welch_doublelog(obs_sequences, hmm_init, par; maxiter=maxiter, tol=tol)
+    end
 end

@@ -24,10 +24,16 @@ DocMeta.setdocmeta!(
     @testset verbose = true "Doctests" begin
         doctest(ControlledHiddenMarkovModels)
     end
-    @testset verbose = true "Vanilla HMM" begin
-        include("hmm.jl")
+    @testset verbose = true "HMM - Gaussian emissions" begin
+        include("hmm_normal.jl")
     end
-    @testset verbose = true "Controlled HMM" begin
-        include("hmm_controlled.jl")
+    @testset verbose = true "HMM - Poisson process emissions, multiple sequences" begin
+        include("hmm_poisson.jl")
+    end
+    @testset verbose = true "HMM - parameterized Gaussian emissions" begin
+        include("hmm_normal_parameterized.jl")
+    end
+    @testset verbose = true "Controlled HMM - Gaussian emissions" begin
+        include("controlled_hmm_normal.jl")
     end
 end

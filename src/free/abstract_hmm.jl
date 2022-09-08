@@ -56,7 +56,7 @@ end
 Compute the vector of initial state probabilities _in log scale_ for `hmm` with parameters `par`.
 """
 function log_initial_distribution(hmm::H, par) where {H<:AbstractHMM}
-    return error("Not implemented for type $H")
+    return log.(initial_distribution(hmm, par))
 end
 
 """
@@ -74,7 +74,7 @@ end
 Compute the state transition matrix _in log scale_ for `hmm` with parameters `par`.
 """
 function log_transition_matrix(hmm::H, par) where {H<:AbstractHMM}
-    return error("Not implemented for type $H")
+    return log.(transition_matrix(hmm, par))
 end
 
 """
