@@ -1,14 +1,15 @@
 function baum_welch_multiple_sequences!(
     od_storage::AnyObsDensityStorage,
-    fb_storage::AnyForwardBackwardStorage{R},
+    fb_storage::AnyForwardBackwardStorage,
     obs_sequences::AbstractVector{<:AbstractVector},
     hmm_init::H,
     par;
     maxiter,
     tol,
-) where {R,H<:HMM}
+) where {H<:HMM}
     hmm = hmm_init
-    logL_evolution = float(R)[]
+    R = get_logtype(od_storage)
+    logL_evolution = R[]
     for iteration in 1:maxiter
         update_obs_densities_generic!(od_storage, obs_sequences, hmm, par)
         logL = forward_backward_generic!(fb_storage, od_storage, hmm, par)
