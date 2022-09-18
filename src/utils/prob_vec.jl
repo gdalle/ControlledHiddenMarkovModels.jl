@@ -3,11 +3,11 @@
 
 Check if `p` is a probability distribution vector.
 """
-function is_prob_vec(p::AbstractVector{R}; atol=1e-5) where {R<:Real}
+function is_prob_vec(p::AbstractVector{R}; atol=1e-5) where {R}
     return all(>=(zero(R)), p) && isapprox(sum(p), one(R); atol=atol)
 end
 
-function uniform_prob_vec(::Type{R}, n::Integer) where {R<:Real}
+function uniform_prob_vec(::Type{R}, n::Integer) where {R}
     return ones(R, n) ./ n
 end
 
@@ -23,7 +23,7 @@ uniform_prob_vec(n::Integer) = uniform_prob_vec(Float64, n)
 
 Return a random probability distribution vector of size `n`.
 """
-function rand_prob_vec(rng::AbstractRNG, ::Type{R}, n::Integer) where {R<:Real}
+function rand_prob_vec(rng::AbstractRNG, ::Type{R}, n::Integer) where {R}
     p = rand(rng, R, n)
     return p ./ sum(p)
 end

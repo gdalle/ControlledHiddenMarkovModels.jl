@@ -1,4 +1,4 @@
-function is_trans_mat(P::AbstractMatrix{R}; atol=1e-5) where {R<:Real}
+function is_trans_mat(P::AbstractMatrix{R}; atol=1e-5) where {R}
     n, m = size(P)
     n == m || return false
     for i in 1:n
@@ -7,7 +7,7 @@ function is_trans_mat(P::AbstractMatrix{R}; atol=1e-5) where {R<:Real}
     return true
 end
 
-function uniform_trans_mat(::Type{R}, n::Integer) where {R<:Real}
+function uniform_trans_mat(::Type{R}, n::Integer) where {R}
     return ones(R, n, n) ./ n
 end
 
@@ -23,7 +23,7 @@ uniform_trans_mat(n::Integer) = uniform_trans_mat(Float64, n)
 
 Return a transition (stochastic) matrix of size `n` with random transition probability distributions.
 """
-function rand_trans_mat(rng::AbstractRNG, ::Type{R}, n::Integer) where {R<:Real}
+function rand_trans_mat(rng::AbstractRNG, ::Type{R}, n::Integer) where {R}
     P = rand(rng, R, n, n)
     return P ./ sum(P; dims=2)
 end

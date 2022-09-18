@@ -15,6 +15,6 @@ julia> inv(x)
 Inf
 ```
 """
-function iszero_safe(x::R) where {R<:Real}
+function iszero_safe(x::R) where {R}
     return inv(abs(x)) >= typemax(R)
 end

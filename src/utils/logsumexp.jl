@@ -24,7 +24,7 @@ function logsumexp_stream(::Type{T}, a) where {T}
     return lse
 end
 
-logsumexp_stream(a::AbstractArray{T}) where {T<:Real} = logsumexp_stream(T, a)
+logsumexp_stream(a::AbstractArray{T}) where {T} = logsumexp_stream(T, a)
 
 logsumexp_stream(a) = logsumexp_stream(typeof(first(a)), a)
 

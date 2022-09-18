@@ -127,7 +127,7 @@ const AnyForwardBackwardStorage{R} = Union{
     ForwardBackwardStorage{R},LogForwardBackwardStorage{R}
 }
 
-function initialize_forward_backward(od_storage::ObsDensityStorage{R}) where {R<:Real}
+function initialize_forward_backward(od_storage::ObsDensityStorage{R}) where {R}
     K = length(od_storage)
     S = nb_states(od_storage)
     T = sequence_durations(od_storage)
@@ -141,9 +141,7 @@ function initialize_forward_backward(od_storage::ObsDensityStorage{R}) where {R<
     return fb_storage
 end
 
-function initialize_forward_backward(
-    log_od_storage::LogObsDensityStorage{L}
-) where {L<:Real}
+function initialize_forward_backward(log_od_storage::LogObsDensityStorage{L}) where {L}
     K = length(log_od_storage)
     S = nb_states(log_od_storage)
     T = sequence_durations(log_od_storage)
@@ -157,9 +155,7 @@ function initialize_forward_backward(
     return fb_storage
 end
 
-function initialize_forward_backward_log(
-    log_od_storage::LogObsDensityStorage{L}
-) where {L<:Real}
+function initialize_forward_backward_log(log_od_storage::LogObsDensityStorage{L}) where {L}
     K = length(log_od_storage)
     S = nb_states(log_od_storage)
     T = sequence_durations(log_od_storage)
@@ -176,7 +172,7 @@ function forward_backward_generic!(
     od_storage::ObsDensityStorage{R},
     hmm::AbstractHMM,
     par,
-) where {R<:Real}
+) where {R}
     (; α, c, β, bβ, γ, ξ) = fb_storage
     (; obs_densities) = od_storage
     logL = zero(float(R))
@@ -193,7 +189,7 @@ function forward_backward_generic!(
     log_od_storage::LogObsDensityStorage{R},
     hmm::AbstractHMM,
     par,
-) where {R<:Real}
+) where {R}
     (; α, c, β, bβ, γ, ξ) = fb_storage
     (; obs_logdensities) = log_od_storage
     logL = zero(float(R))
@@ -210,7 +206,7 @@ function forward_backward_generic!(
     log_od_storage::LogObsDensityStorage{L},
     hmm::AbstractHMM,
     par,
-) where {L<:Real}
+) where {L}
     (; logα, logβ, logγ, logξ) = log_fb_storage
     (; obs_logdensities) = log_od_storage
     logL = zero(L)
