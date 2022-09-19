@@ -17,6 +17,7 @@ function baum_welch_multiple_sequences!(
 
         p0 = initial_distribution(fb_storage)
         P = transition_matrix(fb_storage)
+        @assert !any(isnan, P)
         emissions = [
             emission_distribution(H, fb_storage, obs_sequences, s) for s in 1:nb_states(hmm)
         ]
@@ -26,6 +27,9 @@ function baum_welch_multiple_sequences!(
             break
         end
     end
+    update_obs_densities_generic!(od_storage, obs_sequences, hmm, par)
+    logL = forward_backward_generic!(fb_storage, od_storage, hmm, par)
+    push!(logL_evolution, logL)
     return hmm, logL_evolution
 end
 

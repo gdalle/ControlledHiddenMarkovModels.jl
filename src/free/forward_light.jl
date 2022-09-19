@@ -45,7 +45,7 @@ function light_forward_nolog(obs_sequence::AbstractVector, hmm::AbstractHMM, par
 
     @assert !any(isnan, α)
     @assert !isnan(logL)
-    return α, float(logL)
+    return α, logL
 end
 
 """
@@ -85,7 +85,7 @@ function light_forward_log(obs_sequence::AbstractVector, hmm::AbstractHMM, par)
 
     @assert !any(isnan, α)
     @assert !isnan(logL)
-    return α, float(logL)
+    return α, logL
 end
 
 """

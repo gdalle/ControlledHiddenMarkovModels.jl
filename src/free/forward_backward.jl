@@ -40,7 +40,7 @@ function forward_backward_nolog!(
     end
 
     logL = -sum(log, c)
-    return float(logL)
+    return logL
 end
 
 """
@@ -85,7 +85,7 @@ function forward_backward_log!(
     end
 
     logL = -sum(log, c)
-    return float(logL)
+    return logL
 end
 
 """
@@ -127,6 +127,6 @@ function forward_backward_doublelog!(
         logξ[:, :, t] .-= logsumexp(logξ[:, :, t])
     end
 
-    logL = logsumexp(logα)
-    return float(logL)
+    @views logL = logsumexp(logα[:, T])
+    return logL
 end

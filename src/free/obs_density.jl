@@ -14,6 +14,7 @@ function update_obs_density!(
             obs_density[s, t] = densityof(emissions[s], oₜ)
         end
     end
+    @assert !any(isnan, obs_density)
     return nothing
 end
 
@@ -33,6 +34,7 @@ function update_obs_logdensity!(
             obs_logdensity[s, t] = logdensityof(emissions[s], oₜ)
         end
     end
+    @assert !any(isnan, obs_logdensity)
     return nothing
 end
 
