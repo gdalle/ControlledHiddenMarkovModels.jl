@@ -2,7 +2,6 @@ module HMMNormalParameterizedTest
 
 using ComponentArrays
 using ControlledHiddenMarkovModels
-using Distributions
 using ForwardDiff
 using Optimization
 using OptimizationOptimJL
@@ -22,17 +21,10 @@ p0 = [0.3, 0.7]
 P = [0.9 0.1; 0.2 0.8]
 μ = [2.0, -3.0]
 σ = [0.5, 0.7]
-emissions = [Normal(μ[1], σ[1]), Normal(μ[2], σ[2])]
+emissions = [CHMMs.MyNormal(μ[1], σ[1]), CHMMs.MyNormal(μ[2], σ[2])]
 hmm = HMM(p0, P, emissions)
 
 obs_sequences = [rand(rng, hmm, T)[2] for k in 1:K]
-
-## Learning
-
-p0_init = rand_prob_vec(rng, 2)
-P_init = rand_trans_mat(rng, 2)
-μ_init = [1.0, -1.0]
-σ_init = [1.0, 1.0]
 
 ## Parameterized Normal HMM
 
@@ -41,34 +33,27 @@ struct NormalHMM <: AbstractHMM end
 CHMMs.nb_states(::NormalHMM, par) = length(par.logp0)
 
 function CHMMs.initial_distribution(::NormalHMM, par)
-    p0 = exp.(par.logp0)
+    p0 = exp.(ULogarithmic, par.logp0)
     make_prob_vec!(p0)
     return p0
 end
 
-function CHMMs.log_initial_distribution(::NormalHMM, par)
-    logp0 = copy(par.logp0)
-    make_log_prob_vec!(logp0)
-    return logp0
-end
-
 function CHMMs.transition_matrix(::NormalHMM, par)
-    P = exp.(par.logP)
+    P = exp.(ULogarithmic, par.logP)
     make_trans_mat!(P)
     return P
 end
 
-function CHMMs.log_transition_matrix(::NormalHMM, par)
-    logP = copy(par.logP)
-    make_log_trans_mat!(logP)
-    return logP
-end
-
 function CHMMs.emission_distribution(::NormalHMM, s::Integer, par)
-    return Normal(par.μ[s], exp(par.logσ[s]))
+    return CHMMs.MyNormal(par.μ[s], exp(par.logσ[s]))
 end
 
 ## Learning
+
+p0_init = LogFloat64.(rand_prob_vec(rng, 2))
+P_init = LogFloat64.(rand_trans_mat(rng, 2))
+μ_init = [1.0, -1.0]
+σ_init = [1.0, 1.0]
 
 par_init = ComponentVector(;
     logp0=log.(copy(p0_init)),
@@ -77,18 +62,13 @@ par_init = ComponentVector(;
     logσ=log.(copy(σ_init)),
 )
 
-function loss(par, obs_sequences; safe=2)
+function loss(par, obs_sequences)
     return -sum(
-        logdensityof(NormalHMM(), obs_sequence, par; safe=safe) for
-        obs_sequence in obs_sequences
+        logdensityof(NormalHMM(), obs_sequence, par) for obs_sequence in obs_sequences
     )
 end
 
-l0 = loss(par_init, obs_sequences; safe=0)
-l1 = loss(par_init, obs_sequences; safe=1)
-l2 = loss(par_init, obs_sequences; safe=2)
-@test l0 ≈ l1
-@test l0 ≈ l2
+loss(par_init, obs_sequences)
 
 f = OptimizationFunction(loss, Optimization.AutoForwardDiff())
 prob = OptimizationProblem(f, par_init, obs_sequences)

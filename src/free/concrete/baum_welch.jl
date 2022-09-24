@@ -13,7 +13,9 @@ function baum_welch(
     obs_densities = [
         initialize_obs_density(obs_sequence, hmm, par) for obs_sequence in obs_sequences
     ]
-    fb_storage = [forward_backward(obs_density, hmm, par) for obs_density in obs_densities]
+    fb_storage = [
+        initialize_forward_backward(obs_density, p0, P) for obs_density in obs_densities
+    ]
     logL_evolution = Float64[]
     ## EM iterations
     for iteration in 1:maxiter

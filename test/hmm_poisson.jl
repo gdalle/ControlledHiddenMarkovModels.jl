@@ -62,35 +62,29 @@ hmm_inits = (
 )
 
 for hmm_init in hmm_inits
-    hmm_ests = (
-        baum_welch_nolog(obs_sequences, hmm_init;)[1],
-        baum_welch_log(obs_sequences, hmm_init;)[1],
-        baum_welch_doublelog(obs_sequences, hmm_init;)[1],
+    hmm_est = baum_welch(obs_sequences, hmm_init)[1]
+
+    p0_est = initial_distribution(hmm_est)
+    P_est = transition_matrix(hmm_est)
+    λ_est = reduce(hcat, emission_distribution(hmm_est, s).λ for s in 1:2)
+
+    P_error_init = mean(abs, P_init - P)
+    P_error = mean(abs, P_est - P)
+
+    λ_error_init = mean(abs, λ_init - λ)
+    λ_error = mean(abs, λ_est - λ)
+
+    l_init = sum(
+        logdensityof(hmm_init, obs_sequence; safe=true) for obs_sequence in obs_sequences
     )
-    for hmm_est in hmm_ests
-        p0_est = initial_distribution(hmm_est)
-        P_est = transition_matrix(hmm_est)
-        λ_est = reduce(hcat, emission_distribution(hmm_est, s).λ for s in 1:2)
+    l_est = sum(
+        logdensityof(hmm_est, obs_sequence; safe=true) for obs_sequence in obs_sequences
+    )
 
-        P_error_init = mean(abs, P_init - P)
-        P_error = mean(abs, P_est - P)
-
-        λ_error_init = mean(abs, λ_init - λ)
-        λ_error = mean(abs, λ_est - λ)
-
-        l_init = sum(
-            logdensityof(hmm_init, obs_sequence; safe=true) for
-            obs_sequence in obs_sequences
-        )
-        l_est = sum(
-            logdensityof(hmm_est, obs_sequence; safe=true) for obs_sequence in obs_sequences
-        )
-
-        @test typeof(hmm_est) == typeof(hmm_init)
-        @test P_error < P_error_init / 5
-        @test λ_error < λ_error_init / 5
-        @test l_est > l_init
-    end
+    @test typeof(hmm_est) == typeof(hmm_init)
+    @test P_error < P_error_init / 5
+    @test λ_error < λ_error_init / 5
+    @test l_est > l_init
 end
 
 end
