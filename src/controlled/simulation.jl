@@ -6,11 +6,7 @@ Sample a trajectory from `hmm` with controls `control_sequence` and parameters `
 Returns a couple `(state_sequence, obs_sequence)`.
 """
 function Base.rand(
-    rng::AbstractRNG,
-    hmm::AbstractControlledHMM,
-    control_sequence::AbstractVector,
-    par;
-    check_args=false,
+    rng::AbstractRNG, hmm::AbstractControlledHMM, control_sequence, par; check_args=false
 )
     T = length(control_sequence)
     p0 = initial_distribution(hmm, par)
@@ -46,8 +42,6 @@ function Base.rand(
     return state_sequence, obs_sequence
 end
 
-function Base.rand(
-    hmm::AbstractControlledHMM, control_sequence::AbstractVector, par; check_args=false
-)
+function Base.rand(hmm::AbstractControlledHMM, control_sequence, par; check_args=false)
     return rand(GLOBAL_RNG, hmm, control_sequence, par; check_args=check_args)
 end

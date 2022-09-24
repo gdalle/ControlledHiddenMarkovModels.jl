@@ -13,12 +13,6 @@ Interface for Hidden Markov Models with arbitrary emissions and exogenous contro
 - [`emission_parameters!(θ, hmm, control, par)`](@ref)
 - [`emission_distribution(hmm, s, θ)`](@ref)
 
-# Optional methods
-
-- [`log_initial_distribution(hmm, par)`](@ref)
-- [`log_transition_matrix(hmm, control, par)`](@ref)
-- [`log_transition_matrix!(logP, hmm, control, par)`](@ref)
-
 # Compatible with
 
 - [`rand(rng, hmm, control_sequence, par)`](@ref)
@@ -57,15 +51,6 @@ function initial_distribution(hmm::H, par) where {H<:AbstractControlledHMM}
 end
 
 """
-    log_initial_distribution(hmm::AbstractControlledHMM, par)
-
-Return the vector of initial state probabilities _in log scale_ for `hmm` with parameters `par`.
-"""
-function log_initial_distribution(hmm::H, par) where {H<:AbstractControlledHMM}
-    return error("Not implemented for type $H")
-end
-
-"""
     transition_matrix!(P, hmm::AbstractControlledHMM, control, par)
 
 Update `P` with the state transition matrix for `hmm` with control `control` and parameters `par`.
@@ -80,24 +65,6 @@ end
 Compute the state transition matrix for `hmm` with control `control` and parameters `par`.
 """
 function transition_matrix(hmm::H, control, par) where {H<:AbstractControlledHMM}
-    return error("Not implemented for type $H")
-end
-
-"""
-    log_transition_matrix!(logP, hmm::AbstractControlledHMM, control, par)
-
-Update `logP` with the state transition matrix _in log scale_ for `hmm` with control `control` and parameters `par`.
-"""
-function log_transition_matrix!(logP, hmm::H, control, par) where {H<:AbstractControlledHMM}
-    return error("Not implemented for type $H")
-end
-
-"""
-    log_transition_matrix(hmm::AbstractControlledHMM, control, par)
-
-Compute the state transition matrix _in log scale_ for `hmm` with control `control` and parameters `par`.
-"""
-function log_transition_matrix(hmm::H, control, par) where {H<:AbstractControlledHMM}
     return error("Not implemented for type $H")
 end
 
