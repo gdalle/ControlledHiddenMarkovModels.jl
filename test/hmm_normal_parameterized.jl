@@ -3,11 +3,13 @@ module HMMNormalParameterizedTest
 using ComponentArrays
 using ControlledHiddenMarkovModels
 using ForwardDiff
+using LogarithmicNumbers
 using Optimization
 using OptimizationOptimJL
 using Random
 using Statistics
 using Test
+using Zygote
 
 rng = Random.default_rng()
 Random.seed!(rng, 63)
@@ -38,10 +40,22 @@ function CHMMs.initial_distribution(::NormalHMM, par)
     return p0
 end
 
+function CHMMs.log_initial_distribution(::NormalHMM, par)
+    logp0 = copy(par.logp0)
+    make_log_prob_vec!(logp0)
+    return logp0
+end
+
 function CHMMs.transition_matrix(::NormalHMM, par)
     P = exp.(ULogarithmic, par.logP)
     make_trans_mat!(P)
     return P
+end
+
+function CHMMs.log_transition_matrix(::NormalHMM, par)
+    logP = copy(par.logP)
+    make_log_trans_mat!(logP)
+    return logP
 end
 
 function CHMMs.emission_distribution(::NormalHMM, s::Integer, par)
@@ -50,8 +64,8 @@ end
 
 ## Learning
 
-p0_init = LogFloat64.(rand_prob_vec(rng, 2))
-P_init = LogFloat64.(rand_trans_mat(rng, 2))
+p0_init = rand_prob_vec(rng, 2)
+P_init = rand_trans_mat(rng, 2)
 μ_init = [1.0, -1.0]
 σ_init = [1.0, 1.0]
 
@@ -62,13 +76,17 @@ par_init = ComponentVector(;
     logσ=log.(copy(σ_init)),
 )
 
-function loss(par, obs_sequences)
+function loss(par, obs_sequences; safe=true)
     return -sum(
-        logdensityof(NormalHMM(), obs_sequence, par) for obs_sequence in obs_sequences
+        logdensityof(NormalHMM(), obs_sequence, par; safe=safe) for
+        obs_sequence in obs_sequences
     )
 end
 
-loss(par_init, obs_sequences)
+@test loss(par_init, obs_sequences; safe=true) == loss(par_init, obs_sequences; safe=false)
+
+ForwardDiff.gradient(par -> loss(par, obs_sequences; safe=true), par_init)
+# Zygote.gradient(par -> loss(par, obs_sequences; safe=true), par_init)
 
 f = OptimizationFunction(loss, Optimization.AutoForwardDiff())
 prob = OptimizationProblem(f, par_init, obs_sequences)

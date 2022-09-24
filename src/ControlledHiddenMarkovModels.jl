@@ -21,6 +21,7 @@ include("utils/prob_vec.jl")
 include("utils/trans_mat.jl")
 include("utils/overflow.jl")
 include("utils/mynormal.jl")
+include("utils/logsumexp.jl")
 
 include("free/abstract_hmm.jl")
 include("free/simulation.jl")
