@@ -35,27 +35,23 @@ struct NormalHMM <: AbstractHMM end
 CHMMs.nb_states(::NormalHMM, par) = length(par.logp0)
 
 function CHMMs.initial_distribution(::NormalHMM, par)
-    p0 = exp.(ULogarithmic, par.logp0)
-    make_prob_vec!(p0)
-    return p0
+    p0 = exp.(par.logp0)
+    return make_prob_vec(p0)
 end
 
 function CHMMs.log_initial_distribution(::NormalHMM, par)
     logp0 = copy(par.logp0)
-    make_log_prob_vec!(logp0)
-    return logp0
+    return make_log_prob_vec(logp0)
 end
 
 function CHMMs.transition_matrix(::NormalHMM, par)
-    P = exp.(ULogarithmic, par.logP)
-    make_trans_mat!(P)
-    return P
+    P = exp.(par.logP)
+    return make_trans_mat(P)
 end
 
 function CHMMs.log_transition_matrix(::NormalHMM, par)
     logP = copy(par.logP)
-    make_log_trans_mat!(logP)
-    return logP
+    return make_log_trans_mat(logP)
 end
 
 function CHMMs.emission_distribution(::NormalHMM, s::Integer, par)
@@ -76,17 +72,23 @@ par_init = ComponentVector(;
     logσ=log.(copy(σ_init)),
 )
 
-function loss(par, obs_sequences; safe=true)
+function loss(par, obs_sequences; safe=false)
     return -sum(
         logdensityof(NormalHMM(), obs_sequence, par; safe=safe) for
         obs_sequence in obs_sequences
     )
 end
 
-@test loss(par_init, obs_sequences; safe=true) == loss(par_init, obs_sequences; safe=false)
+@test loss(par_init, obs_sequences; safe=true) ≈ loss(par_init, obs_sequences; safe=false)
 
-ForwardDiff.gradient(par -> loss(par, obs_sequences; safe=true), par_init)
-# Zygote.gradient(par -> loss(par, obs_sequences; safe=true), par_init)
+g1 = ForwardDiff.gradient(par -> loss(par, obs_sequences; safe=false), par_init)
+g2 = ForwardDiff.gradient(par -> loss(par, obs_sequences; safe=true), par_init)
+g3 = Zygote.gradient(par -> loss(par, obs_sequences; safe=false), par_init)[1]
+g4 = Zygote.gradient(par -> loss(par, obs_sequences; safe=true), par_init)[1]
+
+@test g1 ≈ g2
+@test g1 ≈ g3
+@test g1 ≈ g4
 
 f = OptimizationFunction(loss, Optimization.AutoForwardDiff())
 prob = OptimizationProblem(f, par_init, obs_sequences)

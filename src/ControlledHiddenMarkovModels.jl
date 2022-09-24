@@ -42,8 +42,12 @@ export CHMMs
 
 export logdensityof
 
-export is_prob_vec, rand_prob_vec, make_prob_vec!, make_log_prob_vec!
-export is_trans_mat, rand_trans_mat, make_trans_mat!, make_log_trans_mat!
+export is_prob_vec, rand_prob_vec
+export make_prob_vec!, make_prob_vec
+export make_log_prob_vec!, make_log_prob_vec
+export is_trans_mat, rand_trans_mat
+export make_trans_mat!, make_trans_mat
+export make_log_trans_mat!, make_log_trans_mat
 
 export AbstractHiddenMarkovModel, AbstractHMM
 export nb_states

@@ -46,6 +46,11 @@ function make_trans_mat!(P::Matrix)
     return P
 end
 
+function make_trans_mat(P::Matrix)
+    rowsums = sum(P, dims=2)
+    return P .* inv.(rowsums)
+end
+
 """
     make_log_trans_mat!(logP)
 
@@ -56,4 +61,9 @@ function make_log_trans_mat!(logP::Matrix)
         logP[s, :] .-= logsumexp(logP[s, :])
     end
     return logP
+end
+
+function make_log_trans_mat(logP::Matrix)
+    rowlogsumexps = [logsumexp(row) for row in eachrow(logP)]
+    return logP .- rowlogsumexps
 end

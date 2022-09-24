@@ -50,7 +50,7 @@ function light_forward_log(obs_sequence, hmm::AbstractHMM, par)
         oₜ₊₁ = obs_sequence[t + 1]
         obs_logdensity = [logdensityof(emissions[s], oₜ₊₁) for s in 1:S]
         logα = [
-            logsumexp(logP[i, j] .+ logα[i] for i in 1:S) + obs_logdensity[j] for j in 1:S
+            logsumexp(logP[i, j] + logα[i] for i in 1:S) + obs_logdensity[j] for j in 1:S
         ]
     end
 

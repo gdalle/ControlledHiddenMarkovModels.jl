@@ -59,7 +59,7 @@ function light_forward_log(obs_sequence, control_sequence, hmm::AbstractControll
         θ = emission_parameters(hmm, uₜ₊₁, par)
         obs_logdensity = [logdensityof(emission_distribution(hmm, s, θ), oₜ₊₁) for s in 1:S]
         logα = [
-            logsumexp(logP[i, j] .+ logα[i] for i in 1:S) + obs_logdensity[j] for j in 1:S
+            logsumexp(logP[i, j] + logα[i] for i in 1:S) + obs_logdensity[j] for j in 1:S
         ]
     end
 

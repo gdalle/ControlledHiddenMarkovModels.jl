@@ -43,6 +43,10 @@ function make_prob_vec!(p::Vector)
     return p
 end
 
+function make_prob_vec(p::Vector)
+    return p .* inv(sum(p))
+end
+
 """
     make_log_prob_vec!(logp)
 
@@ -51,4 +55,8 @@ Shift `logp` so that `exp.(logp)` becomes a probability distribution vector.
 function make_log_prob_vec!(logp::Vector)
     logp .-= logsumexp(logp)
     return logp
+end
+
+function make_log_prob_vec(logp::Vector)
+    return logp .- logsumexp(logp)
 end
