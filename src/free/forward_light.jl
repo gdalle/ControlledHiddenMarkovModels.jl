@@ -9,20 +9,17 @@ function light_forward(obs_sequence, hmm::AbstractHMM, par)
     p0 = initial_distribution(hmm, par)
     P = transition_matrix(hmm, par)
     emissions = [emission_distribution(hmm, s, par) for s in 1:S]
+    obs_density = [densityof(emissions[s], obs_sequence[t]) for s in 1:S, t in 1:T]
 
     # Initialization
-    o₁ = obs_sequence[1]
-    obs_density = [densityof(emissions[s], o₁) for s in 1:S]
-    α = p0 .* obs_density
+    α = p0 .* @view obs_density[:, 1]
     c = inv(sum(α))
     α = α .* c
     logL = -log(c)
 
     # Recursion
     for t in 1:(T - 1)
-        oₜ₊₁ = obs_sequence[t + 1]
-        obs_density = [densityof(emissions[s], oₜ₊₁) for s in 1:S]
-        α = (P' * α) .* obs_density
+        α = (P' * α) .* @view obs_density[:, t + 1]
         c = inv(sum(α))
         α = α .* c
         logL -= log(c)
@@ -39,19 +36,17 @@ function light_forward_log(obs_sequence, hmm::AbstractHMM, par)
     logp0 = log_initial_distribution(hmm, par)
     logP = log_transition_matrix(hmm, par)
     emissions = [emission_distribution(hmm, s, par) for s in 1:S]
+    obs_logdensity = [logdensityof(emissions[s], obs_sequence[t]) for s in 1:S, t in 1:T]
 
     # Initialization
-    o₁ = obs_sequence[1]
-    obs_logdensity = [logdensityof(emissions[s], o₁) for s in 1:S]
-    logα = logp0 .+ obs_logdensity
+    logα = logp0 .+ @view obs_logdensity[:, 1]
 
     # Recursion
     for t in 1:(T - 1)
-        oₜ₊₁ = obs_sequence[t + 1]
-        obs_logdensity = [logdensityof(emissions[s], oₜ₊₁) for s in 1:S]
-        logα = [
-            logsumexp(logP[i, j] + logα[i] for i in 1:S) + obs_logdensity[j] for j in 1:S
-        ]
+        logα = (
+            dropdims(logsumexp(logP .+ logα; dims=1); dims=1) .+
+            @view obs_logdensity[:, t + 1]
+        )
     end
 
     @assert !any(isnan, logα)

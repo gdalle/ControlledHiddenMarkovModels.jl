@@ -38,7 +38,7 @@ rand_trans_mat(n::Integer) = rand_trans_mat(GLOBAL_RNG, n)
 
 Scale `P` into a transition (stochastic) matrix.
 """
-function make_trans_mat!(P::Matrix)
+function make_trans_mat!(P::AbstractMatrix)
     @views for s in axes(P, 1)
         rowsum = sum(P[s, :])
         P[s, :] .*= inv(rowsum)
@@ -46,8 +46,8 @@ function make_trans_mat!(P::Matrix)
     return P
 end
 
-function make_trans_mat(P::Matrix)
-    rowsums = sum(P, dims=2)
+function make_trans_mat(P::AbstractMatrix)
+    rowsums = sum(P; dims=2)
     return P .* inv.(rowsums)
 end
 
@@ -56,14 +56,14 @@ end
 
 Scale `logP` so that `exp.(logP)` becomes a transition (stochastic) matrix.
 """
-function make_log_trans_mat!(logP::Matrix)
+function make_log_trans_mat!(logP::AbstractMatrix)
     @views for s in axes(logP, 1)
         logP[s, :] .-= logsumexp(logP[s, :])
     end
     return logP
 end
 
-function make_log_trans_mat(logP::Matrix)
+function make_log_trans_mat(logP::AbstractMatrix)
     rowlogsumexps = [logsumexp(row) for row in eachrow(logP)]
     return logP .- rowlogsumexps
 end

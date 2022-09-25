@@ -1,4 +1,4 @@
-module ControlledHMMTest
+module ControlledTest
 
 using ComponentArrays
 using ControlledHiddenMarkovModels
@@ -6,6 +6,7 @@ using Distributions
 using ForwardDiff
 using LinearAlgebra
 using Optimization
+using OptimizationOptimisers
 using OptimizationOptimJL
 using Random
 using Statistics
@@ -21,57 +22,23 @@ struct ControlledNormalHMM <: AbstractControlledHMM end
 CHMMs.nb_states(::ControlledNormalHMM, par) = length(par.logp0)
 
 function CHMMs.initial_distribution(::ControlledNormalHMM, par)
-    p0 = exp.(par.logp0)
-    make_prob_vec!(p0)
-    return p0
+    return make_prob_vec(exp.(par.logp0))
 end
 
 function CHMMs.log_initial_distribution(::ControlledNormalHMM, par)
-    logp0 = copy(par.logp0)
-    make_log_prob_vec!(logp0)
-    return logp0
-end
-
-function CHMMs.transition_matrix!(P::AbstractMatrix, ::ControlledNormalHMM, control, par)
-    P .= exp.(par.logP)
-    make_trans_mat!(P)
-    return P
-end
-
-function CHMMs.log_transition_matrix!(
-    logP::AbstractMatrix, ::ControlledNormalHMM, control, par
-)
-    logP .= par.logP
-    make_log_trans_mat!(logP)
-    return logP
+    return make_log_prob_vec(par.logp0)
 end
 
 function CHMMs.transition_matrix(::ControlledNormalHMM, control, par)
-    P = exp.(par.logP)
-    make_trans_mat!(P)
-    return P
+    return make_trans_mat(exp.(par.logP))
 end
 
 function CHMMs.log_transition_matrix(::ControlledNormalHMM, control, par)
-    logP = copy(par.logP)
-    make_log_trans_mat!(logP)
-    return logP
+    return make_log_trans_mat(par.logP)
 end
 
-function CHMMs.emission_parameters!(
-    θ::AbstractVector, hmm::ControlledNormalHMM, control, par
-)
-    mul!(θ.μ, par.μ_weights, control)
-    mul!(θ.logσ, par.logσ_weights, control)
-    return θ
-end
-
-function CHMMs.emission_parameters(hmm::ControlledNormalHMM, control, par)
-    θ = ComponentVector(;
-        μ=Vector{eltype(par.μ_weights)}(undef, nb_states(hmm, par)),
-        logσ=Vector{eltype(par.logσ_weights)}(undef, nb_states(hmm, par)),
-    )
-    CHMMs.emission_parameters!(θ, hmm, control, par)
+function CHMMs.emission_parameters(::ControlledNormalHMM, control, par)
+    θ = (μ=par.μ_weights * control, logσ=par.logσ_weights * control)
     return θ
 end
 
@@ -120,15 +87,13 @@ function loss(par, data; safe=true)
     )
 end
 
-l0 = loss(par_init, data; safe=0)
-l1 = loss(par_init, data; safe=1)
-l2 = loss(par_init, data; safe=2)
-@test l0 ≈ l1
-@test l0 ≈ l2
+l1 = loss(par_init, data; safe=false)
+l2 = loss(par_init, data; safe=true)
+@test l1 ≈ l2
 
-f = OptimizationFunction(loss, Optimization.AutoForwardDiff())
+f = OptimizationFunction(loss, Optimization.AutoZygote())
 prob = OptimizationProblem(f, par_init, data)
-res = solve(prob, OptimizationOptimJL.LBFGS();)
+res = solve(prob, OptimizationOptimisers.Adam(); maxiters=100)
 par_est = res.u
 
 ## Testing

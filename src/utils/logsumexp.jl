@@ -27,9 +27,10 @@ logsumexp_stream(a::AbstractArray{T}) where {T} = logsumexp_stream(T, a)
 
 logsumexp_stream(a) = logsumexp_stream(typeof(first(a)), a)
 
-function logsumexp_offline(a)
-    m = maximum(a)
-    return m + log(sum(exp(x - m) for x in a))
+function logsumexp_offline(a; dims=:)
+    m = maximum(a; dims=dims)
+    lse = log.(sum(exp, a .- m; dims=dims))
+    return m .+ lse
 end
 
 """
@@ -37,4 +38,4 @@ end
 
 Use [`logsumexp_offline`](@ref) to compute the logsumexp of an iterable `a`.
 """
-logsumexp(a) = logsumexp_offline(a)
+logsumexp(a; dims=:) = logsumexp_offline(a; dims=dims)

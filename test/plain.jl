@@ -1,4 +1,4 @@
-module HMMNormalTest
+module PlainTest
 
 using ControlledHiddenMarkovModels
 using LogarithmicNumbers

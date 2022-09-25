@@ -38,12 +38,12 @@ rand_prob_vec(n::Integer) = rand_prob_vec(GLOBAL_RNG, n)
 
 Scale `p` into a probability distribution vector.
 """
-function make_prob_vec!(p::Vector)
+function make_prob_vec!(p::AbstractVector)
     p .*= inv(sum(p))
     return p
 end
 
-function make_prob_vec(p::Vector)
+function make_prob_vec(p::AbstractVector)
     return p .* inv(sum(p))
 end
 
@@ -52,11 +52,11 @@ end
 
 Shift `logp` so that `exp.(logp)` becomes a probability distribution vector.
 """
-function make_log_prob_vec!(logp::Vector)
+function make_log_prob_vec!(logp::AbstractVector)
     logp .-= logsumexp(logp)
     return logp
 end
 
-function make_log_prob_vec(logp::Vector)
+function make_log_prob_vec(logp::AbstractVector)
     return logp .- logsumexp(logp)
 end
