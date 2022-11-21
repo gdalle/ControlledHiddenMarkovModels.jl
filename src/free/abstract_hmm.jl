@@ -10,16 +10,11 @@ Interface for Hidden Markov Models with arbitrary emissions.
 - [`transition_matrix(hmm, par)`](@ref)
 - [`emission_distribution(hmm, s, par)`](@ref)
 
-# Optional methods
-
-- [`log_initial_distribution(hmm, par)`](@ref)
-- [`log_transition_matrix(hmm, par)`](@ref)
-
 # Compatible with
 
 - [`rand(rng, hmm, T, par)`](@ref)
-- [`logdensityof(hmm, obs_sequence, par; safe)`](@ref)
-- [`infer_current_state(hmm, obs_sequence, par; safe)`](@ref)
+- [`logdensityof(hmm, obs_sequence, par)`](@ref)
+- [`infer_current_state(hmm, obs_sequence, par)`](@ref)
 """
 abstract type AbstractHiddenMarkovModel end
 
@@ -51,30 +46,12 @@ function initial_distribution(hmm::H, par) where {H<:AbstractHMM}
 end
 
 """
-    log_initial_distribution(hmm::AbstractHMM, par)
-
-Compute the vector of initial state probabilities _in log scale_ for `hmm` with parameters `par`.
-"""
-function log_initial_distribution(hmm::H, par) where {H<:AbstractHMM}
-    return log.(initial_distribution(hmm, par))
-end
-
-"""
     transition_matrix(hmm::AbstractHMM, par)
 
 Compute the state transition matrix for `hmm` with parameters `par`.
 """
 function transition_matrix(hmm::H, par) where {H<:AbstractHMM}
     return error("Not implemented for type $H")
-end
-
-"""
-    log_transition_matrix(hmm::AbstractHMM, par)
-
-Compute the state transition matrix _in log scale_ for `hmm` with parameters `par`.
-"""
-function log_transition_matrix(hmm::H, par) where {H<:AbstractHMM}
-    return log.(transition_matrix(hmm, par))
 end
 
 """
@@ -86,4 +63,24 @@ The object returned must be sampleable and implement [DensityInterface.jl](https
 """
 function emission_distribution(hmm::H, s, par) where {H<:AbstractHMM}
     return error("Not implemented for type $H")
+end
+
+## Optional
+
+"""
+    log_initial_distribution(hmm::AbstractHMM, par)
+
+Compute the vector of initial state probabilities _in log scale_ for `hmm` with parameters `par`.
+"""
+function log_initial_distribution(hmm::H, par) where {H<:AbstractHMM}
+    return log.(initial_distribution(hmm, par))
+end
+
+"""
+    log_transition_matrix(hmm::AbstractHMM, par)
+
+Compute the state transition matrix _in log scale_ for `hmm` with parameters `par`.
+"""
+function log_transition_matrix(hmm::H, par) where {H<:AbstractHMM}
+    return log.(transition_matrix(hmm, par))
 end

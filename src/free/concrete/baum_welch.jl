@@ -1,17 +1,32 @@
-function baum_welch_multiple_sequences!(
-    od_storage::AnyObsDensityStorage,
-    fb_storage::AnyForwardBackwardStorage{R},
-    obs_sequences::AbstractVector{<:AbstractVector},
-    hmm_init::H,
-    par;
-    maxiter,
-    tol,
-) where {R,H<:HMM}
+"""
+    baum_welch(obs_sequences, hmm_init::HMM[, par; maxiter, tol])
+
+Apply the Baum-Welch algorithm on multiple observation sequences, starting from an initial [`HMM`](@ref) `hmm_init` with parameters `par` (not modifed).
+"""
+function baum_welch(
+    obs_sequences, hmm_init::H, par=nothing; maxiter=100, tol=1e-5
+) where {H<:HMM}
+    ## Initialization
     hmm = hmm_init
-    logL_evolution = float(R)[]
+    p0 = initial_distribution(hmm, par)
+    P = transition_matrix(hmm, par)
+    obs_densities = [
+        initialize_obs_density(obs_sequence, hmm, par) for obs_sequence in obs_sequences
+    ]
+    fb_storage = [
+        initialize_forward_backward(obs_density, p0, P) for obs_density in obs_densities
+    ]
+    logL_evolution = Float64[]
+    ## EM iterations
     for iteration in 1:maxiter
-        update_obs_densities_generic!(od_storage, obs_sequences, hmm, par)
-        logL = forward_backward_generic!(fb_storage, od_storage, hmm, par)
+        logL = 0.0
+        for k in eachindex(obs_sequences, obs_densities, fb_storage)
+            obs_sequence = obs_sequences[k]
+            obs_density = obs_densities[k]
+            (; α, c, β, eβ, γ, ξ) = fb_storage[k]
+            update_obs_density!(obs_density, obs_sequence, hmm, par)
+            logL += forward_backward!(α, c, β, eβ, γ, ξ, obs_density, p0, P)
+        end
         push!(logL_evolution, logL)
 
         p0 = initial_distribution(fb_storage)
@@ -28,85 +43,27 @@ function baum_welch_multiple_sequences!(
     return hmm, logL_evolution
 end
 
-"""
-    baum_welch_nolog(obs_sequences, hmm_init::HMM[, par; maxiter, tol])
-
-Apply the Baum-Welch algorithm on multiple observation sequences, starting from an initial [`HMM`](@ref) `hmm_init` with parameters `par` (not modifed).
-"""
-function baum_welch_nolog(
-    obs_sequences::AbstractVector{<:AbstractVector},
-    hmm_init::HMM,
-    par=nothing;
-    maxiter=100,
-    tol=1e-5,
-)
-    od_storage = initialize_obs_densities(obs_sequences, hmm_init, par)
-    fb_storage = initialize_forward_backward(od_storage)
-    result = baum_welch_multiple_sequences!(
-        od_storage, fb_storage, obs_sequences, hmm_init, par; maxiter=maxiter, tol=tol
-    )
-    return result
+function initial_distribution(fb_storage)
+    @views p0 = Vector(reduce(+, fb_storage[k].γ[:, 1] for k in eachindex(fb_storage)))
+    p0 ./= sum(p0)
+    @assert !any(isnan, p0)
+    return p0
 end
 
-"""
-    baum_welch_log(obs_sequences, hmm_init::HMM[, par; maxiter, tol])
-
-Apply the Baum-Welch algorithm _partly in log scale_ on multiple observation sequences, starting from an initial [`HMM`](@ref) `hmm_init` with parameters `par` (not modifed).
-"""
-function baum_welch_log(
-    obs_sequences::AbstractVector{<:AbstractVector},
-    hmm_init::HMM,
-    par=nothing;
-    maxiter=100,
-    tol=1e-5,
-)
-    log_od_storage = initialize_obs_logdensities(obs_sequences, hmm_init, par)
-    fb_storage = initialize_forward_backward(log_od_storage)
-    result = baum_welch_multiple_sequences!(
-        log_od_storage, fb_storage, obs_sequences, hmm_init, par; maxiter=maxiter, tol=tol
+function transition_matrix(fb_storage)
+    P = reduce(
+        +, dropdims(sum(fb_storage[k].ξ; dims=3); dims=3) for k in eachindex(fb_storage)
     )
-    return result
+    P ./= sum(P; dims=2)
+    @assert !any(isnan, P)
+    return P
 end
 
-"""
-    baum_welch_doublelog(obs_sequences, hmm_init::HMM[, par; maxiter, tol])
-
-Apply the Baum-Welch algorithm _fully in log scale_ on multiple observation sequences, starting from an initial [`HMM`](@ref) `hmm_init` with parameters `par` (not modifed).
-"""
-function baum_welch_doublelog(
-    obs_sequences::AbstractVector{<:AbstractVector},
-    hmm_init::HMM,
-    par=nothing;
-    maxiter=100,
-    tol=1e-5,
-)
-    log_od_storage = initialize_obs_logdensities(obs_sequences, hmm_init, par)
-    log_fb_storage = initialize_forward_backward_log(log_od_storage)
-    result = baum_welch_multiple_sequences!(
-        log_od_storage,
-        log_fb_storage,
-        obs_sequences,
-        hmm_init,
-        par;
-        maxiter=maxiter,
-        tol=tol,
-    )
-    return result
-end
-
-function baum_welch(
-    obs_sequences::AbstractVector{<:AbstractVector},
-    hmm_init::HMM,
-    par=nothing;
-    maxiter=100,
-    tol=1e-5,
-    safe=2,
-)
-    if safe == 0
-        return baum_welch_nolog(obs_sequences, hmm_init, par; maxiter=maxiter, tol=tol)
-    elseif safe == 1
-        return baum_welch_log(obs_sequences, hmm_init, par; maxiter=maxiter, tol=tol)
-    elseif safe == 2
-        return baum_welch_doublelog(obs_sequences, hmm_init, par; maxiter=maxiter, tol=tol)
-    end
+function emission_distribution(
+    ::Type{H}, fb_storage, obs_sequences, s
+) where {H<:AbstractHMM}
+    D = emission_type(H)
+    xs = (obs_sequences[k] for k in eachindex(obs_sequences))
+    ws = (fb_storage[k].γ[s, :] for k in eachindex(fb_storage))
+    return fit_mle_from_multiple_sequences(D, xs, ws)
 end

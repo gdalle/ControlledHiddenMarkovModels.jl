@@ -20,18 +20,14 @@ using Random: AbstractRNG, GLOBAL_RNG, rand
 include("utils/prob_vec.jl")
 include("utils/trans_mat.jl")
 include("utils/overflow.jl")
-include("utils/suffstats.jl")
+include("utils/mynormal.jl")
 include("utils/logsumexp.jl")
 
 include("free/abstract_hmm.jl")
 include("free/simulation.jl")
 include("free/obs_density.jl")
-include("free/storage.jl")
-include("free/forward_light.jl")
-include("free/forward.jl")
-include("free/backward.jl")
 include("free/forward_backward.jl")
-include("free/re_estimation.jl")
+include("free/forward_light.jl")
 include("free/inference.jl")
 
 include("free/concrete/hmm.jl")
@@ -46,9 +42,12 @@ export CHMMs
 
 export logdensityof
 
-export is_prob_vec, rand_prob_vec, make_prob_vec!, make_log_prob_vec!
-export is_trans_mat, rand_trans_mat, make_trans_mat!, make_log_trans_mat!
-export logsumexp
+export is_prob_vec, rand_prob_vec
+export make_prob_vec!, make_prob_vec
+export make_log_prob_vec!, make_log_prob_vec
+export is_trans_mat, rand_trans_mat
+export make_trans_mat!, make_trans_mat
+export make_log_trans_mat!, make_log_trans_mat
 
 export AbstractHiddenMarkovModel, AbstractHMM
 export nb_states
@@ -58,7 +57,7 @@ export emission_distribution
 export infer_current_state
 
 export HiddenMarkovModel, HMM
-export baum_welch, baum_welch_nolog, baum_welch_log, baum_welch_doublelog
+export baum_welch
 export emission_type
 
 export AbstractControlledHiddenMarkovModel, AbstractControlledHMM

@@ -4,9 +4,13 @@
 Compute the log likelihood of `obs_sequence` for `hmm` with parameters `par`.
 """
 function DensityInterface.logdensityof(
-    hmm::AbstractHMM, obs_sequence::AbstractVector, par=nothing; safe=2
+    hmm::AbstractHMM, obs_sequence, par=nothing; safe=true
 )
-    α, logL = light_forward(obs_sequence, hmm, par; safe=safe)
+    if safe
+        α, logL = light_forward_log(obs_sequence, hmm, par)
+    else
+        α, logL = light_forward(obs_sequence, hmm, par)
+    end
     return logL
 end
 
@@ -15,9 +19,11 @@ end
 
 Infer the posterior distribution of the current state given `obs_sequence` for `hmm` with parameters `par`.
 """
-function infer_current_state(
-    hmm::AbstractHMM, obs_sequence::AbstractVector, par=nothing; safe=false
-)
-    α, logL = light_forward(obs_sequence, hmm, par; safe=safe)
+function infer_current_state(hmm::AbstractHMM, obs_sequence, par=nothing; safe=false)
+    if safe
+        α, logL = light_forward_log(obs_sequence, hmm, par)
+    else
+        α, logL = light_forward(obs_sequence, hmm, par)
+    end
     return α
 end
