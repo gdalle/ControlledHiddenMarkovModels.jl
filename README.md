@@ -8,3 +8,6 @@
 A package for Hidden Markov Models with exogenous control variables.
 
 See the [documentation](https://gdalle.github.io/ControlledHiddenMarkovModels.jl/dev) for more details.
+
+> [!WARNING]
+> This package is deprecated and not actively maintained. Please use [HiddenMarkovModels.jl](https://github.com/gdalle/HiddenMarkovModels.jl) instead, which has a wider set of features. If you want to register a new package under the name ControlHiddenMarkovModels.jl, do reach out to me.
